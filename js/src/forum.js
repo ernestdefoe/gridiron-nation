@@ -13,16 +13,70 @@ import GridIronHero      from './forum/components/GridIronHero';
 
 app.initializers.add('ernestdefoe-fbsfb', () => {
 
-  // ── 1. Remove left sidebar ─────────────────────────────────────────────────
-  // IndexSidebar holds nav + new-discussion. We replace it with null and
-  // re-introduce the button in the toolbar and nav in the header.
-  override(IndexPage.prototype, 'sidebar', function () {
-    return null;
+  // ── 1. Always show the WelcomeHero ────────────────────────────────────────
+  // isHidden() returns true when no welcomeTitle is set — override to false.
+  extend(WelcomeHero.prototype, 'isHidden', function () {
+    return false;
   });
 
-  // ── 2. Header navigation ───────────────────────────────────────────────────
-  // HeaderPrimary.items() is the correct extension point for adding items to
-  // the primary header area. We inject a nav block with tag-based links.
+  // ── 2. Inject GridIronHero stats+chips INTO the WelcomeHero vnode ─────────
+  // WelcomeHero.view() returns <header class="Hero WelcomeHero">
+  //   <div class="container">...</div>
+  // </header>
+  // We push GridIronHero into .container so it appears as a flex sibling
+  // to the title/subtitle, placed on the right by justify-content: space-between.
+  // NOTE: WelcomeHero has no bodyItems() in Flarum 2 — vnode mutation is safe.
+  extend(WelcomeHero.prototype, 'view', function (vnode) {
+    if (!vnode) return; // hero returned null (would be hidden)
+    try {
+      // vnode         = <header class="Hero WelcomeHero">
+      // vnode.children[0] = <div class="container"> (or only child)
+      const children  = Array.isArray(vnode.children) ? vnode.children : [vnode.children];
+      const container = children[0];
+      if (!container) return;
+
+      if (Array.isArray(container.children)) {
+        container.children.push(m(GridIronHero));
+      } else {
+        container.children = [container.children, m(GridIronHero)].filter(Boolean);
+      }
+    } catch (e) {
+      // Structure didn't match — skip hero extras silently.
+    }
+  });
+
+  // ── 3. Inject right widget sidebar via IndexPage view() vnode mutation ─────
+  // IndexPage.view() renders:
+  //   div.IndexPage
+  //     {hero}                                   ← children[0]
+  //     div.container                            ← children[1]
+  //       div.sideNavContainer
+  //         nav.IndexPage-nav.sideNav            ← left nav (hidden via CSS)
+  //         div.IndexPage-results.sideNavOffset  ← main content
+  //
+  // We push .GN-widgetSidebar as a 3rd child of .sideNavContainer.
+  // CSS (flexbox on .sideNavContainer) places it to the right of .IndexPage-results.
+  // NOTE: IndexPage has no contentItems() in Flarum 2 — vnode mutation is correct.
+  extend(IndexPage.prototype, 'view', function (vnode) {
+    try {
+      // children[1] = div.container, .children[0] = div.sideNavContainer
+      const sideNavContainer = vnode.children[1].children[0];
+      if (!Array.isArray(sideNavContainer.children)) return;
+      sideNavContainer.children.push(
+        m('.GN-widgetSidebar', [
+          m(LiveScoresWidget),
+          m(TrendingWidget),
+          m(TopRecruitsWidget),
+          m(OnlineNowWidget),
+        ])
+      );
+    } catch (e) {
+      // Structure didn't match — skip widget sidebar silently.
+    }
+  });
+
+  // ── 4. Header navigation ──────────────────────────────────────────────────
+  // HeaderPrimary.items() is the correct extension point for header nav.
   extend(HeaderPrimary.prototype, 'items', function (items) {
     const tags = (app.store.all('tags') || [])
       .filter((t) => !t.attribute('parentId'))
@@ -49,8 +103,8 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
     );
   });
 
-  // ── 3. "Start a Discussion" button in toolbar ──────────────────────────────
-  // actionItems() populates the right side of the IndexPage toolbar.
+  // ── 5. "Start a Discussion" button in toolbar ─────────────────────────────
+  // actionItems() exists in IndexPage — safe to extend.
   extend(IndexPage.prototype, 'actionItems', function (items) {
     if (!app.session.user) return;
 
@@ -62,30 +116,8 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
             { user: app.session.user }
           ).then(() => app.composer.show());
         },
-      }, [m('i.fas.fa-pencil-alt'), '  Start a Discussion']),
+      }, [m('i.fas.fa-pencil-alt'), ' Start a Discussion']),
       100
     );
-  });
-
-  // ── 4. Right widget sidebar ────────────────────────────────────────────────
-  extend(IndexPage.prototype, 'contentItems', function (items) {
-    items.add('gn-widgets',
-      m('.GN-widgetSidebar', [
-        m(LiveScoresWidget),
-        m(TrendingWidget),
-        m(TopRecruitsWidget),
-        m(OnlineNowWidget),
-      ]),
-      -100
-    );
-  });
-
-  // ── 5. Hero: always visible + stats bar + chips ────────────────────────────
-  extend(WelcomeHero.prototype, 'isHidden', function () {
-    return false;
-  });
-
-  extend(WelcomeHero.prototype, 'bodyItems', function (items) {
-    items.add('gn-extras', m(GridIronHero), 50);
   });
 });

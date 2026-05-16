@@ -909,42 +909,46 @@ a.GN-online-row {
 }
 
 // ── Right widget sidebar (IndexPage) ─────────────────────────────────────────
-// .GN-widgetSidebar is added via IndexPage.contentItems() at priority -100
-// so it's the last item in .Page-content. CSS Grid creates two columns.
+// Flarum 2's IndexPage renders:
+//   div.IndexPage > div.container > div.sideNavContainer >
+//     [nav.IndexPage-nav.sideNav, div.IndexPage-results.sideNavOffset]
 //
-// The critical rule is `> * { grid-column: 1 }` which forces EVERY child
-// (toolbar, discussion list, etc.) into column 1, preventing CSS grid
-// auto-placement from spilling into the widget column. The widget sidebar
-// then overrides to column 2 with a higher-specificity selector.
+// We hide the left nav (moved to header) and inject .GN-widgetSidebar as
+// a 3rd flex item in .sideNavContainer via vnode mutation in forum.js.
 
-.IndexPage .Page-content {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 0 1.5rem;
-  align-items: start;
+// Hide the left nav — tag links live in the header now.
+.IndexPage .IndexPage-nav.sideNav {
+  display: none;
+}
 
-  // Force ALL content children into column 1 so auto-placement never
-  // touches column 2 (the widget slot).
-  > * {
-    grid-column: 1;
-  }
+// Reset the left margin that .sideNavOffset uses to clear the sideNav.
+.IndexPage .IndexPage-results.sideNavOffset {
+  margin-left: 0 !important;
+  flex: 1;
+  min-width: 0;
+}
 
-  // Widget sidebar gets column 2 — higher specificity wins over > * above.
-  > .GN-widgetSidebar {
-    grid-column: 2;
-    grid-row: 1;
-    position: sticky;
-    top: 1rem;
-  }
+// Make .sideNavContainer a flex row so the widget sidebar sits to the right.
+.IndexPage .sideNavContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+// Widget sidebar — rightmost flex item, sticky.
+.IndexPage .GN-widgetSidebar {
+  width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 1rem;
 }
 
 @media (max-width: 900px) {
-  .IndexPage .Page-content {
-    grid-template-columns: 1fr;
-
-    > .GN-widgetSidebar {
-      display: none;
-    }
+  .IndexPage .GN-widgetSidebar {
+    display: none;
+  }
+  .IndexPage .IndexPage-results.sideNavOffset {
+    margin-left: 0 !important;
   }
 }
 
