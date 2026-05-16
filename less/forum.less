@@ -825,6 +825,34 @@ a.GN-online-row {
   &:hover { text-decoration: none; color: inherit; }
 }
 
+// ── Right widget sidebar (IndexPage) ─────────────────────────────────────────
+// .GN-widgetSidebar is injected by forum.js as an extra child inside
+// PageStructure's .Page-content. CSS Grid gives it a fixed 280 px right
+// column while the toolbar and discussion list auto-flow into the left column.
+
+.IndexPage .Page-content {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 0 1.5rem;
+  align-items: start;
+}
+
+.GN-widgetSidebar {
+  grid-column: 2;
+  grid-row: 1 / 100;   // span all auto-created rows so it stays full-height
+  position: sticky;
+  top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .IndexPage .Page-content {
+    grid-template-columns: 1fr;
+  }
+  .GN-widgetSidebar {
+    display: none;
+  }
+}
+
 // ============================================================
 // DARK MODE — MUST remain at the very end of this file.
 // Placing it earlier lets light-mode rules of equal specificity
