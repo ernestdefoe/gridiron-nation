@@ -2,3 +2,31 @@ ernestdefoe-fbsfb:
   admin:
     settings:
       title: GridIron Nation Theme
+    recruits:
+      title: Top Recruits
+      add: Add Recruit
+      edit: Edit Recruit
+      name: Name
+      position: Position
+      height: Height
+      hometown: Hometown
+      stars: Stars (1–5)
+      status: Commit Status
+      school: School
+      sort_order: Sort Order
+      save: Save Changes
+      cancel: Cancel
+      delete_confirm: "Delete this recruit?"
+      committed: Committed
+      undecided: Undecided
+      decommitted: Decommitted
+  forum:
+    widgets:
+      live_scores: Live Scores
+      no_games: No games today
+      trending: Trending
+      no_discussions: No discussions yet
+      recruits: Top Recruits
+      no_recruits: No recruits added yet
+      online_now: Online Now
+      no_online: No one online right now

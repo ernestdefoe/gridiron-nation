@@ -12,3 +12,80 @@
   background: #B22222;
   &:hover { background: #8B0000; }
 }
+
+// ── Recruits admin page ───────────────────────────────────────────────────────
+.RecruitsAdminPage {
+  max-width: 760px;
+
+  h2 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+}
+
+.GN-adminForm {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+
+  .Form-group { margin: 0; }
+
+  label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+    color: #5f6070;
+  }
+
+  &-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    margin-top: 0.5rem;
+  }
+}
+
+.GN-recruitsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.88rem;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  th {
+    font-weight: 700;
+    background: #f8f8fa;
+    color: #5f6070;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr.is-deleting { opacity: 0.4; pointer-events: none; }
+
+  .Button--danger {
+    background: #fff0f0;
+    color: #B22222;
+    border: 1px solid rgba(178,34,34,0.2);
+
+    &:hover { background: #B22222; color: #fff; }
+  }
+}

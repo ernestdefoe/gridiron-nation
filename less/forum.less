@@ -651,6 +651,91 @@ select {
   }
 }
 
+// ── Widget shared utility classes ─────────────────────────────────────────────
+
+.GN-widget-loading {
+  padding: 1.5rem;
+  text-align: center;
+  color: @gn-muted;
+  font-size: 1.2rem;
+}
+
+.GN-widget-empty {
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: @gn-muted;
+  font-style: italic;
+}
+
+// ── Scorecard layout refinements ──────────────────────────────────────────────
+
+.GN-scorecard-abbr {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  flex: 1;
+}
+
+.GN-scorecard-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 50px;
+}
+
+.GN-scorecard-detail {
+  font-size: 0.70rem;
+  color: @gn-muted;
+  text-align: center;
+  font-weight: 600;
+}
+
+// ── Trending link reset ───────────────────────────────────────────────────────
+
+a.GN-trending-item {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 14px;
+  transition: background @gn-transition;
+
+  &:hover {
+    background: @gn-surface;
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
+// ── Online Now refinements ────────────────────────────────────────────────────
+
+.GN-online-count {
+  font-weight: 400;
+  color: @gn-muted;
+}
+
+.GN-online-initial {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: @gn-primary;
+}
+
+a.GN-online-row {
+  text-decoration: none;
+  color: inherit;
+
+  &:hover { text-decoration: none; color: inherit; }
+}
+
 // ============================================================
 // DARK MODE — MUST remain at the very end of this file.
 // Placing it earlier lets light-mode rules of equal specificity
