@@ -124,23 +124,112 @@ body,
   }
 }
 
-// Hero search bar inside header
+// ── Hero — targets Flarum 2's actual .Hero / .IndexPage-hero classes ──────────
+.Hero.IndexPage-hero,
 .IndexPage-hero {
   background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
   color: #fff;
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 1.5rem 1.5rem;
   border-radius: 0;
+  position: relative;
+  overflow: hidden;
 
-  .IndexPage-heroText {
+  // Subtle texture overlay
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  // Flarum's actual hero title class
+  .Hero-title,
+  h2 {
     font-family: 'DM Sans', sans-serif;
     font-weight: 800;
     font-size: 2rem;
     color: #fff;
+    margin-bottom: 0.35rem;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   }
 
-  .IndexPage-heroSubtext {
+  // Flarum's actual hero subtitle class
+  .Hero-subtitle,
+  p {
     color: rgba(255, 255, 255, 0.85);
     font-size: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 0;
+  }
+}
+
+// ── Hero extras injected by GridIronHero.js ───────────────────────────────────
+.GN-hero-extras {
+  position: relative;
+  z-index: 1;
+  margin-top: 1.25rem;
+}
+
+.GN-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 1rem;
+}
+
+.GN-hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-right: 1.5rem;
+}
+
+.GN-hero-statNum {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.GN-hero-statLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+.GN-hero-statDivider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.25);
+  margin: 0 1.25rem 0 0;
+}
+
+.GN-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.GN-hero-chip {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background @gn-transition, border-color @gn-transition;
+
+  &:hover,
+  &.is-active {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.50);
   }
 }
 
@@ -788,8 +877,18 @@ a.GN-online-row {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.60);
   }
 
+  .Hero.IndexPage-hero,
   .IndexPage-hero {
     background: linear-gradient(135deg, rgba(120, 10, 10, 0.97) 0%, rgba(30, 2, 2, 0.99) 100%);
+  }
+
+  .GN-hero-chip {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.18);
+
+    &:hover, &.is-active {
+      background: rgba(255, 255, 255, 0.20);
+    }
   }
 
   .FormControl,
