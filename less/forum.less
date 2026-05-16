@@ -124,6 +124,56 @@ body,
   }
 }
 
+// ── GN Header Navigation (injected via HeaderPrimary.items()) ─────────────────
+.GN-headerNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0 8px;
+}
+
+.GN-headerNav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: @gn-secondary;
+  border-radius: @gn-radius-sm;
+  text-decoration: none;
+  transition: background @gn-transition, color @gn-transition;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(@gn-primary, 0.08);
+    color: @gn-primary;
+    text-decoration: none;
+  }
+
+  &.active {
+    color: @gn-primary;
+    font-weight: 700;
+    background: rgba(@gn-primary, 0.06);
+  }
+}
+
+// ── "Start a Discussion" toolbar button ───────────────────────────────────────
+.GN-startDiscBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: @gn-radius-sm;
+  cursor: pointer;
+
+  .fas { font-size: 0.8rem; }
+}
+
 // ── Hero — Flarum 2 renders WelcomeHero as .Hero.WelcomeHero ─────────────────
 // Also keep .IndexPage-hero for any other themes/overrides.
 .Hero.WelcomeHero,
@@ -775,7 +825,23 @@ select {
 
 // ── Scorecard layout refinements ──────────────────────────────────────────────
 
+.GN-scorecard-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
 .GN-scorecard-abbr {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  flex: 1;
+}
+
+// Team abbreviation label (always shown, optionally alongside logo img)
+.GN-scorecard-name {
   font-family: 'DM Sans', sans-serif;
   font-weight: 700;
   font-size: 0.82rem;
@@ -884,34 +950,36 @@ a.GN-online-row {
 
 // ============================================================
 // DARK MODE — MUST remain at the very end of this file.
-// Placing it earlier lets light-mode rules of equal specificity
-// win the cascade when both blocks are in the same stylesheet.
+//
+// Applied in TWO ways:
+//   1. @media (prefers-color-scheme: dark) — system dark mode
+//   2. body.App--dark-mode                 — Flarum admin dark toggle
+//
+// CSS custom properties are set on body so they cascade to all
+// children (same effect as :root, sufficient for our use-case).
 // ============================================================
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary-color:       #e05c5c;
-    --primary-color-dark:  #c03030;
-    --primary-color-light: #f08080;
 
-    --body-bg:       #0c0d10;
-    --control-bg:    #111318;
-    --border-color:  rgba(255, 255, 255, 0.055);
+// Shared dark-mode mixin (called twice below)
+.gn-dark-theme() {
+  --primary-color:       #e05c5c;
+  --primary-color-dark:  #c03030;
+  --primary-color-light: #f08080;
 
-    --body-color:    #dddee8;
-    --muted-color:   #484956;
-    --heading-color: #dddee8;
-    --link-color:    #e05c5c;
-    --link-hover-color: #f08080;
+  --body-bg:       #0c0d10;
+  --control-bg:    #111318;
+  --border-color:  rgba(255, 255, 255, 0.055);
 
-    --text-color:      var(--body-color);
-    --text-secondary:  #7e7f92;
-  }
+  --body-color:    #dddee8;
+  --muted-color:   #484956;
+  --heading-color: #dddee8;
+  --link-color:    #e05c5c;
+  --link-hover-color: #f08080;
 
-  body,
-  .App {
-    background: #0c0d10;
-    color: #dddee8;
-  }
+  --text-color:      var(--body-color);
+  --text-secondary:  #7e7f92;
+
+  background: #0c0d10;
+  color: #dddee8;
 
   .App-header {
     background: #13141a;
@@ -949,6 +1017,20 @@ a.GN-online-row {
     }
   }
 
+  .GN-headerNav-link {
+    color: #9fa0ab;
+
+    &:hover {
+      background: rgba(224, 92, 92, 0.10);
+      color: #e05c5c;
+    }
+
+    &.active {
+      background: rgba(224, 92, 92, 0.08);
+      color: #e05c5c;
+    }
+  }
+
   .FormControl,
   input[type="text"],
   input[type="email"],
@@ -981,6 +1063,8 @@ a.GN-online-row {
 
   .GN-widget-header { border-bottom-color: rgba(255, 255, 255, 0.055); }
 
+  .GN-scorecard-logo { filter: brightness(0.9); }
+
   .GN-scorecard:hover,
   .GN-trending-item:hover,
   .GN-recruit:hover,
@@ -1008,5 +1092,81 @@ a.GN-online-row {
 
   .GN-liveBadge {
     background: rgba(78, 196, 106, 0.10);
+  }
+}
+
+// ── 1. System dark mode ───────────────────────────────────────────────────────
+@media (prefers-color-scheme: dark) {
+  :root { // variables on :root for system media query
+    --primary-color:       #e05c5c;
+    --primary-color-dark:  #c03030;
+    --primary-color-light: #f08080;
+    --body-bg:       #0c0d10;
+    --control-bg:    #111318;
+    --border-color:  rgba(255, 255, 255, 0.055);
+    --body-color:    #dddee8;
+    --muted-color:   #484956;
+    --heading-color: #dddee8;
+    --link-color:    #e05c5c;
+    --link-hover-color: #f08080;
+    --text-color:      var(--body-color);
+    --text-secondary:  #7e7f92;
+  }
+
+  body, .App { .gn-dark-theme(); }
+}
+
+// ── 2. Flarum admin "Dark mode" toggle (adds body.App--dark-mode) ─────────────
+// CSS custom properties set on body cascade to all children.
+body.App--dark-mode {
+  .gn-dark-theme();
+}
+
+// ── 3. Explicit light-mode reset when Flarum forces light ────────────────────
+// Ensures the forum looks correct if system is dark but Flarum is set to Light.
+body.App--light-mode {
+  --primary-color:       @gn-primary;
+  --primary-color-dark:  @gn-primary-dark;
+  --primary-color-light: @gn-primary-light;
+  --body-bg:      @gn-bg;
+  --control-bg:   @gn-surface;
+  --border-color: @gn-border;
+  --body-color:   @gn-text;
+  --muted-color:  @gn-muted;
+  --heading-color:@gn-text;
+  --link-color:   @gn-primary;
+  --link-hover-color: @gn-primary-dark;
+  --text-color:      var(--body-color);
+  --text-secondary:  @gn-secondary;
+
+  background: @gn-bg;
+  color: @gn-text;
+
+  .App-header {
+    background: #fff;
+    border-bottom-color: @gn-border;
+    box-shadow: @gn-shadow-sm;
+  }
+
+  .DiscussionListItem,
+  .Post,
+  .Dropdown-menu,
+  .Modal-content,
+  .GN-widget {
+    background: @gn-card;
+    border-color: @gn-border;
+    box-shadow: @gn-shadow-sm;
+  }
+
+  .FormControl,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea,
+  select {
+    background: @gn-card;
+    border-color: @gn-border;
+    color: @gn-text;
   }
 }

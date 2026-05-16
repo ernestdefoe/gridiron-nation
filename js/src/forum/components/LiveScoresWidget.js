@@ -66,11 +66,13 @@ export default class LiveScoresWidget extends Component {
     return m('.GN-scorecard', { key: g.id }, [
       m('.GN-scorecard-teams', [
         m('.GN-scorecard-team', { class: g.awayWins ? 'is-winning' : '' }, [
-          m('span.GN-scorecard-abbr', g.away.abbr),
+          g.away.logo ? m('img.GN-scorecard-logo', { src: g.away.logo, alt: g.away.abbr }) : null,
+          m('span.GN-scorecard-name', g.away.abbr),
           m('span.GN-scorecard-score', g.away.score),
         ]),
         m('.GN-scorecard-team', { class: g.homeWins ? 'is-winning' : '' }, [
-          m('span.GN-scorecard-abbr', g.home.abbr),
+          g.home.logo ? m('img.GN-scorecard-logo', { src: g.home.logo, alt: g.home.abbr }) : null,
+          m('span.GN-scorecard-name', g.home.abbr),
           m('span.GN-scorecard-score', g.home.score),
         ]),
       ]),
