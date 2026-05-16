@@ -1,7 +1,7 @@
 import { Admin } from 'flarum/common/extenders';
-import RecruitsAdminPage from './admin/components/RecruitsAdminPage';
 
+// No saved settings — recruits are managed via their own API.
+// RecruitsAdminPage is injected into the extension page via sections() in admin.js.
 export default [
-  new Admin()
-    .setting(() => m(RecruitsAdminPage)),
+  new Admin(),
 ];
