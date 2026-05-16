@@ -1,6 +1,7 @@
 import app from 'flarum/forum/app';
 import { extend } from 'flarum/common/extend';
-import IndexPage from 'flarum/forum/components/IndexPage';
+import IndexSidebar from 'flarum/forum/components/IndexSidebar';
+import WelcomeHero  from 'flarum/forum/components/WelcomeHero';
 
 import LiveScoresWidget  from './forum/components/LiveScoresWidget';
 import TrendingWidget    from './forum/components/TrendingWidget';
@@ -11,34 +12,26 @@ import GridIronHero      from './forum/components/GridIronHero';
 app.initializers.add('ernestdefoe-fbsfb', () => {
 
   // ── Sidebar widgets ────────────────────────────────────────────────────────
-  extend(IndexPage.prototype, 'sidebarItems', function (items) {
+  // In Flarum 2 the sidebar lives in IndexSidebar.items(), not
+  // IndexPage.sidebarItems() (which no longer exists).
+  extend(IndexSidebar.prototype, 'items', function (items) {
     items.add('gn-live-scores',  m(LiveScoresWidget),  110);
     items.add('gn-trending',     m(TrendingWidget),    100);
     items.add('gn-recruits',     m(TopRecruitsWidget),  90);
     items.add('gn-online',       m(OnlineNowWidget),    80);
   });
 
-  // ── Hero extras: stats bar + conference tag chips ──────────────────────────
-  // Flarum 2's IndexPage renders hero() → WelcomeHero. We extend heroProps to
-  // inject our extras below the subtitle. If heroProps doesn't exist we fall
-  // back to extending the hero vnode directly.
-  try {
-    extend(IndexPage.prototype, 'hero', function (vnode) {
-      if (!vnode || !vnode.children) return;
-      // Append extras after existing hero children
-      if (Array.isArray(vnode.children)) {
-        vnode.children.push(m(GridIronHero));
-      } else {
-        // Hero children may be nested — find the inner container
-        const inner = vnode.children;
-        if (inner && inner.children) {
-          if (Array.isArray(inner.children)) {
-            inner.children.push(m(GridIronHero));
-          }
-        }
-      }
-    });
-  } catch (e) {
-    // Hero extension not critical — silently skip if structure differs
-  }
+  // ── Hero: always show + inject stats/chips ─────────────────────────────────
+  // WelcomeHero.isHidden() returns true when no welcomeTitle is set in admin,
+  // suppressing the entire hero. For a theme the hero is always desired.
+  extend(WelcomeHero.prototype, 'isHidden', function () {
+    return false;
+  });
+
+  // Inject our stats bar + conference chips into the hero body.
+  // bodyItems() priority 50 puts it below the content block (80) and
+  // dismiss button (100).
+  extend(WelcomeHero.prototype, 'bodyItems', function (items) {
+    items.add('gn-extras', m(GridIronHero), 50);
+  });
 });
