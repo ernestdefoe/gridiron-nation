@@ -85,6 +85,7 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
     items.add('gn-nav',
       m('nav.GN-headerNav', [
         m('a.GN-headerNav-link', {
+          key:     'gn-index',
           href:    app.route('index'),
           onclick: (e) => { e.preventDefault(); m.route.set(app.route('index')); },
         }, 'Discussions'),
