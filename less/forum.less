@@ -124,12 +124,14 @@ body,
   }
 }
 
-// ── Hero — targets Flarum 2's actual .Hero / .IndexPage-hero classes ──────────
+// ── Hero — Flarum 2 renders WelcomeHero as .Hero.WelcomeHero ─────────────────
+// Also keep .IndexPage-hero for any other themes/overrides.
+.Hero.WelcomeHero,
 .Hero.IndexPage-hero,
 .IndexPage-hero {
   background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
   color: #fff;
-  padding: 2.5rem 1.5rem 1.5rem;
+  padding: 2.5rem 0 1.5rem;
   border-radius: 0;
   position: relative;
   overflow: hidden;
@@ -141,6 +143,17 @@ body,
     inset: 0;
     background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     pointer-events: none;
+  }
+
+  // Two-column layout: title/subtitle LEFT, stats/chips RIGHT.
+  // WelcomeHero wraps bodyItems in .container — we make that a flex row.
+  > .container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+    padding-bottom: 1.5rem;
   }
 
   // Flarum's actual hero title class
@@ -165,15 +178,18 @@ body,
 }
 
 // ── Hero extras injected by GridIronHero.js ───────────────────────────────────
+// Sits on the RIGHT side of the hero (flex sibling to .containerNarrow).
 .GN-hero-extras {
   position: relative;
   z-index: 1;
-  margin-top: 1.25rem;
+  flex-shrink: 0;
+  text-align: right;
 }
 
 .GN-hero-stats {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0;
   margin-bottom: 1rem;
 }
@@ -181,8 +197,8 @@ body,
 .GN-hero-stat {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding-right: 1.5rem;
+  align-items: flex-end;   // right-align number + label within each stat
+  padding-left: 1.5rem;    // gap on the LEFT (between divider and stat)
 }
 
 .GN-hero-statNum {
@@ -205,12 +221,13 @@ body,
   width: 1px;
   height: 32px;
   background: rgba(255, 255, 255, 0.25);
-  margin: 0 1.25rem 0 0;
+  margin: 0 0 0 1.25rem;   // gap on the LEFT of the divider
 }
 
 .GN-hero-chips {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end; // chips align right
   gap: 6px;
 }
 
@@ -905,6 +922,7 @@ a.GN-online-row {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.60);
   }
 
+  .Hero.WelcomeHero,
   .Hero.IndexPage-hero,
   .IndexPage-hero {
     background: linear-gradient(135deg, rgba(120, 10, 10, 0.97) 0%, rgba(30, 2, 2, 0.99) 100%);
