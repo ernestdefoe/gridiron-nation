@@ -952,6 +952,22 @@ a.GN-online-row {
   }
 }
 
+// ── Social Groups: post menu button visibility ────────────────────────────────
+// The ⋯ button uses --muted-color which can be too low-contrast with our
+// palette (especially in dark mode).  Pin it to --body-color at ~50% so it
+// is always readable but still looks secondary.  The hover state restores full
+// opacity and adds a control-bg pill — identical to the extension's own intent.
+.SGThread-postMenuBtn {
+  color: var(--body-color);
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 1;
+    background: var(--control-bg);
+    color: var(--body-color);
+  }
+}
+
 // ============================================================
 // DARK MODE — MUST remain at the very end of this file.
 //
@@ -974,7 +990,7 @@ a.GN-online-row {
   --border-color:  rgba(255, 255, 255, 0.055);
 
   --body-color:    #dddee8;
-  --muted-color:   #484956;
+  --muted-color:   #9495a8;
   --heading-color: #dddee8;
   --link-color:    #e05c5c;
   --link-hover-color: #f08080;
@@ -1109,7 +1125,7 @@ a.GN-online-row {
     --control-bg:    #111318;
     --border-color:  rgba(255, 255, 255, 0.055);
     --body-color:    #dddee8;
-    --muted-color:   #484956;
+    --muted-color:   #9495a8;
     --heading-color: #dddee8;
     --link-color:    #e05c5c;
     --link-hover-color: #f08080;
