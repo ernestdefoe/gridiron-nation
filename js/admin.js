@@ -1,2 +1,2 @@
-export * from './src/admin';
-export { default } from './src/admin';
+export { default as extend } from './src/extend';
+import './src/admin';
