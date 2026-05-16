@@ -20,9 +20,6 @@ return [
 
     new Extend\Locales(__DIR__ . '/locale'),
 
-    // ── Database ──────────────────────────────────────────────────────────────
-    (new Extend\Migration(__DIR__ . '/migrations')),
-
     // ── API routes ───────────────────────────────────────────────────────────
     (new Extend\Routes('api'))
         // Phase 2 — Live Scores (ESPN proxy, CORS-safe, public)

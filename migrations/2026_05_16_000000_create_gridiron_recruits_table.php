@@ -3,13 +3,12 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\Builder;
 
-return new class {
-    public function up(Builder $schema): void
-    {
+return [
+    'up' => function (Builder $schema) {
         if ($schema->hasTable('gridiron_recruits')) return;
 
         $schema->create('gridiron_recruits', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
             $table->string('name');
             $table->string('position', 10)->nullable();
             $table->string('height', 20)->nullable();
@@ -20,10 +19,9 @@ return new class {
             $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
-    }
+    },
 
-    public function down(Builder $schema): void
-    {
+    'down' => function (Builder $schema) {
         $schema->dropIfExists('gridiron_recruits');
-    }
-};
+    },
+];
