@@ -22,7 +22,9 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
   // ── 2. Mount GridIronHero stats+chips INTO the hero's .container ──────────
   // WelcomeHero has no bodyItems() in Flarum 2. We use oncreate to append
   // a mount point into .container so our flex CSS places it on the right.
-  extend(WelcomeHero.prototype, 'oncreate', function (vnode) {
+  // extend() passes (returnValueOfOriginal, ...originalArgs) to the callback.
+  // oncreate(vnode) → callback receives (retVal, vnode) — retVal is first.
+  extend(WelcomeHero.prototype, 'oncreate', function (retVal, vnode) {
     const container = vnode.dom.querySelector('.container, .containerNarrow');
     if (!container) return;
     const el = document.createElement('div');
@@ -42,7 +44,9 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
   // IndexPage has no contentItems() in Flarum 2. We append .GN-widgetSidebar
   // to .sideNavContainer in oncreate. CSS flexbox (on .sideNavContainer)
   // places it to the right of .IndexPage-results.
-  extend(IndexPage.prototype, 'oncreate', function (vnode) {
+  // extend() passes (returnValueOfOriginal, ...originalArgs) to the callback.
+  // oncreate(vnode) → callback receives (retVal, vnode) — retVal is first.
+  extend(IndexPage.prototype, 'oncreate', function (retVal, vnode) {
     const sideNavContainer = vnode.dom.querySelector('.sideNavContainer');
     if (!sideNavContainer) return;
     const el = document.createElement('div');
