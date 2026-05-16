@@ -12,34 +12,28 @@ import GridIronHero      from './forum/components/GridIronHero';
 app.initializers.add('ernestdefoe-fbsfb', () => {
 
   // ── Right widget sidebar ───────────────────────────────────────────────────
-  // Flarum 2 has no built-in right sidebar on IndexPage. We inject a
-  // .GN-widgetSidebar as an extra PageStructure content child, then use
-  // CSS Grid on .Page-content to place it in column 2 (right side).
-  extend(IndexPage.prototype, 'view', function (vnode) {
-    if (!vnode) return;
-    // Normalise children to an array (Mithril may store a single child directly)
-    if (!Array.isArray(vnode.children)) {
-      vnode.children = vnode.children != null ? [vnode.children] : [];
-    }
-    vnode.children.push(
+  // Add via contentItems() — the proper Flarum 2 API for IndexPage content.
+  // This ensures our sidebar is in the contentItems() array from the start,
+  // avoiding the fragile vnode.children mutation approach.
+  // CSS Grid on .Page-content with `> * { grid-column: 1 }` forces every
+  // other child to column 1, while .GN-widgetSidebar overrides to column 2.
+  extend(IndexPage.prototype, 'contentItems', function (items) {
+    items.add('gn-widgets',
       m('.GN-widgetSidebar', [
         m(LiveScoresWidget),
         m(TrendingWidget),
         m(TopRecruitsWidget),
         m(OnlineNowWidget),
-      ])
+      ]),
+      -100   // very low priority → rendered last, placed in col 2 by CSS
     );
   });
 
   // ── Hero: always visible + stats/chips ────────────────────────────────────
-  // WelcomeHero.isHidden() returns true when no welcomeTitle is set in admin,
-  // suppressing the entire hero. For a theme we always want the hero shown.
   extend(WelcomeHero.prototype, 'isHidden', function () {
     return false;
   });
 
-  // Inject GridIronHero (stats bar + conference chips) into the hero body
-  // at priority 50 — below the content block (80) and dismiss button (100).
   extend(WelcomeHero.prototype, 'bodyItems', function (items) {
     items.add('gn-extras', m(GridIronHero), 50);
   });
