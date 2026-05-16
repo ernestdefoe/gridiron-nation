@@ -1,5 +1,5 @@
 import app from 'flarum/forum/app';
-import { extend } from 'flarum/common/extend';
+import { extend, override } from 'flarum/common/extend';
 import IndexPage          from 'flarum/forum/components/IndexPage';
 import WelcomeHero        from 'flarum/forum/components/WelcomeHero';
 import HeaderPrimary      from 'flarum/forum/components/HeaderPrimary';
@@ -11,68 +11,72 @@ import OnlineNowWidget   from './forum/components/OnlineNowWidget';
 import TopRecruitsWidget from './forum/components/TopRecruitsWidget';
 import GridIronHero      from './forum/components/GridIronHero';
 
+/**
+ * Walk a Mithril vnode tree looking for the first DOM element whose className
+ * includes `targetClass`, then push `injectedVnode` into its children.
+ * Component vnodes (function tags) are skipped — we only traverse DOM elements.
+ */
+function injectInto(node, targetClass, injectedVnode) {
+  if (!node || typeof node !== 'object') return false;
+  // Skip component vnodes — their "children" are attrs/slots, not DOM children.
+  if (typeof node.tag === 'function' || typeof node.tag === 'object') return false;
+
+  const cls = (node.attrs && (node.attrs.className || node.attrs['class'])) || '';
+  if (typeof cls === 'string' && cls.split(' ').includes(targetClass)) {
+    if (Array.isArray(node.children)) {
+      node.children.push(injectedVnode);
+    } else {
+      node.children = node.children != null
+        ? [node.children, injectedVnode]
+        : [injectedVnode];
+    }
+    return true;
+  }
+
+  if (Array.isArray(node.children)) {
+    return node.children.some((child) => injectInto(child, targetClass, injectedVnode));
+  }
+  return false;
+}
+
 app.initializers.add('ernestdefoe-fbsfb', () => {
 
   // ── 1. Always show the WelcomeHero ────────────────────────────────────────
-  // Default isHidden() returns true when welcomeTitle is not set in admin.
   extend(WelcomeHero.prototype, 'isHidden', function () {
     return false;
   });
 
-  // ── 2. Mount GridIronHero stats+chips INTO the hero's .container ──────────
-  // WelcomeHero has no bodyItems() in Flarum 2. We use oncreate to append
-  // a mount point into .container so our flex CSS places it on the right.
-  // extend() passes (returnValueOfOriginal, ...originalArgs) to the callback.
-  // oncreate(vnode) → callback receives (retVal, vnode) — retVal is first.
-  extend(WelcomeHero.prototype, 'oncreate', function (retVal, vnode) {
-    const container = vnode.dom.querySelector('.container, .containerNarrow');
-    if (!container) return;
-    const el = document.createElement('div');
-    container.appendChild(el);
-    this._heroExtrasEl = el;
-    m.mount(el, { view: () => m(GridIronHero) });
+  // ── 2. Inject GridIronHero stats+chips into the hero's .container ─────────
+  // WelcomeHero has no bodyItems() in Flarum 2. We use override(view) so the
+  // GridIronHero vnode is part of the vdom tree Mithril renders (not appended
+  // to the DOM after-the-fact where reconciliation would wipe it).
+  override(WelcomeHero.prototype, 'view', function (original, ...args) {
+    const vnode = original(...args);
+    if (!vnode) return vnode; // isHidden returned true from another extension
+    injectInto(vnode, 'container', m(GridIronHero));
+    return vnode;
   });
 
-  extend(WelcomeHero.prototype, 'onremove', function () {
-    if (this._heroExtrasEl) {
-      m.mount(this._heroExtrasEl, null);
-      this._heroExtrasEl = null;
-    }
-  });
-
-  // ── 3. Mount right widget sidebar into IndexPage's .sideNavContainer ──────
-  // IndexPage has no contentItems() in Flarum 2. We append .GN-widgetSidebar
-  // to .sideNavContainer in oncreate. CSS flexbox (on .sideNavContainer)
-  // places it to the right of .IndexPage-results.
-  // extend() passes (returnValueOfOriginal, ...originalArgs) to the callback.
-  // oncreate(vnode) → callback receives (retVal, vnode) — retVal is first.
-  extend(IndexPage.prototype, 'oncreate', function (retVal, vnode) {
-    const sideNavContainer = vnode.dom.querySelector('.sideNavContainer');
-    if (!sideNavContainer) return;
-    const el = document.createElement('div');
-    el.className = 'GN-widgetSidebar';
-    sideNavContainer.appendChild(el);
-    this._widgetEl = el;
-    m.mount(el, {
-      view: () => [
+  // ── 3. Inject right widget sidebar into IndexPage's .sideNavContainer ─────
+  // IndexPage has no contentItems() in Flarum 2. We override view() so that
+  // .GN-widgetSidebar is in the vdom tree as a sibling of .IndexPage-results.
+  // CSS flexbox on .sideNavContainer positions it to the right.
+  override(IndexPage.prototype, 'view', function (original, ...args) {
+    const vnode = original(...args);
+    injectInto(vnode, 'sideNavContainer',
+      m('.GN-widgetSidebar', [
         m(LiveScoresWidget),
         m(TrendingWidget),
         m(TopRecruitsWidget),
         m(OnlineNowWidget),
-      ],
-    });
-  });
-
-  extend(IndexPage.prototype, 'onremove', function () {
-    if (this._widgetEl) {
-      m.mount(this._widgetEl, null);
-      this._widgetEl = null;
-    }
+      ])
+    );
+    return vnode;
   });
 
   // ── 4. Header navigation ──────────────────────────────────────────────────
-  // Add a styled "Discussions" link. Other extensions (social-groups, etc.)
-  // each add their own items via this same hook — no need to list them here.
+  // Add a styled "Discussions" link. Social Groups and other extensions each
+  // add their own items (Groups, etc.) via this same hook automatically.
   extend(HeaderPrimary.prototype, 'items', function (items) {
     items.add('gn-discussions',
       m('a.GN-headerNav-link', {
@@ -84,7 +88,6 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
   });
 
   // ── 5. "Start a Discussion" button in toolbar ─────────────────────────────
-  // actionItems() exists in Flarum 2's IndexPage — safe to extend.
   extend(IndexPage.prototype, 'actionItems', function (items) {
     if (!app.session.user) return;
 
