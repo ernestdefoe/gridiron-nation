@@ -1,0 +1,770 @@
+// ============================================================
+// GridIron Nation — Forum Theme
+// Flarum 2 · Avocado-inspired · College Football
+//
+// Design tokens
+//   Primary:     #B22222 (Crimson)
+//   Font:        DM Sans Variable (Google Fonts)
+//   Radius:      14px (organic, Avocado-style)
+//   Dark mode:   @media block MUST stay at very end of file
+// ============================================================
+
+// ── Google Fonts ─────────────────────────────────────────────────────────────
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..900;1,9..40,300..900&display=swap');
+
+// ── LESS constants (geometry, palette, shadows) ───────────────────────────────
+@gn-primary:      #B22222;
+@gn-primary-dark: #8B0000;
+@gn-primary-light:#d94f4f;
+
+@gn-bg:           #f0f1f5;
+@gn-surface:      #f8f8fa;
+@gn-card:         #ffffff;
+@gn-border:       rgba(0, 0, 0, 0.07);
+@gn-text:         #22232a;
+@gn-muted:        #9fa0ab;
+@gn-secondary:    #5f6070;
+@gn-online:       #4ec46a;
+
+@gn-radius:       14px;
+@gn-radius-sm:    9px;
+@gn-transition:   0.15s ease;
+
+@gn-shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+@gn-shadow-md:    0 4px 16px rgba(0, 0, 0, 0.09), 0 2px 6px rgba(0, 0, 0, 0.05);
+@gn-shadow-lg:    0 8px 32px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.06);
+
+// ── CSS variable overrides (Flarum 2 theming layer) ───────────────────────────
+:root {
+  --primary-color:       @gn-primary;
+  --primary-color-dark:  @gn-primary-dark;
+  --primary-color-light: @gn-primary-light;
+
+  --body-bg:      @gn-bg;
+  --control-bg:   @gn-surface;
+  --border-color: @gn-border;
+
+  --body-color:   @gn-text;
+  --muted-color:  @gn-muted;
+  --heading-color:@gn-text;
+  --link-color:   @gn-primary;
+  --link-hover-color: @gn-primary-dark;
+
+  // Text aliases used by social-groups and other extensions
+  --text-color:      var(--body-color);
+  --text-secondary:  @gn-secondary;
+
+  // Border radius — applied globally
+  --border-radius:    @gn-radius;
+  --border-radius-sm: @gn-radius-sm;
+}
+
+// ── Global base ───────────────────────────────────────────────────────────────
+body,
+.App {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  background: var(--body-bg);
+  color: var(--body-color);
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+.Button--primary {
+  background: @gn-primary;
+  color: #fff;
+  border-radius: @gn-radius-sm;
+  font-weight: 600;
+  transition: background @gn-transition, box-shadow @gn-transition;
+
+  &:hover,
+  &:focus {
+    background: @gn-primary-dark;
+    color: #fff;
+    box-shadow: @gn-shadow-sm;
+  }
+}
+
+.Button {
+  border-radius: @gn-radius-sm;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.App-header {
+  background: #fff;
+  border-bottom: 1px solid @gn-border;
+  box-shadow: @gn-shadow-sm;
+  height: 58px;
+
+  .Header-logo,
+  .Header-title {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 800;
+    color: @gn-primary;
+  }
+}
+
+.HeaderNav .item > a,
+.HeaderNav .item > button {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: @gn-radius-sm;
+  transition: background @gn-transition, color @gn-transition;
+
+  &:hover {
+    background: rgba(@gn-primary, 0.07);
+    color: @gn-primary;
+  }
+
+  &.active,
+  &.active:hover {
+    color: @gn-primary;
+    border-bottom: 2px solid @gn-primary;
+  }
+}
+
+// Hero search bar inside header
+.IndexPage-hero {
+  background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
+  color: #fff;
+  padding: 2rem 1.5rem;
+  border-radius: 0;
+
+  .IndexPage-heroText {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    color: #fff;
+  }
+
+  .IndexPage-heroSubtext {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1rem;
+  }
+}
+
+// ── Tags / Filters bar ────────────────────────────────────────────────────────
+.TagLabel {
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 3px 10px;
+}
+
+.TagsLabel,
+.DiscussionListItem-tags .TagLabel {
+  border-radius: 999px;
+}
+
+// ── Discussion list ───────────────────────────────────────────────────────────
+.DiscussionList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.DiscussionListItem {
+  background: @gn-card;
+  border-radius: @gn-radius;
+  box-shadow: @gn-shadow-sm;
+  border: 1px solid @gn-border;
+  transition: box-shadow @gn-transition, transform @gn-transition;
+  overflow: visible;
+
+  &:hover {
+    box-shadow: @gn-shadow-md;
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    border-left: 3px solid @gn-primary;
+  }
+}
+
+.DiscussionListItem-content {
+  padding: 0.75rem 1rem;
+}
+
+.DiscussionListItem-title {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--body-color);
+}
+
+.DiscussionListItem-count {
+  background: @gn-primary;
+  color: #fff;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 2px 7px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.DiscussionListItem-count.unread {
+  background: @gn-primary;
+}
+
+// New discussion button
+.DiscussionComposer,
+.DiscussionList-header .Button--primary {
+  border-radius: @gn-radius;
+}
+
+// ── Post stream ───────────────────────────────────────────────────────────────
+.Post {
+  border-radius: @gn-radius;
+  background: @gn-card;
+  box-shadow: @gn-shadow-sm;
+  border: 1px solid @gn-border;
+  margin-bottom: 8px;
+}
+
+.Post-header {
+  font-family: 'DM Sans', sans-serif;
+}
+
+.PostStream-item .EventPost,
+.PostStream-item .DiscussionRenamedPost,
+.PostStream-item .DiscussionLockedPost {
+  background: @gn-surface;
+  border-radius: @gn-radius-sm;
+  border: 1px solid @gn-border;
+  box-shadow: none;
+}
+
+// Composer
+.ComposerBody {
+  border-radius: @gn-radius;
+  box-shadow: @gn-shadow-md;
+}
+
+.Composer {
+  background: @gn-card;
+  border-top: 2px solid @gn-primary;
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+.IndexSidebar {
+  .item {
+    margin-bottom: 4px;
+  }
+}
+
+.IndexSidebar .Nav-item a {
+  border-radius: @gn-radius-sm;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background @gn-transition, color @gn-transition;
+
+  &:hover {
+    background: rgba(@gn-primary, 0.07);
+    color: @gn-primary;
+    text-decoration: none;
+  }
+
+  &.active {
+    background: rgba(@gn-primary, 0.10);
+    color: @gn-primary;
+    font-weight: 700;
+  }
+}
+
+.IndexSidebar .TagsNav-tag a {
+  border-radius: @gn-radius-sm;
+}
+
+// ── User avatar ───────────────────────────────────────────────────────────────
+.Avatar {
+  border-radius: 50%;
+}
+
+// ── Dropdown menus ────────────────────────────────────────────────────────────
+.Dropdown-menu {
+  border-radius: @gn-radius;
+  box-shadow: @gn-shadow-lg;
+  border: 1px solid @gn-border;
+  overflow: hidden;
+}
+
+.Dropdown-item {
+  border-radius: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  transition: background @gn-transition;
+
+  &:hover {
+    background: rgba(@gn-primary, 0.06);
+    color: @gn-primary;
+  }
+
+  &:first-child { border-radius: @gn-radius @gn-radius 0 0; }
+  &:last-child  { border-radius: 0 0 @gn-radius @gn-radius; }
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+.Modal-content {
+  border-radius: @gn-radius;
+  box-shadow: @gn-shadow-lg;
+  border: 1px solid @gn-border;
+}
+
+.Modal-header {
+  background: @gn-primary;
+  color: #fff;
+  border-radius: @gn-radius @gn-radius 0 0;
+
+  h3 { color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 800; }
+}
+
+// ── Form controls ─────────────────────────────────────────────────────────────
+.FormControl,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+textarea,
+select {
+  font-family: 'DM Sans', sans-serif;
+  border-radius: @gn-radius-sm;
+  border: 1.5px solid @gn-border;
+  background: @gn-card;
+  color: var(--body-color);
+  transition: border-color @gn-transition, box-shadow @gn-transition;
+
+  &:focus {
+    border-color: @gn-primary;
+    box-shadow: 0 0 0 3px rgba(@gn-primary, 0.12);
+    outline: none;
+  }
+}
+
+// ── Notification badge ────────────────────────────────────────────────────────
+.NotificationsDropdown .Button .badge {
+  background: @gn-primary;
+  color: #fff;
+  border-radius: 999px;
+}
+
+// ── Alerts ────────────────────────────────────────────────────────────────────
+.Alert {
+  border-radius: @gn-radius-sm;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+}
+
+.Alert--success { background: rgba(@gn-online, 0.12); color: darken(@gn-online, 25%); }
+.Alert--error   { background: rgba(@gn-primary, 0.10); color: @gn-primary-dark; }
+
+// ── Badges ────────────────────────────────────────────────────────────────────
+.GroupBadge,
+.UserCard-group {
+  border-radius: 999px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+.Pagination .Button {
+  border-radius: @gn-radius-sm;
+}
+
+// ── Loading indicator ─────────────────────────────────────────────────────────
+.LoadingIndicator-container {
+  color: @gn-primary;
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+.App-footer {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: @gn-muted;
+}
+
+// ── GridIron Nation — sidebar widget shells ───────────────────────────────────
+// Placeholders for Live Scores, Trending, Top Recruits, Online Now widgets
+// (implementations added in Phase 2).
+
+.GN-widget {
+  background: @gn-card;
+  border-radius: @gn-radius;
+  box-shadow: @gn-shadow-sm;
+  border: 1px solid @gn-border;
+  margin-bottom: 12px;
+  overflow: hidden;
+
+  &-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid @gn-border;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 800;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: @gn-muted;
+
+    .fas {
+      color: @gn-primary;
+      font-size: 0.85rem;
+    }
+  }
+
+  &-body {
+    padding: 8px 0;
+  }
+}
+
+// ── Live Scores widget ────────────────────────────────────────────────────────
+.GN-scorecard {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  gap: 10px;
+  transition: background @gn-transition;
+
+  &:hover { background: @gn-surface; }
+
+  &-teams {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  &-team {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &.is-winning .GN-scorecard-score { color: @gn-primary; }
+  }
+
+  &-score {
+    font-weight: 800;
+    font-size: 0.9rem;
+    min-width: 24px;
+    text-align: right;
+    color: var(--body-color);
+  }
+
+  &-status {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: @gn-muted;
+    text-align: center;
+    min-width: 38px;
+  }
+}
+
+.GN-liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(@gn-online, 0.12);
+  color: darken(@gn-online, 20%);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: @gn-online;
+    border-radius: 50%;
+    animation: gn-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes gn-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+// ── Trending widget ───────────────────────────────────────────────────────────
+.GN-trending {
+  &-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 14px;
+    transition: background @gn-transition;
+
+    &:hover { background: @gn-surface; }
+  }
+
+  &-rank {
+    font-size: 0.78rem;
+    font-weight: 800;
+    min-width: 18px;
+    color: @gn-muted;
+    opacity: 0.3;
+
+    &.is-top { color: @gn-primary; opacity: 1; }
+  }
+
+  &-title {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--body-color);
+    line-height: 1.3;
+  }
+
+  &-meta {
+    font-size: 0.72rem;
+    color: @gn-muted;
+  }
+}
+
+// ── Top Recruits widget ───────────────────────────────────────────────────────
+.GN-recruit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  transition: background @gn-transition;
+
+  &:hover { background: @gn-surface; }
+
+  &-pos {
+    width: 30px;
+    height: 30px;
+    border-radius: @gn-radius-sm;
+    background: @gn-primary;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+
+  &-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: var(--body-color);
+  }
+
+  &-meta {
+    font-size: 0.72rem;
+    color: @gn-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &-stars {
+    color: #d97706;
+    font-size: 0.7rem;
+    letter-spacing: -1px;
+  }
+
+  &-commit {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+
+    &--committed   { background: rgba(@gn-online, 0.12);   color: darken(@gn-online, 25%); }
+    &--undecided   { background: rgba(217, 119, 6, 0.12);  color: #92400e; }
+    &--decommitted { background: rgba(@gn-primary, 0.10);  color: @gn-primary-dark; }
+  }
+}
+
+// ── Online Now widget ─────────────────────────────────────────────────────────
+.GN-online {
+  &-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    transition: background @gn-transition;
+
+    &:hover { background: @gn-surface; }
+  }
+
+  &-avatar {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: @gn-primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
+
+  &-dot {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 9px;
+    height: 9px;
+    background: @gn-online;
+    border-radius: 50%;
+    border: 2px solid @gn-card;
+  }
+
+  &-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--body-color);
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &-status {
+    font-size: 0.72rem;
+    color: @gn-muted;
+  }
+}
+
+// ============================================================
+// DARK MODE — MUST remain at the very end of this file.
+// Placing it earlier lets light-mode rules of equal specificity
+// win the cascade when both blocks are in the same stylesheet.
+// ============================================================
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary-color:       #e05c5c;
+    --primary-color-dark:  #c03030;
+    --primary-color-light: #f08080;
+
+    --body-bg:       #0c0d10;
+    --control-bg:    #111318;
+    --border-color:  rgba(255, 255, 255, 0.055);
+
+    --body-color:    #dddee8;
+    --muted-color:   #484956;
+    --heading-color: #dddee8;
+    --link-color:    #e05c5c;
+    --link-hover-color: #f08080;
+
+    --text-color:      var(--body-color);
+    --text-secondary:  #7e7f92;
+  }
+
+  body,
+  .App {
+    background: #0c0d10;
+    color: #dddee8;
+  }
+
+  .App-header {
+    background: #13141a;
+    border-bottom-color: rgba(255, 255, 255, 0.055);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.50);
+  }
+
+  .DiscussionListItem,
+  .Post,
+  .Dropdown-menu,
+  .Modal-content,
+  .GN-widget {
+    background: #16171c;
+    border-color: rgba(255, 255, 255, 0.055);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.50), 0 2px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  .DiscussionListItem:hover,
+  .Post:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.60);
+  }
+
+  .IndexPage-hero {
+    background: linear-gradient(135deg, rgba(120, 10, 10, 0.97) 0%, rgba(30, 2, 2, 0.99) 100%);
+  }
+
+  .FormControl,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea,
+  select {
+    background: #0f1013;
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #dddee8;
+
+    &:focus {
+      border-color: #e05c5c;
+      box-shadow: 0 0 0 3px rgba(224, 92, 92, 0.14);
+    }
+  }
+
+  .Modal-header {
+    background: #1a0505;
+  }
+
+  .Composer {
+    background: #16171c;
+    border-top-color: #e05c5c;
+  }
+
+  .ComposerBody {
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.60);
+  }
+
+  .GN-widget-header { border-bottom-color: rgba(255, 255, 255, 0.055); }
+
+  .GN-scorecard:hover,
+  .GN-trending-item:hover,
+  .GN-recruit:hover,
+  .GN-online-row:hover {
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .GN-online-dot {
+    border-color: #16171c;
+  }
+
+  .Alert--success { background: rgba(78, 196, 106, 0.10); }
+  .Alert--error   { background: rgba(224, 92, 92, 0.12); }
+
+  .IndexSidebar .Nav-item a {
+    &:hover { background: rgba(224, 92, 92, 0.08); }
+    &.active { background: rgba(224, 92, 92, 0.12); }
+  }
+
+  .Button--primary {
+    background: #e05c5c;
+
+    &:hover { background: #c03030; }
+  }
+
+  .GN-liveBadge {
+    background: rgba(78, 196, 106, 0.10);
+  }
+}
