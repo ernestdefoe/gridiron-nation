@@ -132,46 +132,133 @@ body,
   margin: 0 8px;
 }
 
-.GN-headerNav-link {
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  padding: 0 11px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: @gn-secondary;
-  border-radius: @gn-radius-sm;
-  text-decoration: none;
-  transition: background @gn-transition, color @gn-transition;
-  white-space: nowrap;
+// Hero navigation — pill row under the WelcomeHero. Replaces the old
+// `.GN-headerNav-link` that sat in HeaderPrimary. Items come from
+// IndexSidebar.navItems via GNHeroNav.js, so any installed extension
+// (tags, subscriptions, social-groups, etc.) populates the row
+// automatically.
+.GN-heroNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
 
-  &:hover {
-    background: rgba(@gn-primary, 0.08);
-    color: @gn-primary;
-    text-decoration: none;
+  // Phone: handled by Flarum's own .App-titleControl SelectDropdown;
+  // duplicating the pills here would just crowd the hero on mobile.
+  @media (max-width: 767.98px) {
+    display: none;
   }
 
-  &.active {
-    color: @gn-primary;
-    font-weight: 700;
-    background: rgba(@gn-primary, 0.06);
+  > * { list-style: none; }
+
+  a, .Button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background @gn-transition, border-color @gn-transition, transform @gn-transition;
+    white-space: nowrap;
+
+    &:hover, &:focus, &.active, &.active:hover {
+      background: rgba(255, 255, 255, 0.28);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fff;
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
   }
 }
 
-// ── "Start a Discussion" toolbar button ───────────────────────────────────────
-.GN-startDiscBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 16px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 700;
-  border-radius: @gn-radius-sm;
+// "Tell everyone what you're working on…" composer trigger card. Sits
+// at the top of .IndexPage-results, above the discussion list.
+// Replaces the old `.GN-startDiscBtn` actionItems button; clicking the
+// card delegates to Flarum's hidden `.IndexPage-newDiscussion` button.
+.GN-composerTrigger {
+  margin: 0 0 14px;
+  border-radius: @gn-radius-md;
+  background: var(--control-bg, #fff);
+  border: 1px solid var(--border-color, @gn-border);
+  box-shadow: @gn-shadow-sm;
   cursor: pointer;
+  transition: border-color @gn-transition, box-shadow @gn-transition, transform @gn-transition;
 
-  .fas { font-size: 0.8rem; }
+  &:hover, &:focus-within {
+    border-color: rgba(@gn-primary, 0.35);
+    box-shadow: 0 4px 16px rgba(@gn-primary, 0.10);
+    transform: translateY(-1px);
+  }
+
+  &-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  &-avatar, &-logo {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  &-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
+    color: #fff;
+    font-size: 0.95rem;
+  }
+
+  &-placeholder {
+    flex: 1 1 auto;
+    color: var(--muted-color, @gn-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &-newBtn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
+    border: 0;
+    border-radius: @gn-radius-sm;
+    cursor: pointer;
+    transition: filter @gn-transition;
+
+    &:hover { filter: brightness(1.06); }
+
+    .fas { font-size: 0.78rem; }
+
+    @media (max-width: 480px) {
+      // Tighten on narrow phone — hide the label, keep the +.
+      padding: 0 12px;
+      &-label { display: none; }
+    }
+  }
 }
 
 // ── Hero — Flarum 2 renders WelcomeHero as .Hero.WelcomeHero ─────────────────
@@ -1037,17 +1124,13 @@ a.GN-online-row {
     }
   }
 
-  .GN-headerNav-link {
-    color: #9fa0ab;
+  .GN-composerTrigger {
+    background: #16171c;
+    border-color: rgba(255, 255, 255, 0.055);
 
-    &:hover {
-      background: rgba(224, 92, 92, 0.10);
-      color: #e05c5c;
-    }
-
-    &.active {
-      background: rgba(224, 92, 92, 0.08);
-      color: #e05c5c;
+    &:hover, &:focus-within {
+      border-color: rgba(224, 92, 92, 0.42);
+      box-shadow: 0 4px 16px rgba(224, 92, 92, 0.18);
     }
   }
 
@@ -1115,9 +1198,33 @@ a.GN-online-row {
   }
 }
 
-// ── 1. System dark mode ───────────────────────────────────────────────────────
+// ============================================================
+// Flarum 2 theme-mode application
+//
+// Flarum 2 emits `<html data-theme="...">` indicating the active color
+// scheme. Possible values: `light`, `light-hc`, `dark`, `dark-hc` (plus
+// any admin-installed named variants like `dark-blue`).
+//
+// The 1.x `body.App--dark-mode` / `body.App--light-mode` selectors that
+// the previous version of this stylesheet shipped NEVER match on
+// Flarum 2 — see https://docs.flarum.org/2.x/extend/update-2_0/. That's
+// why dark mode was silently broken: our overrides slept while
+// Flarum's core CSS painted the chrome dark from its own
+// [data-theme^=dark] rules, producing a half-light/half-dark surface.
+//
+// Cascade order (this block MUST stay last in the file):
+//   1. @media (prefers-color-scheme: dark) — only when <html> has no
+//      data-theme yet (anonymous + Flarum's default = "auto").
+//   2. [data-theme^="light"]   → light family (light, light-hc)
+//   3. [data-theme="light-hc"] → light high-contrast tweaks
+//   4. [data-theme^="dark"]    → dark family (dark, dark-hc, dark-*)
+//   5. [data-theme="dark-hc"]  → dark high-contrast tweaks
+// ============================================================
+
+// ── 1. System dark fallback (only when <html> has no data-theme) ─────────────
 @media (prefers-color-scheme: dark) {
-  :root { // variables on :root for system media query
+  :root:not([data-theme]),
+  :root[data-theme=''] {
     --primary-color:       #e05c5c;
     --primary-color-dark:  #c03030;
     --primary-color-light: #f08080;
@@ -1133,18 +1240,16 @@ a.GN-online-row {
     --text-secondary:  #7e7f92;
   }
 
-  body, .App { .gn-dark-theme(); }
+  :root:not([data-theme]) body,
+  :root:not([data-theme]) .App,
+  :root[data-theme=''] body,
+  :root[data-theme=''] .App {
+    .gn-dark-theme();
+  }
 }
 
-// ── 2. Flarum admin "Dark mode" toggle (adds body.App--dark-mode) ─────────────
-// CSS custom properties set on body cascade to all children.
-body.App--dark-mode {
-  .gn-dark-theme();
-}
-
-// ── 3. Explicit light-mode reset when Flarum forces light ────────────────────
-// Ensures the forum looks correct if system is dark but Flarum is set to Light.
-body.App--light-mode {
+// ── 2. Light family ──────────────────────────────────────────────────────────
+[data-theme^='light'] {
   --primary-color:       @gn-primary;
   --primary-color-dark:  @gn-primary-dark;
   --primary-color-light: @gn-primary-light;
@@ -1179,14 +1284,76 @@ body.App--light-mode {
   }
 
   .FormControl,
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="search"],
-  textarea,
-  select {
+  input[type="text"], input[type="email"], input[type="password"],
+  input[type="search"], textarea, select {
     background: @gn-card;
     border-color: @gn-border;
     color: @gn-text;
+  }
+}
+
+// ── 3. Light high-contrast ───────────────────────────────────────────────────
+[data-theme='light-hc'] {
+  --border-color: #000;
+  --body-color:   #000;
+  --muted-color:  #333;
+  --link-color:   #8b0000;
+  --link-hover-color: #5a0000;
+
+  .DiscussionListItem,
+  .Post,
+  .Dropdown-menu,
+  .Modal-content,
+  .GN-widget {
+    border-color: #000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  .Button--primary {
+    background: #8b0000;
+    &:hover { background: #5a0000; }
+  }
+}
+
+// ── 4. Dark family ───────────────────────────────────────────────────────────
+[data-theme^='dark'] {
+  --primary-color:       #e05c5c;
+  --primary-color-dark:  #c03030;
+  --primary-color-light: #f08080;
+  --body-bg:       #0c0d10;
+  --control-bg:    #111318;
+  --border-color:  rgba(255, 255, 255, 0.055);
+  --body-color:    #dddee8;
+  --muted-color:   #9495a8;
+  --heading-color: #dddee8;
+  --link-color:    #e05c5c;
+  --link-hover-color: #f08080;
+  --text-color:      var(--body-color);
+  --text-secondary:  #7e7f92;
+
+  body, .App { .gn-dark-theme(); }
+}
+
+// ── 5. Dark high-contrast ────────────────────────────────────────────────────
+[data-theme='dark-hc'] {
+  --border-color: rgba(255, 255, 255, 0.32);
+  --body-color:   #fff;
+  --muted-color:  #d6d8e0;
+  --link-color:   #ff7878;
+  --link-hover-color: #ffa0a0;
+
+  .DiscussionListItem,
+  .Post,
+  .Dropdown-menu,
+  .Modal-content,
+  .GN-widget {
+    border-color: rgba(255, 255, 255, 0.32);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.70);
+  }
+
+  .Button--primary {
+    background: #ff7878;
+    color: #1a0303;
+    &:hover { background: #ffa0a0; }
   }
 }
