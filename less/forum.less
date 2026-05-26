@@ -334,11 +334,26 @@ body,
   }
 
   // Children must clear the decorative layers' z-index so the title +
-  // hero content remain on top.
+  // hero content remain on top of the SVG pattern + yard-line band.
   > .container,
-  > .containerNarrow {
+  .containerNarrow {
     position: relative;
     z-index: 1;
+  }
+
+  // Stack title → subtitle → stats → pill nav vertically inside
+  // .containerNarrow. Flarum 2's Hero base wraps bodyItems in
+  // .container then ContentItems in .containerNarrow, so this is
+  // where our injected contentItems (gn-hero-extras, gn-hero-nav)
+  // actually land.
+  .containerNarrow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+
+    > .Hero-title { margin: 0; }
+    > .Hero-subtitle { margin: 0; }
   }
 
   // Two-column layout: title/subtitle LEFT, stats/chips RIGHT.
@@ -378,23 +393,24 @@ body,
 .GN-hero-extras {
   position: relative;
   z-index: 1;
-  flex-shrink: 0;
-  text-align: right;
+  width: 100%;
 }
 
 .GN-hero-stats {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 0;
-  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .GN-hero-stat {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;   // right-align number + label within each stat
-  padding-left: 1.5rem;    // gap on the LEFT (between divider and stat)
+  align-items: flex-start;
+  padding-right: 1.5rem;   // gap on the RIGHT (between stat and next divider)
+
+  &:first-child { padding-left: 0; }
 }
 
 // ── Interactive Online tile + popover ────────────────────────────────────────
@@ -403,20 +419,20 @@ body,
 // the MosaicHero-onlineWrap pattern.
 .GN-onlineWrap {
   position: relative;
-  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 .GN-hero-statTrigger {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   background: transparent;
   border: 0;
   padding: 0;
   cursor: pointer;
   color: inherit;
   font: inherit;
-  text-align: right;
+  text-align: left;
 
   &:hover .GN-hero-statLabel,
   &:focus .GN-hero-statLabel {
@@ -440,7 +456,7 @@ body,
 .GN-onlinePopover {
   position: absolute;
   top: calc(100% + 10px);
-  right: 0;
+  left: 0;
   min-width: 240px;
   max-width: 320px;
   max-height: 360px;
@@ -455,12 +471,12 @@ body,
   text-align: left;
 
   // Arrow pointing back up at the trigger tile, anchored to the
-  // right-hand edge since the stat row is right-aligned.
+  // left-hand edge since the stat row is left-aligned inside the hero.
   &::before {
     content: '';
     position: absolute;
     top: -7px;
-    right: 18px;
+    left: 18px;
     width: 12px;
     height: 12px;
     background: inherit;

@@ -1,6 +1,7 @@
 import app from 'flarum/forum/app';
 import { extend, override } from 'flarum/common/extend';
 import IndexPage          from 'flarum/forum/components/IndexPage';
+import IndexSidebar       from 'flarum/forum/components/IndexSidebar';
 import WelcomeHero        from 'flarum/forum/components/WelcomeHero';
 
 import LiveScoresWidget  from './forum/components/LiveScoresWidget';
@@ -12,85 +13,88 @@ import GNHeroNav         from './forum/components/GNHeroNav';
 import GNComposerTrigger from './forum/components/GNComposerTrigger';
 
 /**
- * Walk a Mithril vnode tree looking for the first DOM element whose className
- * includes `targetClass`, then insert `injectedVnode` into its children.
+ * Forum-frontend wiring.
  *
- * Position controls placement:
- *   - 'append'  (default) — added at the end of children (renders below
- *     the existing content of that element).
- *   - 'prepend'           — added at the start (renders above).
+ * Earlier iterations of this file tried to inject components by walking
+ * the Mithril vnode tree returned from `override(view)` and pushing
+ * children into elements that matched a target classname. That worked
+ * for the hero (Hero.view() returns a real `<header>`) but silently
+ * failed for IndexPage — its `view()` returns `<PageStructure>`, a
+ * Component vnode, and the walker correctly skips component vnodes
+ * because their `children` are attrs/slots, not DOM children. The
+ * widget sidebar and composer trigger never had a target to land in,
+ * which is why none of them appeared on the rendered page.
  *
- * Component vnodes (function tags) are skipped — we only traverse DOM
- * elements, because component vnode `children` are attrs/slots, not DOM
- * children.
+ * The canonical Flarum 2 pattern is ItemList-based extension. Every
+ * one of IndexPage / WelcomeHero / IndexSidebar exposes a typed
+ * extension point (`contentItems`, `sidebar`, `navItems`) that other
+ * extensions and tags push into. We mirror Mosaic's wiring here:
+ *   - WelcomeHero.contentItems() — hero stats + tag chips + nav pills
+ *   - IndexPage.contentItems()   — composer trigger above the toolbar
+ *   - IndexPage.sidebar()        — keep IndexSidebar, append widget stack
+ *   - WelcomeHero.isHidden       — force-show even with a dismissed flag
+ *   - WelcomeHero.bodyItems      — strip the X-close button so the
+ *                                  decoration is genuinely permanent
  */
-function injectInto(node, targetClass, injectedVnode, position = 'append') {
-  if (!node || typeof node !== 'object') return false;
-  if (typeof node.tag === 'function' || typeof node.tag === 'object') return false;
-
-  const cls = (node.attrs && (node.attrs.className || node.attrs['class'])) || '';
-  if (typeof cls === 'string' && cls.split(' ').includes(targetClass)) {
-    if (Array.isArray(node.children)) {
-      if (position === 'prepend') node.children.unshift(injectedVnode);
-      else                        node.children.push(injectedVnode);
-    } else {
-      node.children = node.children != null
-        ? (position === 'prepend' ? [injectedVnode, node.children] : [node.children, injectedVnode])
-        : [injectedVnode];
-    }
-    return true;
-  }
-
-  if (Array.isArray(node.children)) {
-    return node.children.some((child) => injectInto(child, targetClass, injectedVnode, position));
-  }
-  return false;
-}
-
 app.initializers.add('ernestdefoe-fbsfb', () => {
 
-  // ── 1. Always show the WelcomeHero ────────────────────────────────────────
-  extend(WelcomeHero.prototype, 'isHidden', function () {
-    return false;
+  // ── 1. Force the WelcomeHero to always render ─────────────────────────────
+  // Core's isHidden() returns true when welcomeTitle is empty OR when
+  // localStorage has a dismissed flag. We honor the empty-title escape
+  // hatch (operator can blank the title in admin to opt out) but ignore
+  // the per-visitor dismissal so the hero is genuinely permanent.
+  override(WelcomeHero.prototype, 'isHidden', function () {
+    const title = app.forum.attribute('welcomeTitle');
+    return !title || !String(title).trim();
   });
 
-  // ── 2. Inject GridIronHero stats + hero nav pills into the hero ───────────
-  // WelcomeHero has no bodyItems() in Flarum 2 — we override view() so the
-  // injected vnodes are part of the vdom tree Mithril renders (not appended
-  // to the DOM after-the-fact where reconciliation would wipe them).
-  //
-  // Both GridIronHero (stats + tag chips) and GNHeroNav (extension nav
-  // pills, replacing the old header link) live inside the hero's
-  // `.container` so they share the gradient backdrop.
-  override(WelcomeHero.prototype, 'view', function (original, ...args) {
-    const vnode = original(...args);
-    if (!vnode) return vnode;
-    injectInto(vnode, 'container', m(GridIronHero));
-    injectInto(vnode, 'container', m(GNHeroNav));
-    return vnode;
+  // ── 2. Strip the dismiss-button + add hero extras + pill nav ──────────────
+  // bodyItems() carries the dismiss-button and the title/subtitle block.
+  // Remove the close button so the decoration matches the permanent
+  // intent. contentItems() is the inner ItemList nested inside
+  // .containerNarrow — that's where we add the right-side stats panel
+  // and the pill nav row.
+  extend(WelcomeHero.prototype, 'bodyItems', function (items) {
+    items.remove('dismiss-button');
   });
 
-  // ── 3. Inject right widget sidebar into IndexPage's .sideNavContainer ─────
-  // IndexPage has no contentItems() in Flarum 2. We override view() so that
-  // .GN-widgetSidebar is in the vdom tree as a sibling of .IndexPage-results.
-  // CSS flexbox on .sideNavContainer positions it to the right.
-  //
-  // The composer trigger card sits at the TOP of .IndexPage-results, above
-  // the discussion list. It replaces the old `gn-new-discussion` actionItems
-  // button — clicking the card delegates to Flarum's hidden
-  // `.IndexPage-newDiscussion` button, so we get the async composer chunk
-  // load + guest→LogInModal branch for free.
-  override(IndexPage.prototype, 'view', function (original, ...args) {
-    const vnode = original(...args);
-    injectInto(vnode, 'sideNavContainer',
+  extend(WelcomeHero.prototype, 'contentItems', function (items) {
+    // GridIronHero renders the stats bar + tag chips + ONLINE dropdown.
+    // Priority 50 puts it BELOW title (100) and subtitle (default ~10).
+    // The hero stylesheet flexes title/subtitle on one side and these
+    // extras on the other via flexbox on .Hero-content.
+    items.add('gn-hero-extras', m(GridIronHero), 50);
+
+    // Section nav pills (Discussions, Tags, Subscriptions, etc.) live
+    // below the stats so they read as the natural next step after
+    // "here's what's going on, here are the sections to dive into".
+    items.add('gn-hero-nav', m(GNHeroNav), 40);
+  });
+
+  // ── 3. Composer trigger above the discussion list toolbar ─────────────────
+  // IndexPage.contentItems() carries 'toolbar' (100) and 'discussionList'
+  // (90). We add the composer card at 110 so it lands above both —
+  // visually it's the first thing in the main column.
+  extend(IndexPage.prototype, 'contentItems', function (items) {
+    items.add('gn-composer-trigger', m(GNComposerTrigger), 110);
+  });
+
+  // ── 4. Sidebar: keep IndexSidebar, append our widget stack ────────────────
+  // IndexPage.sidebar() returns the IndexSidebar component. override()
+  // gives us its return value (`original()`) so we can return a fragment
+  // of [IndexSidebar, our widgets]. IndexSidebar carries the nav items
+  // which still feed our hero pill row (GNHeroNav reads from
+  // IndexSidebar.navItems), so it has to stay mounted — CSS hides its
+  // visual chrome on desktop and lets the hero pills be the nav.
+  override(IndexPage.prototype, 'sidebar', function (original) {
+    return [
+      original(),
       m('.GN-widgetSidebar', [
         m(LiveScoresWidget),
         m(TrendingWidget),
         m(TopRecruitsWidget),
         m(OnlineNowWidget),
-      ])
-    );
-    injectInto(vnode, 'IndexPage-results', m(GNComposerTrigger), 'prepend');
-    return vnode;
+      ]),
+    ];
   });
 });
