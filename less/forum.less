@@ -605,55 +605,207 @@ body,
   border-radius: 999px;
 }
 
-// ── Discussion list ───────────────────────────────────────────────────────────
+// ── Discussion list — mirrors ramon/avocado's card pattern ──────────────────
+//
+// Each row is a flat card with a circular avatar on the left, the title +
+// meta block in the middle, a horizontal stats row on the right, and the
+// per-row controls dropdown absolute-positioned at the right edge,
+// vertically centered. Unread rows get a small primary-color dot next to
+// the title; badges (locked / pinned / etc.) become 20px circles at the
+// top-right corner of the main block.
 .DiscussionList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+
+  // Hide flarum/realtime's "N updates available" banner — auto-release
+  // refreshes the list silently every ~10s.
+  &-update { display: none !important; }
 }
 
 .DiscussionListItem {
+  --discussion-list-item-bg-hover: var(--control-bg);
   background: @gn-card;
   border-radius: @gn-radius;
-  box-shadow: @gn-shadow-sm;
   border: 1px solid @gn-border;
-  transition: box-shadow @gn-transition, transform @gn-transition;
+  box-shadow: @gn-shadow-sm;
+  padding: 0;
+  margin: 0;
+  transition: background 0.1s ease, box-shadow @gn-transition, transform @gn-transition;
   overflow: visible;
 
   &:hover {
+    background: var(--discussion-list-item-bg-hover);
     box-shadow: @gn-shadow-md;
     transform: translateY(-1px);
   }
 
-  &.active {
-    border-left: 3px solid @gn-primary;
+  &--unapproved {
+    background: rgba(@gn-primary, 0.06);
+  }
+
+  &-content {
+    display: flex;
+    align-items: center;
+    padding: 12px 56px 12px 12px;   // 56px right gutter for the controls dropdown
+  }
+
+  &-author {
+    flex-shrink: 0;
+    margin: 0 15px 0 0;
+    position: relative;
+    display: block;
+    float: none;
+
+    .Avatar {
+      width: 50px;
+      height: 50px;
+      line-height: 50px;
+      font-size: 1.1rem;
+      box-shadow: 0 0 0 3px var(--body-bg, @gn-bg);
+      border-radius: 50%;
+    }
+  }
+
+  &-main {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    position: relative;
+  }
+
+  &-title {
+    color: var(--text-color, @gn-text) !important;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.98rem;
+    line-height: 1.3;
+  }
+
+  &--unread &-title::after {
+    content: '';
+    display: inline-flex;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: @gn-primary;
+    vertical-align: text-top;
+    margin: 6px 0 0 6px;
+  }
+
+  &-info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--muted-color, @gn-muted);
+  }
+
+  &-badges {
+    position: absolute;
+    right: -7px;
+    top: -4px;
+    margin: 0;
+    width: auto;
+    float: none;
+
+    .Badge {
+      --size: 20px;
+      width: var(--size);
+      height: var(--size);
+      line-height: var(--size);
+      box-shadow: -1px 1px 2px rgba(0, 0, 0, 0.22);
+
+      &-icon { font-size: 10px; }
+    }
+  }
+
+  // Horizontal stats row on the right (reply count + last-poster, etc.).
+  // Flarum 2 wraps each stat in `.DiscussionListItem-stats-item` with an
+  // icon + label pair.
+  &-stats {
+    flex-shrink: 0;
+    align-self: center;
+    margin-left: 10px;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    flex-direction: row;
+  }
+
+  &-stats-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted-color, @gn-muted);
+    font-size: 13px;
+  }
+
+  &-count {
+    margin: 0;
+    padding: 0;
+    float: none;
+    background: transparent;
+    color: var(--muted-color, @gn-muted);
+    font-weight: 600;
+    font-size: 13px;
+    min-width: auto;
+
+    &.unread,
+    &.Button--ua-reset {
+      color: @gn-primary;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      ._checkmark { display: none; }
+      &:hover { opacity: 0.7; }
+    }
+  }
+
+  // Controls dropdown (⋯) — absolute-positioned, vertically centered.
+  &-controls {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    .Dropdown-toggle {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted-color, @gn-muted);
+      background: transparent;
+      transition: background 0.15s ease, color 0.15s ease;
+
+      .Button-caret { display: none; }
+      .Button-icon  { font-size: 14px; }
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.07);
+        color: var(--heading-color, @gn-text);
+      }
+    }
+
+    .Dropdown-menu {
+      min-width: 180px;
+      border: 1px solid @gn-border;
+      box-shadow: @gn-shadow-md;
+    }
   }
 }
 
-.DiscussionListItem-content {
-  padding: 0.75rem 1rem;
-}
-
-.DiscussionListItem-title {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--body-color);
-}
-
-.DiscussionListItem-count {
-  background: @gn-primary;
-  color: #fff;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.75rem;
-  padding: 2px 7px;
-  min-width: 24px;
-  text-align: center;
-}
-
-.DiscussionListItem-count.unread {
-  background: @gn-primary;
+@media (max-width: 767.98px) {
+  .DiscussionListItem-content {
+    padding: 12px 48px 12px 10px;
+  }
 }
 
 // New discussion button
@@ -1200,48 +1352,107 @@ a.GN-online-row {
   &:hover { text-decoration: none; color: inherit; }
 }
 
-// ── Right widget sidebar (IndexPage) ─────────────────────────────────────────
-// Flarum 2's IndexPage renders:
-//   div.IndexPage > div.container > div.sideNavContainer >
-//     [nav.IndexPage-nav.sideNav, div.IndexPage-results.sideNavOffset]
+// ── Page layout: widgets to the RIGHT of the discussion list ─────────────────
+// Flarum 2's PageStructure renders:
+//   div.Page.IndexPage > div.Page-main > div.Page-container.container >
+//     [div.Page-sidebar,     ← contains [IndexSidebar, .GN-widgetSidebar]
+//      div.Page-content]     ← contains contentItems (toolbar, discussionList)
 //
-// We hide the left nav (moved to header) and inject .GN-widgetSidebar as
-// a 3rd flex item in .sideNavContainer via vnode mutation in forum.js.
-
-// Hide the left nav — tag links live in the header now.
-.IndexPage .IndexPage-nav.sideNav {
-  display: none;
-}
-
-// Reset the left margin that .sideNavOffset uses to clear the sideNav.
-.IndexPage .IndexPage-results.sideNavOffset {
-  margin-left: 0 !important;
-  flex: 1;
-  min-width: 0;
-}
-
-// Make .sideNavContainer a flex row so the widget sidebar sits to the right.
-.IndexPage .sideNavContainer {
+// To put OUR widget stack on the right of the discussion list, we flip
+// the row direction on .Page-container so .Page-content renders first
+// (left, taking up the remaining flex space) and .Page-sidebar second
+// (right, fixed width). IndexSidebar inside Page-sidebar stays mounted
+// so its IndexSidebar.navItems() can feed the hero pill row — but its
+// visible chrome is hidden because the same nav now lives in the
+// hero.
+.IndexPage .Page-container {
   display: flex;
+  flex-direction: row-reverse;
   align-items: flex-start;
   gap: 1.5rem;
 }
 
-// Widget sidebar — rightmost flex item, sticky.
-.IndexPage .GN-widgetSidebar {
+.IndexPage .Page-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.IndexPage .Page-sidebar {
   width: 280px;
   flex-shrink: 0;
   position: sticky;
   top: 1rem;
 }
 
+// Hide IndexSidebar's visible chrome — keep it mounted so GNHeroNav can
+// still read from its navItems(). The newDiscussion button inside it is
+// also what GNComposerTrigger delegates clicks to (see open() in the
+// component), so we want it in the DOM but invisible.
+.IndexPage .Page-sidebar .IndexPage-nav.sideNav {
+  display: none;
+}
+
+// On narrow viewports — widgets stack below the discussion list.
 @media (max-width: 900px) {
-  .IndexPage .GN-widgetSidebar {
+  .IndexPage .Page-container {
+    flex-direction: column;
+  }
+  .IndexPage .Page-sidebar {
+    width: 100%;
+    position: static;
+    margin-top: 1rem;
+  }
+}
+
+// ── DiscussionHero — decorative tag-icon overlay ─────────────────────────────
+// Injected via extend(DiscussionHero.prototype, 'bodyItems', …) in
+// forum.js. Mirrors avocado's .DiscussionHero-decorationIcon — a huge
+// semi-transparent FA glyph anchored to the hero's right edge.
+.DiscussionHero {
+  position: relative;
+  overflow: hidden;
+}
+
+.GN-discussionHero-icon {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+  font-size: clamp(48px, 9vw, 96px);
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.12);
+
+  i { display: block; }
+
+  // Hide on small screens — at this point the hero text is dense
+  // enough that the decoration competes for space.
+  @media (max-width: 480px) {
     display: none;
   }
-  .IndexPage .IndexPage-results.sideNavOffset {
-    margin-left: 0 !important;
-  }
+}
+
+// Ensure hero text + items stay above the decoration.
+.DiscussionHero .container,
+.DiscussionHero-items {
+  position: relative;
+  z-index: 2;
+}
+
+// ── TopRecruitsWidget — round the photo into the same circle as the
+//    position-badge fallback so a CFBD payload with photos looks
+//    identical in shape to one without. 38×38 keeps it inline with the
+//    rest of the widget row.
+.GN-recruit-photo {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;   // bias to the face when CFBD ships a torso shot
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 0 0 2px var(--control-bg, #fff);
 }
 
 // ── Social Groups: post menu button visibility ────────────────────────────────
