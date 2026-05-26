@@ -2,9 +2,19 @@
 
 namespace Ernestdefoe\Fbsfb\Model;
 
-use Illuminate\Database\Eloquent\Model;
+use Flarum\Database\AbstractModel;
 
-class GridironRecruit extends Model
+/**
+ * GridIron Nation top-recruit row. Extends Flarum's AbstractModel so
+ * the row picks up Flarum's visibility pipeline, soft-delete awareness,
+ * and event hooks if we ever need them.
+ *
+ * Mass-assignment via `$fillable` is safe here only because every
+ * controller call site (Create/UpdateRecruitController) assembles the
+ * field dict explicitly and never passes `$request->getParsedBody()`
+ * straight to `->fill()` (CLAUDE.md §7).
+ */
+class GridironRecruit extends AbstractModel
 {
     protected $table = 'gridiron_recruits';
 
