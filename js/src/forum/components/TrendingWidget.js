@@ -53,16 +53,19 @@ export default class TrendingWidget extends Component {
   }
 
   view() {
+    const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.widgets.${key}`);
+
     return m('.GN-widget.GN-trendingWidget', [
       m('.GN-widget-header', [
         m('i.fas.fa-fire'),
-        ' Trending',
+        ' ',
+        t('trending'),
       ]),
       m('.GN-widget-body', [
         this.loading
           ? m('.GN-widget-loading', m('i.fas.fa-spinner.fa-spin'))
           : !this.discussions.length
-          ? m('.GN-widget-empty', 'No discussions yet')
+          ? m('.GN-widget-empty', t('trending_empty'))
           : this.discussions.map((d, i) => this.viewItem(d, i + 1)),
       ]),
     ]);

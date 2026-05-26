@@ -82,7 +82,7 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
       m('a.GN-headerNav-link', {
         href:    app.route('index'),
         onclick: (e) => { e.preventDefault(); m.route.set(app.route('index')); },
-      }, 'Discussions'),
+      }, app.translator.trans('ernestdefoe-fbsfb.forum.nav.discussions')),
       80
     );
   });
@@ -99,7 +99,11 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
             { user: app.session.user }
           ).then(() => app.composer.show());
         },
-      }, [m('i.fas.fa-pencil-alt'), ' Start a Discussion']),
+      }, [
+        m('i.fas.fa-pencil-alt'),
+        ' ',
+        app.translator.trans('ernestdefoe-fbsfb.forum.nav.start_discussion'),
+      ]),
       100
     );
   });

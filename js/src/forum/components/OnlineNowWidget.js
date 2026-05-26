@@ -48,10 +48,13 @@ export default class OnlineNowWidget extends Component {
   }
 
   view() {
+    const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.widgets.${key}`);
+
     return m('.GN-widget.GN-onlineWidget', [
       m('.GN-widget-header', [
         m('i.fas.fa-circle', { style: 'color:#4ec46a;font-size:0.6rem;vertical-align:middle' }),
-        ` Online Now`,
+        ' ',
+        t('online_now'),
         this.count > 0
           ? m('span.GN-online-count', ` — ${this.count}`)
           : null,
@@ -60,7 +63,7 @@ export default class OnlineNowWidget extends Component {
         this.loading
           ? m('.GN-widget-loading', m('i.fas.fa-spinner.fa-spin'))
           : !this.users.length
-          ? m('.GN-widget-empty', 'No one online right now')
+          ? m('.GN-widget-empty', t('online_empty'))
           : this.users.map((u) => this.viewUser(u)),
       ]),
     ]);

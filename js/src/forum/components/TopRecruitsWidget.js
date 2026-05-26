@@ -47,33 +47,42 @@ export default class TopRecruitsWidget extends Component {
   }
 
   view() {
+    const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.widgets.${key}`);
+
     return m('.GN-widget.GN-recruitsWidget', [
       m('.GN-widget-header', [
         m('i.fas.fa-star'),
-        ' Top Recruits',
+        ' ',
+        t('recruits'),
       ]),
       m('.GN-widget-body', [
         this.loading
           ? m('.GN-widget-loading', m('i.fas.fa-spinner.fa-spin'))
           : !this.recruits.length
-          ? m('.GN-widget-empty', 'No recruits added yet')
+          ? m('.GN-widget-empty', t('recruits_empty'))
           : this.recruits.map((r) => this.viewRecruit(r)),
       ]),
     ]);
   }
 
   viewRecruit(r) {
+    const trans = (key, params) => app.translator.trans(`ernestdefoe-fbsfb.forum.recruits.status.${key}`, params);
+
     const statusClass = {
       committed:   'GN-recruit-commit--committed',
       undecided:   'GN-recruit-commit--undecided',
       decommitted: 'GN-recruit-commit--decommitted',
     }[r.status] || 'GN-recruit-commit--undecided';
 
-    const statusLabel = {
-      committed:   r.school ? `→ ${r.school}` : 'Committed',
-      undecided:   'Undecided',
-      decommitted: 'Decommitted',
-    }[r.status] || 'Undecided';
+    // The committed-with-school form uses the "committed_to" key (which
+    // has a {school} placeholder), and falls back to the bare
+    // "committed" label when no school is set on the record yet.
+    const statusLabel = (() => {
+      if (r.status === 'committed') {
+        return r.school ? trans('committed_to', { school: r.school }) : trans('committed');
+      }
+      return trans(r.status || 'undecided');
+    })();
 
     return m('.GN-recruit', { key: r.id }, [
       r.position

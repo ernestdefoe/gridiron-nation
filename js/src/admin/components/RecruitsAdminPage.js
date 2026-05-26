@@ -4,12 +4,18 @@ import Button from 'flarum/common/components/Button';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 
 const STATUSES = ['committed', 'undecided', 'decommitted'];
+const T_PREFIX = 'ernestdefoe-fbsfb.admin.recruits.';
 
 /**
  * RecruitsAdminPage — Phase 5 Admin UI
  *
- * Allows admins to add, edit, and delete recruit entries that appear
- * in the Top Recruits sidebar widget.
+ * Add / edit / delete recruit entries that appear in the Top Recruits
+ * sidebar widget. Talks to the four /api/gn-recruits endpoints, all
+ * gated by `$actor->assertAdmin()` server-side.
+ *
+ * Every visible string flows through app.translator so the page can
+ * be localized via the standard Flarum yml pipeline; the canonical
+ * English copy lives in locale/en.yml under the matching keys.
  */
 export default class RecruitsAdminPage extends Component {
   oninit(vnode) {
@@ -30,6 +36,10 @@ export default class RecruitsAdminPage extends Component {
     this.fetch();
   }
 
+  t(key, params) {
+    return app.translator.trans(T_PREFIX + key, params);
+  }
+
   blankForm() {
     return { name: '', position: '', height: '', hometown: '', stars: 3, status: 'undecided', school: '', sortOrder: 0 };
   }
@@ -47,7 +57,10 @@ export default class RecruitsAdminPage extends Component {
   }
 
   save() {
-    if (!this.form.name.trim()) { this.error = 'Name is required.'; return; }
+    if (!this.form.name.trim()) {
+      this.error = this.t('name_required_error');
+      return;
+    }
     this.saving = true;
     this.error  = null;
 
@@ -95,7 +108,7 @@ export default class RecruitsAdminPage extends Component {
   }
 
   deleteRecruit(r) {
-    if (!confirm(`Delete ${r.name}?`)) return;
+    if (!confirm(this.t('delete_confirm', { name: r.name }))) return;
     this.deletingId = r.id;
     fetch(`${this.apiBase()}/gn-recruits/${r.id}`, {
       method: 'DELETE',
@@ -118,19 +131,23 @@ export default class RecruitsAdminPage extends Component {
   }
 
   view() {
+    const ph = (key) => this.t(`placeholders.${key}`);
+    const col = (key) => this.t(`columns.${key}`);
+    const st = (key) => this.t(`statuses.${key}`);
+
     return m('.RecruitsAdminPage', [
-      m('h2', this.editingId ? 'Edit Recruit' : 'Add Recruit'),
+      m('h2', this.editingId ? this.t('heading_edit') : this.t('heading_add')),
 
       this.error ? m('.Alert.Alert--error', { style: 'margin-bottom:1rem' }, this.error) : null,
 
       m('.GN-adminForm', [
-        this.field('name',     'Name *',     { placeholder: 'Jalen Smith', required: true }),
-        this.field('position', 'Position',   { placeholder: 'QB', style: 'width:80px' }),
-        this.field('height',   'Height',     { placeholder: "6'3\"" }),
-        this.field('hometown', 'Hometown',   { placeholder: 'Dallas, TX' }),
+        this.field('name',     this.t('name_required'), { placeholder: ph('name'), required: true }),
+        this.field('position', this.t('position'),      { placeholder: ph('position'), style: 'width:80px' }),
+        this.field('height',   this.t('height'),        { placeholder: ph('height') }),
+        this.field('hometown', this.t('hometown'),      { placeholder: ph('hometown') }),
 
         m('.Form-group', [
-          m('label', 'Stars (1–5)'),
+          m('label', this.t('stars')),
           m('input.FormControl', {
             type: 'number', min: 1, max: 5,
             value: this.form.stars,
@@ -140,46 +157,46 @@ export default class RecruitsAdminPage extends Component {
         ]),
 
         m('.Form-group', [
-          m('label', 'Commit Status'),
+          m('label', this.t('status')),
           m('select.FormControl', {
             value:    this.form.status,
             onchange: (e) => { this.form.status = e.target.value; },
-          }, STATUSES.map((s) => m('option', { value: s }, s.charAt(0).toUpperCase() + s.slice(1)))),
+          }, STATUSES.map((s) => m('option', { value: s }, st(s)))),
         ]),
 
-        this.field('school',    'School',     { placeholder: 'Alabama', disabled: this.form.status !== 'committed' }),
-        this.field('sortOrder', 'Sort Order', { type: 'number', style: 'width:80px' }),
+        this.field('school',    this.t('school'),     { placeholder: ph('school'), disabled: this.form.status !== 'committed' }),
+        this.field('sortOrder', this.t('sort_order'), { type: 'number', style: 'width:80px' }),
 
         m('.GN-adminForm-actions', [
           m(Button, { class: 'Button Button--primary', onclick: () => this.save(), disabled: this.saving },
-            this.saving ? m('i.fas.fa-spinner.fa-spin') : (this.editingId ? 'Save Changes' : 'Add Recruit')),
+            this.saving ? m('i.fas.fa-spinner.fa-spin') : (this.editingId ? this.t('save') : this.t('add'))),
           this.editingId
-            ? m(Button, { class: 'Button', onclick: () => this.cancelEdit() }, 'Cancel')
+            ? m(Button, { class: 'Button', onclick: () => this.cancelEdit() }, this.t('cancel'))
             : null,
         ]),
       ]),
 
-      m('h2', { style: 'margin-top:2rem' }, `Recruits (${this.recruits.length})`),
+      m('h2', { style: 'margin-top:2rem' }, this.t('heading_list', { count: this.recruits.length })),
 
       this.loading
         ? m(LoadingIndicator, { display: 'block' })
         : !this.recruits.length
-        ? m('p', 'No recruits added yet.')
+        ? m('p', this.t('empty'))
         : m('table.GN-recruitsTable', [
             m('thead', m('tr', [
-              m('th', 'Name'), m('th', 'Pos'), m('th', 'Stars'),
-              m('th', 'Status'), m('th', 'School'), m('th'),
+              m('th', col('name')), m('th', col('pos')), m('th', col('stars')),
+              m('th', col('status')), m('th', col('school')), m('th'),
             ])),
             m('tbody', this.recruits.map((r) => m('tr', { key: r.id, class: this.deletingId === r.id ? 'is-deleting' : '' }, [
               m('td', r.name),
               m('td', r.position),
               m('td', '★'.repeat(r.stars || 3)),
-              m('td', r.status),
+              m('td', st(r.status) || r.status),
               m('td', r.school || '—'),
               m('td', [
-                m('button.Button.Button--sm', { onclick: () => this.startEdit(r) }, 'Edit'),
+                m('button.Button.Button--sm', { onclick: () => this.startEdit(r) }, this.t('edit')),
                 ' ',
-                m('button.Button.Button--sm.Button--danger', { onclick: () => this.deleteRecruit(r) }, 'Delete'),
+                m('button.Button.Button--sm.Button--danger', { onclick: () => this.deleteRecruit(r) }, this.t('delete')),
               ]),
             ]))),
           ]),

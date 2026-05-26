@@ -5,7 +5,9 @@ import Component from 'flarum/common/Component';
  * LiveScoresWidget — Phase 2
  *
  * Fetches college football scores from our ESPN proxy (/api/gn-live-scores)
- * and auto-refreshes every 60 seconds while mounted.
+ * and auto-refreshes every 60 seconds while mounted. The proxy caches the
+ * upstream ESPN response for 60s server-side, so the polling cadence here
+ * effectively matches the cache TTL.
  */
 export default class LiveScoresWidget extends Component {
   oninit(vnode) {
@@ -45,24 +47,27 @@ export default class LiveScoresWidget extends Component {
   }
 
   view() {
+    const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.widgets.${key}`);
+
     return m('.GN-widget.GN-liveScoresWidget', [
       m('.GN-widget-header', [
         m('i.fas.fa-tv'),
-        ' Live Scores',
+        ' ',
+        t('live_scores'),
       ]),
       m('.GN-widget-body', [
         this.loading
           ? m('.GN-widget-loading', m('i.fas.fa-spinner.fa-spin'))
           : this.error
-          ? m('.GN-widget-empty', 'Scores unavailable')
+          ? m('.GN-widget-empty', t('live_scores_unavailable'))
           : !this.games.length
-          ? m('.GN-widget-empty', 'No games today')
-          : this.games.map((g) => this.viewGame(g)),
+          ? m('.GN-widget-empty', t('live_scores_empty'))
+          : this.games.map((g) => this.viewGame(g, t)),
       ]),
     ]);
   }
 
-  viewGame(g) {
+  viewGame(g, t) {
     return m('.GN-scorecard', { key: g.id }, [
       m('.GN-scorecard-teams', [
         m('.GN-scorecard-team', { class: g.awayWins ? 'is-winning' : '' }, [
@@ -78,7 +83,7 @@ export default class LiveScoresWidget extends Component {
       ]),
       m('.GN-scorecard-status', [
         g.isLive
-          ? m('span.GN-liveBadge', 'LIVE')
+          ? m('span.GN-liveBadge', t('live_badge'))
           : null,
         m('span.GN-scorecard-detail', g.status),
       ]),
