@@ -1,5 +1,31 @@
 <?php
 
+// Bump PHP's memory_limit to a level that survives compiling our
+// themed forum.less alongside three other ernestdefoe extensions. The
+// upstream wikimedia/less.php parser holds the full AST + every nested
+// rule + every inline data URI in heap, and the 128M PHP default tips
+// over while compiling our hero block (football SVG + [data-theme]
+// override matrix + glassmorphic popover styles). 256M matches Flarum's
+// own recommendation for theme-heavy installs.
+//
+// @ini_set returns false when the operator has disabled runtime
+// memory_limit changes — silently no-ops in that case, and we fall
+// back to whatever the host configured. This is *additive only*: we
+// never lower a higher operator-set value.
+if (function_exists('ini_get')) {
+    $current = trim((string) ini_get('memory_limit'));
+    $needed  = 256 * 1024 * 1024;
+    $parsed  = $current === '-1' ? PHP_INT_MAX : (int) $current * match (strtoupper(substr($current, -1))) {
+        'G'     => 1024 * 1024 * 1024,
+        'M'     => 1024 * 1024,
+        'K'     => 1024,
+        default => 1,
+    };
+    if ($parsed < $needed) {
+        @ini_set('memory_limit', '256M');
+    }
+}
+
 use Ernestdefoe\Fbsfb\Api\Controller\LiveScoresController;
 use Ernestdefoe\Fbsfb\Api\Controller\OnlineNowController;
 use Ernestdefoe\Fbsfb\Api\Controller\Recruit\CreateRecruitController;

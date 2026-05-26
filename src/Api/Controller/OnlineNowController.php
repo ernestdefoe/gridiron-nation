@@ -74,12 +74,20 @@ class OnlineNowController implements RequestHandlerInterface
         // in PHP and could shrink the set. 32 is comfortably more than
         // we'd ever surface to a sidebar widget while still being a
         // cheap query.
+        //
+        // `display_name` is NOT a column on Flarum 2's users table — it's
+        // an accessor on the User model that defaults to `username`
+        // (or returns whatever flarum/nicknames stamped on the user
+        // if that extension is installed). Selecting it explicitly
+        // throws `Unknown column 'display_name'`, so we let the model's
+        // `getDisplayNameAttribute()` accessor compute it from the
+        // columns we DO load.
         $users = User::query()
             ->whereVisibleTo($actor)
             ->where('last_seen_at', '>=', $cutoff)
             ->orderByDesc('last_seen_at')
             ->limit(32)
-            ->get(['id', 'username', 'display_name', 'avatar_url', 'last_seen_at', 'preferences']);
+            ->get(['id', 'username', 'avatar_url', 'last_seen_at', 'preferences']);
 
         $visible = $users
             ->filter(fn (User $u) => $u->getPreference('discloseOnline', true) !== false)
@@ -89,7 +97,7 @@ class OnlineNowController implements RequestHandlerInterface
         return [
             'count' => $visible->count(),
             'users' => $visible->map(fn (User $u) => [
-                'id'          => $u->id,
+                'id'          => (int) $u->id,
                 'displayName' => $u->display_name ?: $u->username,
                 'avatarUrl'   => $u->avatar_url,
                 'slug'        => $u->username,
