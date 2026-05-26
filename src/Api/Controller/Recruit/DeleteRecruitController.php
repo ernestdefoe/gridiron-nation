@@ -4,27 +4,26 @@ namespace Ernestdefoe\Fbsfb\Api\Controller\Recruit;
 
 use Ernestdefoe\Fbsfb\Model\GridironRecruit;
 use Flarum\Http\RequestUtil;
+use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\EmptyResponse;
-use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+/**
+ * DELETE /api/gn-recruits/{id}
+ *
+ * Admin-only. 204 No Content on success, 404 if the recruit doesn't
+ * exist (findOrFail raises ModelNotFoundException which Flarum's error
+ * handler maps to a clean 404 JSON-API response).
+ */
 class DeleteRecruitController implements RequestHandlerInterface
 {
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $actor = RequestUtil::getActor($request);
-        if (! $actor->isAdmin()) {
-            return new JsonResponse(['error' => 'Forbidden.'], 403);
-        }
+        RequestUtil::getActor($request)->assertAdmin();
 
-        $params = $request->getQueryParams();
-        $id     = $params['id'] ?? null;
-        if (! $id) {
-            preg_match('#/gn-recruits/(\d+)#', $request->getUri()->getPath(), $m);
-            $id = $m[1] ?? null;
-        }
+        $id = Arr::get($request->getQueryParams(), 'id');
 
         GridironRecruit::findOrFail($id)->delete();
 
