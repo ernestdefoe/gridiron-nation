@@ -262,24 +262,80 @@ body,
 }
 
 // ── Hero — Flarum 2 renders WelcomeHero as .Hero.WelcomeHero ─────────────────
-// Also keep .IndexPage-hero for any other themes/overrides.
+//
+// Background: defaults to our crimson gradient, BUT defers to
+// `--hero-bg` if ramon/colored (or any other extension) sets it. That
+// extension paints `--hero-bg` per-tag on tagged-discussion pages,
+// turning the hero into the tag's color; our default block kicks in
+// everywhere else (forum index, untagged discussions).
+//
+// On top of whatever fills the hero we layer two decorative passes:
+//   ::before — football-shape SVG pattern (semi-transparent white) so
+//              the hero reads as football-themed no matter what color
+//              base is underneath. White at 7% opacity keeps the
+//              pattern readable on crimson, dark slate, AND any tag
+//              tint ramon/colored throws at us.
+//   ::after  — diagonal yard-line bands at the bottom — subtle motion
+//              + depth without competing with content.
+//
+// Also: the hero is non-dismissable. The override() of
+// WelcomeHero.prototype.isHidden in forum.js keeps the hero visible,
+// the WelcomeHero "dismiss-button" is removed from items in the same
+// initializer, and we have no `&.is-hidden` rule here so even if
+// upstream Flarum re-enables the dismiss path our CSS won't hide it.
 .Hero.WelcomeHero,
 .Hero.IndexPage-hero,
 .IndexPage-hero {
-  background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
+  background: var(--hero-bg, linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%));
   color: #fff;
   padding: 2.5rem 0 1.5rem;
   border-radius: 0;
   position: relative;
   overflow: hidden;
 
-  // Subtle texture overlay
+  // ── Football pattern overlay ─────────────────────────────────────────
+  // Three stylized footballs (oval + laces) tile across the hero at
+  // different rotations + sizes. SVG is inline as a URL-encoded data:
+  // URI so no asset-pipeline plumbing is required. White stroke at 7%
+  // opacity keeps the pattern legible over both our default crimson
+  // gradient and any tag-color tint ramon/colored applies.
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='120' viewBox='0 0 240 120'%3E%3Cg fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1.4' stroke-linecap='round'%3E%3Cg transform='translate(40 30) rotate(-25)'%3E%3Cellipse rx='18' ry='9'/%3E%3Cline x1='-8' y1='0' x2='8' y2='0'/%3E%3Cline x1='-4' y1='-2.5' x2='-4' y2='2.5'/%3E%3Cline x1='-1' y1='-2.5' x2='-1' y2='2.5'/%3E%3Cline x1='2' y1='-2.5' x2='2' y2='2.5'/%3E%3Cline x1='5' y1='-2.5' x2='5' y2='2.5'/%3E%3C/g%3E%3Cg transform='translate(170 60) rotate(15)'%3E%3Cellipse rx='22' ry='11'/%3E%3Cline x1='-10' y1='0' x2='10' y2='0'/%3E%3Cline x1='-6' y1='-3' x2='-6' y2='3'/%3E%3Cline x1='-3' y1='-3' x2='-3' y2='3'/%3E%3Cline x1='0' y1='-3' x2='0' y2='3'/%3E%3Cline x1='3' y1='-3' x2='3' y2='3'/%3E%3Cline x1='6' y1='-3' x2='6' y2='3'/%3E%3C/g%3E%3Cg transform='translate(80 95) rotate(40)'%3E%3Cellipse rx='14' ry='7'/%3E%3Cline x1='-6' y1='0' x2='6' y2='0'/%3E%3Cline x1='-3' y1='-2' x2='-3' y2='2'/%3E%3Cline x1='0' y1='-2' x2='0' y2='2'/%3E%3Cline x1='3' y1='-2' x2='3' y2='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 240px 120px;
     pointer-events: none;
+    z-index: 0;
+  }
+
+  // ── Yard-line band ───────────────────────────────────────────────────
+  // A thin striped band along the bottom edge — evokes a goal-line
+  // chalk pattern without dominating the hero. Drawn with repeating-
+  // linear-gradient so no second SVG is needed.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 6px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.18) 0 2px,
+      transparent 2px 14px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  // Children must clear the decorative layers' z-index so the title +
+  // hero content remain on top.
+  > .container,
+  > .containerNarrow {
+    position: relative;
+    z-index: 1;
   }
 
   // Two-column layout: title/subtitle LEFT, stats/chips RIGHT.
@@ -336,6 +392,136 @@ body,
   flex-direction: column;
   align-items: flex-end;   // right-align number + label within each stat
   padding-left: 1.5rem;    // gap on the LEFT (between divider and stat)
+}
+
+// ── Interactive Online tile + popover ────────────────────────────────────────
+// The Online stat becomes a button + dropdown so visitors can see WHO is
+// currently active without having to scroll to the sidebar widget. Mirrors
+// the MosaicHero-onlineWrap pattern.
+.GN-onlineWrap {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.GN-hero-statTrigger {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+
+  &:hover .GN-hero-statLabel,
+  &:focus .GN-hero-statLabel {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 3px;
+    border-radius: @gn-radius-sm;
+  }
+}
+
+.GN-hero-statChev {
+  font-size: 0.6rem;
+  margin-left: 4px;
+  opacity: 0.75;
+  transition: transform 0.18s @gn-ease;
+}
+
+.GN-onlinePopover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 240px;
+  max-width: 320px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--control-bg, #fff);
+  color: var(--body-color, @gn-text);
+  border: 1px solid var(--border-color, @gn-border);
+  border-radius: @gn-radius-md;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 4px 8px rgba(0, 0, 0, 0.10);
+  padding: 6px;
+  z-index: 50;
+  text-align: left;
+
+  // Arrow pointing back up at the trigger tile, anchored to the
+  // right-hand edge since the stat row is right-aligned.
+  &::before {
+    content: '';
+    position: absolute;
+    top: -7px;
+    right: 18px;
+    width: 12px;
+    height: 12px;
+    background: inherit;
+    border-left: 1px solid var(--border-color, @gn-border);
+    border-top: 1px solid var(--border-color, @gn-border);
+    transform: rotate(45deg);
+  }
+
+  &-empty {
+    padding: 14px 16px;
+    color: var(--muted-color, @gn-muted);
+    font-size: 0.88rem;
+    text-align: center;
+  }
+}
+
+.GN-onlineList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li { margin: 0; }
+}
+
+.GN-onlineRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: @gn-radius-sm;
+  color: var(--body-color, @gn-text);
+  text-decoration: none;
+  transition: background @gn-transition;
+
+  &:hover, &:focus {
+    background: rgba(@gn-primary, 0.08);
+    text-decoration: none;
+    color: var(--body-color, @gn-text);
+  }
+}
+
+.GN-onlineAvatar {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  font-size: 0.8rem;
+}
+
+.GN-onlineName {
+  flex: 1 1 auto;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.GN-onlineDot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 2px var(--control-bg, #fff);
 }
 
 .GN-hero-statNum {
@@ -1356,4 +1542,44 @@ a.GN-online-row {
     color: #1a0303;
     &:hover { background: #ffa0a0; }
   }
+}
+
+// ============================================================
+// ramon/colored extension compatibility
+//
+// Surfaces the extension uses on Flarum 2 (live-probed, NOT what the
+// README implies):
+//   <html>:
+//     data-colored-header="true|false"      — paints --header-bg
+//     data-colored-border="left|full|off"   — discussion list border
+//     class .colored--instant               — no-transition flag
+//   <body>:
+//     class .colored--active                — discussion pages
+//   CSS custom properties exposed:
+//     --hero-bg                             — per-tag hero tint (we
+//                                             already read it in the
+//                                             .Hero.WelcomeHero block)
+//     --header-bg / --header-color etc.     — header tints (Flarum-
+//                                             owned; we don't reach
+//                                             into the header)
+//
+// Most of the work was done in the hero block above (reading from
+// `var(--hero-bg, …)`). The rules below cover the smaller adjustments:
+//   1. Clear our DiscussionListItem bottom-row separator when colored
+//      paints a full row border (would double up).
+//   2. Suppress every transition + animation while
+//      `html.colored--instant` is set, so an admin flipping the
+//      scheme/border settings doesn't see intermediate-color flashes
+//      while our hover/focus states transition over the change.
+// ============================================================
+
+html[data-colored-border='full'] .DiscussionListItem {
+  border-bottom: 0;
+  margin-bottom: 6px;
+}
+
+html.colored--instant,
+html.colored--instant * {
+  transition: none !important;
+  animation-duration: 0s !important;
 }
