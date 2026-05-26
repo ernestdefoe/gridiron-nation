@@ -28,10 +28,6 @@ if (function_exists('ini_get')) {
 
 use Ernestdefoe\Fbsfb\Api\Controller\LiveScoresController;
 use Ernestdefoe\Fbsfb\Api\Controller\OnlineNowController;
-use Ernestdefoe\Fbsfb\Api\Controller\Recruit\CreateRecruitController;
-use Ernestdefoe\Fbsfb\Api\Controller\Recruit\DeleteRecruitController;
-use Ernestdefoe\Fbsfb\Api\Controller\Recruit\ListRecruitsController;
-use Ernestdefoe\Fbsfb\Api\Controller\Recruit\UpdateRecruitController;
 use Flarum\Extend;
 
 return [
@@ -47,14 +43,16 @@ return [
     new Extend\Locales(__DIR__ . '/locale'),
 
     // ── API routes ───────────────────────────────────────────────────────────
+    // Recruits used to live here under /api/gn-recruits with a small
+    // admin CRUD page. That has been retired in favour of pulling from
+    // the ernestdefoe/recruiting extension (CollegeFootballData.com
+    // source, scheduled refresh, On3 photo enrichment) — see
+    // js/src/forum/components/TopRecruitsWidget.js which now hits
+    // /api/cfbd-recruits. The migrations folder includes a drop for
+    // the legacy `gridiron_recruits` table.
     (new Extend\Routes('api'))
         // Phase 2 — Live Scores (ESPN proxy, CORS-safe, public)
-        ->get('/gn-live-scores',          'gn.live-scores',        LiveScoresController::class)
+        ->get('/gn-live-scores', 'gn.live-scores', LiveScoresController::class)
         // Phase 4 — Online Now
-        ->get('/gn-online',               'gn.online',             OnlineNowController::class)
-        // Phase 5 — Top Recruits CRUD
-        ->get('/gn-recruits',             'gn.recruits.list',      ListRecruitsController::class)
-        ->post('/gn-recruits',            'gn.recruits.create',    CreateRecruitController::class)
-        ->patch('/gn-recruits/{id}',      'gn.recruits.update',    UpdateRecruitController::class)
-        ->delete('/gn-recruits/{id}',     'gn.recruits.delete',    DeleteRecruitController::class),
+        ->get('/gn-online',      'gn.online',      OnlineNowController::class),
 ];

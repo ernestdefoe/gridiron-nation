@@ -3,47 +3,6 @@ ernestdefoe-fbsfb:
     settings:
       title: GridIron Nation Theme
 
-    recruits:
-      heading_add: Add Recruit
-      heading_edit: Edit Recruit
-      heading_list: "Recruits ({count})"
-      name: Name
-      name_required: Name *
-      name_required_error: Name is required.
-      position: Position
-      height: Height
-      hometown: Hometown
-      stars: "Stars (1–5)"
-      status: Commit Status
-      school: School
-      sort_order: Sort Order
-      add: Add Recruit
-      save: Save Changes
-      cancel: Cancel
-      edit: Edit
-      delete: Delete
-      delete_confirm: "Delete {name}?"
-      empty: No recruits added yet.
-
-      placeholders:
-        name: Jalen Smith
-        position: QB
-        height: "6'3\""
-        hometown: Dallas, TX
-        school: Alabama
-
-      columns:
-        name: Name
-        pos: Pos
-        stars: Stars
-        status: Status
-        school: School
-
-      statuses:
-        committed: Committed
-        undecided: Undecided
-        decommitted: Decommitted
-
   forum:
     nav:
       discussions: Discussions
@@ -72,7 +31,9 @@ ernestdefoe-fbsfb:
       trending_empty: No discussions yet
 
       recruits: Top Recruits
-      recruits_empty: No recruits added yet
+      recruits_empty: No recruits in the feed yet
+      recruits_unconfigured: "Add a CollegeFootballData.com API key in the FBSFB Recruiting admin panel."
+      recruits_unavailable: Recruits unavailable
 
       online_now: Online Now
       online_empty: No one online right now

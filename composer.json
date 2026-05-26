@@ -16,6 +16,9 @@
         "flarum/core": "^2.0",
         "guzzlehttp/guzzle": "^7.0"
     },
+    "suggest": {
+        "ernestdefoe/recruiting": "Powers the Top Recruits sidebar widget with live CollegeFootballData.com data + On3 photo headshots. Without this extension installed, the widget is hidden."
+    },
     "autoload": {
         "psr-4": {
             "Ernestdefoe\\Fbsfb\\": "src/"

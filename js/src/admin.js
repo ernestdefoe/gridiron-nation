@@ -1,13 +1,11 @@
 import app from 'flarum/admin/app';
-import { extend } from 'flarum/common/extend';
-import ExtensionPage from 'flarum/admin/components/ExtensionPage';
-import RecruitsAdminPage from './admin/components/RecruitsAdminPage';
 
+// The recruits admin CRUD page that used to live here has been
+// removed — recruit data now comes from the ernestdefoe/recruiting
+// extension via /api/cfbd-recruits, which carries its own admin
+// settings panel for the CFBD API key, year, and team filters. The
+// theme has no admin UI of its own at this point; this initializer
+// stays as a hook for any future per-theme settings.
 app.initializers.add('ernestdefoe-fbsfb', () => {
-  // Inject RecruitsAdminPage as a section on our own extension settings page.
-  // We guard by extension ID so we don't affect any other extension's page.
-  extend(ExtensionPage.prototype, 'sections', function (items) {
-    if (this.attrs.id !== 'ernestdefoe-fbsfb') return;
-    items.add('gn-recruits', m(RecruitsAdminPage), 90);
-  });
+  // No-op for now.
 });
