@@ -49,6 +49,10 @@ ernestdefoe-fbsfb:
       discussions: Discussions
       start_discussion: Start a Discussion
 
+    composer:
+      prompt: "Tell everyone what you're working on…"
+      guest_prompt: "Sign in to start a discussion…"
+
     hero:
       stats:
         members: MEMBERS

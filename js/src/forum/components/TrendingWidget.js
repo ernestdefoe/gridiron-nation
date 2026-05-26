@@ -28,20 +28,19 @@ export default class TrendingWidget extends Component {
   }
 
   fetch() {
-    const base = app.forum.attribute('apiUrl') || '/api';
-    fetch(`${base}/discussions?sort=-lastPostedAt&page[limit]=5`, {
-      credentials: 'same-origin',
-      headers: { Accept: 'application/vnd.api+json' },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        this.discussions = (data.data || []).map((d) => ({
-          id:           d.id,
-          title:        d.attributes?.title || '',
-          commentCount: d.attributes?.commentCount || 0,
-          lastPostedAt: d.attributes?.lastPostedAt,
-          slug:         d.attributes?.slug,
-          tags:         [],
+    // Use the canonical store API instead of a raw fetch+JSON:API unpack.
+    // The store handles model deserialization, relationship hydration,
+    // and the client-side cache for us; we just read attributes off the
+    // returned Discussion models below.
+    app.store
+      .find('discussions', { sort: '-lastPostedAt', 'page[limit]': 5 })
+      .then((discussions) => {
+        this.discussions = (discussions || []).map((d) => ({
+          id:           d.id(),
+          title:        d.title() || '',
+          commentCount: d.commentCount() || 0,
+          lastPostedAt: d.lastPostedAt(),
+          slug:         d.slug(),
         }));
         this.loading = false;
         m.redraw();
@@ -85,7 +84,7 @@ export default class TrendingWidget extends Component {
           ' ',
           d.commentCount,
           d.lastPostedAt
-            ? [' · ', humanTime(new Date(d.lastPostedAt))]
+            ? [' · ', humanTime(d.lastPostedAt)]
             : null,
         ]),
       ]),
