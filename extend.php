@@ -55,4 +55,19 @@ return [
         ->get('/gn-live-scores', 'gn.live-scores', LiveScoresController::class)
         // Phase 4 — Online Now
         ->get('/gn-online',      'gn.online',      OnlineNowController::class),
+
+    // ── Settings ─────────────────────────────────────────────────────────────
+    // Per-widget visibility toggles exposed to the forum frontend so the
+    // sidebar can honor the operator's preference without an extra API
+    // round-trip. `boolval` cast normalizes the persisted "1"/"0" string
+    // back to a real JS bool — the widgets read these via
+    // `app.forum.attribute('fbsfb.widget_*')` and skip rendering when
+    // the value is explicitly `false`.
+    (new Extend\Settings())
+        ->serializeToForum('fbsfb.widget_live_scores',  'ernestdefoe-fbsfb.widget_live_scores',  'boolval', true)
+        ->serializeToForum('fbsfb.widget_trending',     'ernestdefoe-fbsfb.widget_trending',     'boolval', true)
+        ->serializeToForum('fbsfb.widget_top_recruits', 'ernestdefoe-fbsfb.widget_top_recruits', 'boolval', true)
+        ->default('ernestdefoe-fbsfb.widget_live_scores',  '1')
+        ->default('ernestdefoe-fbsfb.widget_trending',     '1')
+        ->default('ernestdefoe-fbsfb.widget_top_recruits', '1'),
 ];

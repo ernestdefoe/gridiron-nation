@@ -135,20 +135,24 @@ body,
   margin: 0 8px;
 }
 
-// Hero navigation — pill row under the WelcomeHero. Replaces the old
-// `.GN-headerNav-link` that sat in HeaderPrimary. Items come from
-// IndexSidebar.navItems via GNHeroNav.js, so any installed extension
-// (tags, subscriptions, social-groups, etc.) populates the row
-// automatically.
+// Hero navigation — pill row BELOW the WelcomeHero gradient, rendered
+// as a sibling of the hero inside .Page-hero. Reads on the page
+// background, not on the gradient, so contrast tuning targets
+// --body-bg + --body-color rather than the hero's white-on-crimson.
+//
+// Items come from IndexSidebar.navItems via GNHeroNav.js, so any
+// installed extension (tags, subscriptions, social-groups, etc.)
+// populates the row automatically.
 .GN-heroNav {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 14px 0 0;
-  padding: 0;
+  margin: 14px auto 0;
+  padding: 0 16px;
+  max-width: 1100px;
 
   // Phone: handled by Flarum's own .App-titleControl SelectDropdown;
-  // duplicating the pills here would just crowd the hero on mobile.
+  // duplicating the pills here would just crowd the page on mobile.
   @media (max-width: 767.98px) {
     display: none;
   }
@@ -159,53 +163,72 @@ body,
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 32px;
-    padding: 0 13px;
+    height: 34px;
+    padding: 0 14px;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.20);
+    color: var(--body-color, @gn-text);
+    background: var(--control-bg, #fff);
+    border: 1px solid var(--border-color, @gn-border);
     border-radius: 999px;
     text-decoration: none;
-    transition: background @gn-transition, border-color @gn-transition, transform @gn-transition;
+    transition: background @gn-transition, border-color @gn-transition, color @gn-transition, transform @gn-transition;
     white-space: nowrap;
 
-    &:hover, &:focus, &.active, &.active:hover {
-      background: rgba(255, 255, 255, 0.28);
-      border-color: rgba(255, 255, 255, 0.35);
-      color: #fff;
+    &:hover, &:focus {
+      background: rgba(@gn-primary, 0.08);
+      border-color: rgba(@gn-primary, 0.35);
+      color: @gn-primary;
       transform: translateY(-1px);
       text-decoration: none;
+    }
+
+    &.active, &.active:hover {
+      background: @gn-primary;
+      border-color: @gn-primary;
+      color: #fff;
     }
   }
 }
 
-// "Tell everyone what you're working on…" composer trigger card. Sits
-// at the top of .IndexPage-results, above the discussion list.
-// Replaces the old `.GN-startDiscBtn` actionItems button; clicking the
-// card delegates to Flarum's hidden `.IndexPage-newDiscussion` button.
+// "Tell everyone what you're working on…" composer trigger.
+// Rendered inside .Hero.WelcomeHero (last hero contentItem), mirrors
+// MosaicComposerTrigger's pill shape exactly:
+//   - 999px border-radius on the outer card AND inner CTA button
+//   - White (98% alpha) so the crimson hero gradient reads through softly
+//   - Big drop shadow so the card lifts off the gradient
+//   - ~58px min height with 6px 6px 6px 22px asymmetric padding so the
+//     CTA button sits flush against the right edge
 .GN-composerTrigger {
-  margin: 0 0 14px;
-  border-radius: @gn-radius-md;
-  background: var(--control-bg, #fff);
-  border: 1px solid var(--border-color, @gn-border);
-  box-shadow: @gn-shadow-sm;
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin: 0;
+  padding: 6px 6px 6px 22px;
+  min-height: 58px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
   cursor: pointer;
-  transition: border-color @gn-transition, box-shadow @gn-transition, transform @gn-transition;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
 
   &:hover, &:focus-within {
-    border-color: rgba(@gn-primary, 0.35);
-    box-shadow: 0 4px 16px rgba(@gn-primary, 0.10);
+    background: #fff;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
     transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid @gn-primary;
+    outline-offset: 2px;
   }
 
   &-inner {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 16px;
   }
 
   &-avatar, &-logo {
@@ -227,9 +250,11 @@ body,
 
   &-placeholder {
     flex: 1 1 auto;
+    min-width: 0;
     color: var(--muted-color, @gn-muted);
     font-family: 'DM Sans', sans-serif;
     font-size: 0.95rem;
+    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -239,26 +264,25 @@ body,
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    height: 36px;
-    padding: 0 16px;
+    gap: 6px;
+    height: 42px;
+    padding: 0 22px;
     font-family: 'DM Sans', sans-serif;
     font-size: 0.85rem;
     font-weight: 700;
     color: #fff;
-    background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
+    background: @gn-primary;
     border: 0;
-    border-radius: @gn-radius-sm;
+    border-radius: 999px;
     cursor: pointer;
-    transition: filter @gn-transition;
+    transition: background @gn-transition;
 
-    &:hover { filter: brightness(1.06); }
+    &:hover { background: @gn-primary-dark; color: #fff; }
 
     .fas { font-size: 0.78rem; }
 
     @media (max-width: 480px) {
-      // Tighten on narrow phone — hide the label, keep the +.
-      padding: 0 12px;
+      padding: 0 14px;
       &-label { display: none; }
     }
   }
@@ -286,10 +310,14 @@ body,
 // the WelcomeHero "dismiss-button" is removed from items in the same
 // initializer, and we have no `&.is-hidden` rule here so even if
 // upstream Flarum re-enables the dismiss path our CSS won't hide it.
-.Hero.WelcomeHero,
-.Hero.IndexPage-hero,
-.IndexPage-hero {
-  background: var(--hero-bg, linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%));
+// WelcomeHero — the index-page hero, ALWAYS our crimson gradient. We
+// deliberately don't read `--hero-bg` here because some installs (or
+// ramon/colored when not on a tagged-discussion page) set that var to
+// a near-white value, which made the welcome hero look invisible on
+// the light theme variant. The discussion-level hero block below
+// keeps the var() for per-tag tinting.
+.Hero.WelcomeHero {
+  background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
   color: #fff;
   padding: 2.5rem 0 1.5rem;
   border-radius: 0;
@@ -624,20 +652,23 @@ body,
 }
 
 .DiscussionListItem {
-  --discussion-list-item-bg-hover: var(--control-bg);
-  background: @gn-card;
+  // Avocado uses --control-bg as the card surface (a slightly off-white
+  // light gray) with no static border — only a subtle hover lift. We
+  // mirror that: borderless cards with a hover-only emphasis, sitting
+  // on the body bg which provides the gutter between rows.
+  --discussion-list-item-bg-hover: var(--body-bg, @gn-bg);
+  background: var(--control-bg, @gn-card);
   border-radius: @gn-radius;
-  border: 1px solid @gn-border;
-  box-shadow: @gn-shadow-sm;
+  border: 0;
+  box-shadow: none;
   padding: 0;
   margin: 0;
-  transition: background 0.1s ease, box-shadow @gn-transition, transform @gn-transition;
+  transition: background 0.1s ease, box-shadow @gn-transition;
   overflow: visible;
 
   &:hover {
     background: var(--discussion-list-item-bg-hover);
-    box-shadow: @gn-shadow-md;
-    transform: translateY(-1px);
+    box-shadow: @gn-shadow-sm;
   }
 
   &--unapproved {

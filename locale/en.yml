@@ -3,6 +3,13 @@ ernestdefoe-fbsfb:
     settings:
       title: GridIron Nation Theme
 
+      widget_live_scores: "Show Live Scores widget"
+      widget_live_scores_help: "Sidebar widget that polls ESPN for in-progress college football scores."
+      widget_trending: "Show Trending widget"
+      widget_trending_help: "Sidebar widget that lists the five most recently active discussions."
+      widget_top_recruits: "Show Top Recruits widget"
+      widget_top_recruits_help: "Sidebar widget that pulls recruiting data from the ernestdefoe/recruiting extension. Requires that extension to be installed and a CFBD API key configured."
+
   forum:
     nav:
       discussions: Discussions

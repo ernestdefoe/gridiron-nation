@@ -1,11 +1,29 @@
 import app from 'flarum/admin/app';
 
-// The recruits admin CRUD page that used to live here has been
-// removed — recruit data now comes from the ernestdefoe/recruiting
-// extension via /api/cfbd-recruits, which carries its own admin
-// settings panel for the CFBD API key, year, and team filters. The
-// theme has no admin UI of its own at this point; this initializer
-// stays as a hook for any future per-theme settings.
 app.initializers.add('ernestdefoe-fbsfb', () => {
-  // No-op for now.
+  // Register widget-visibility toggles on the extension's admin page.
+  // Each one is a checkbox bound to the same setting key declared in
+  // extend.php → Extend\Settings::serializeToForum. The forum-side
+  // widgets read these via app.forum.attribute('fbsfb.widget_*') and
+  // skip rendering when explicitly false.
+  app.extensionData
+    .for('ernestdefoe-fbsfb')
+    .registerSetting({
+      setting:  'ernestdefoe-fbsfb.widget_live_scores',
+      label:    app.translator.trans('ernestdefoe-fbsfb.admin.settings.widget_live_scores'),
+      help:     app.translator.trans('ernestdefoe-fbsfb.admin.settings.widget_live_scores_help'),
+      type:     'boolean',
+    })
+    .registerSetting({
+      setting:  'ernestdefoe-fbsfb.widget_trending',
+      label:    app.translator.trans('ernestdefoe-fbsfb.admin.settings.widget_trending'),
+      help:     app.translator.trans('ernestdefoe-fbsfb.admin.settings.widget_trending_help'),
+      type:     'boolean',
+    })
+    .registerSetting({
+      setting:  'ernestdefoe-fbsfb.widget_top_recruits',
+      label:    app.translator.trans('ernestdefoe-fbsfb.admin.settings.widget_top_recruits'),
+      help:     app.translator.trans('ernestdefoe-fbsfb.admin.settings.widget_top_recruits_help'),
+      type:     'boolean',
+    });
 });
