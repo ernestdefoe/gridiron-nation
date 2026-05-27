@@ -40,10 +40,18 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
     return !title || !String(title).trim();
   });
 
-  // ── 2. Strip the dismiss-button + add hero stats + composer trigger ───────
+  // ── 2. Strip the dismiss-button + add composer trigger + hero stats ───────
   // contentItems() lives inside .containerNarrow nested in the hero
   // gradient. Reading order top-to-bottom:
-  //   title (100) → subtitle (default ~10) → stats (50) → composer (30)
+  //   title (100) → subtitle (default ~10) → composer (8) → stats (5)
+  //
+  // The composer card sits ABOVE the stats. Title/subtitle reads as
+  // the welcome message; the next thing the visitor sees is the
+  // "what's on your mind" prompt — the primary affordance — with the
+  // supporting stat counts below as ambient context. Subtitle's
+  // default priority is ~10, so composer at 8 + stats at 5 keep both
+  // below the welcome text without inverting them.
+  //
   // The pill nav row (GNHeroNav) deliberately renders OUTSIDE the hero —
   // see the override(hero) below — so it reads on the page bg instead
   // of the gradient.
@@ -52,8 +60,8 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
   });
 
   extend(WelcomeHero.prototype, 'contentItems', function (items) {
-    items.add('gn-hero-extras', m(GridIronHero), 50);
-    items.add('gn-composer',    m(GNComposerTrigger), 30);
+    items.add('gn-composer',    m(GNComposerTrigger), 8);
+    items.add('gn-hero-extras', m(GridIronHero), 5);
   });
 
   // ── 3. Hero slot = [WelcomeHero, GNHeroNav] as siblings ───────────────────

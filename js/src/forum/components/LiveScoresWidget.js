@@ -62,12 +62,14 @@ export default class LiveScoresWidget extends Component {
     // infinite scroll without JS doing per-frame layout work.
     //
     // Tune duration by game count: longer lists need a longer cycle
-    // so any one game gets ~6 seconds of legibility. We cap at 180s
-    // so a 25-game scoreboard doesn't drag past the 3-minute mark.
-    // Slower than the initial 3s/game pace — operators reported the
-    // ticker felt rushed and individual scores were hard to follow.
+    // so any one game gets ~15 seconds of legibility. We cap at 360s
+    // (6 minutes) so a 25-game scoreboard doesn't drag past the
+    // half-cycle mark for a typical short visit. Slower than the
+    // initial 3s/game pace AND the subsequent 6s/game tweak — both
+    // still felt rushed to the operator. 15s lets a visitor read the
+    // matchup, score, and clock without it sliding off-screen.
     const games = this.games.slice(0, 25);
-    const cycleSeconds = Math.min(180, Math.max(40, games.length * 6));
+    const cycleSeconds = Math.min(360, Math.max(90, games.length * 15));
 
     return m('.GN-widget.GN-liveScoresWidget', [
       m('.GN-widget-header', [
