@@ -793,27 +793,281 @@ body,
   border-radius: 999px;
 }
 
-// ── Discussion list ──────────────────────────────────────────────────────────
+// ── Discussion list — fbsfb-native showcase cards ───────────────────────────
 //
-// IMPORTANT: fbsfb intentionally does NOT restyle .DiscussionListItem or
-// the .DiscussionList container. The production fbsfb forum runs
-// ramon/avocado as its layout substrate — avocado replaces Flarum's stock
-// IndexPage with its own `<AvocadoHome>` JSX that renders
-// .AvocadoHome-showcaseGrid / .AvocadoHome-showcaseCard markup. Those are
-// avocado's surface; restyling .DiscussionListItem here would apply to
-// dead nodes (avocado doesn't render them) AND fight avocado where the
-// classnames do overlap.
+// fbsfb overrides DiscussionListItem.view() in forum.js so each row
+// renders a GNDiscussionCard instead of Flarum's stock layout. The
+// markup the LESS below targets is FBSFB's own — no external theme
+// dependency.
 //
-// Per avocado's design: cards carry author header + tag pill row + title +
-// excerpt + reply preview + reaction footer. fbsfb leaves all of that to
-// avocado and contributes the football-specific palette (--primary-color,
-// --link-color, --button-primary-bg via body.colored--active when
-// ramon/colored is also installed) plus the hero/sidebar/widget chrome.
-//
-// The single rule we keep: hide flarum/realtime's "N discussions have
-// updated" banner so the list refreshes silently — that's a small UX
-// preference independent of the avocado layout.
-.DiscussionList-update { display: none !important; }
+// Card anatomy (matches forum.fbsfb.com production look):
+//   • Vertical primary-color accent strip down the left edge (yard line)
+//   • Header row: avatar + author + date + tag pills + Reply button
+//   • Bold title
+//   • 2-line OP excerpt (muted)
+//   • Embedded "most recent reply" preview chip (avatar + author + snippet)
+//   • "See other N replies" overflow link
+//   • Footer: likes / replies counts with FA icons
+
+.DiscussionList-update { display: none !important; }   // hide realtime "N updates" banner
+
+.GN-showcaseCard {
+  position: relative;
+  display: flex;
+  background: var(--control-bg, @gn-card);
+  border-radius: @gn-radius;
+  border: 1px solid var(--border-color, @gn-border);
+  margin: 0 0 14px;
+  overflow: hidden;
+  transition: border-color @gn-transition, box-shadow @gn-transition, transform @gn-transition;
+
+  &:hover {
+    border-color: rgba(@gn-primary, 0.4);
+    box-shadow: 0 4px 16px rgba(@gn-primary, 0.08);
+    transform: translateY(-1px);
+  }
+
+  &--unread { border-left: 0; }
+  &--sticky { box-shadow: 0 0 0 1px rgba(@gn-primary, 0.25); }
+  &--locked { opacity: 0.85; }
+
+  &-accent {
+    flex: 0 0 4px;
+    width: 4px;
+    background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%);
+    border-radius: 2px 0 0 2px;
+  }
+
+  &--unread &-accent { background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%); }
+  &:not(&--unread) &-accent { background: var(--border-color, @gn-border); }
+
+  &-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 16px 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  &-avatar {
+    flex: 0 0 auto;
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+
+    .Avatar {
+      width: 32px;
+      height: 32px;
+      font-size: 0.85rem;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px var(--body-bg, @gn-bg);
+    }
+  }
+
+  &-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    font-size: 0.86rem;
+    color: var(--muted-color, @gn-muted);
+  }
+
+  &-author {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    color: var(--body-color, @gn-text);
+  }
+
+  &-dot { color: var(--muted-color, @gn-muted); opacity: 0.6; }
+
+  &-time { white-space: nowrap; }
+
+  &-tags {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-left: 4px;
+  }
+
+  &-tagPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 9px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.4;
+    border-radius: 999px;
+    color: var(--gn-tag-color, var(--body-color));
+    background: var(--gn-tag-color-tint, rgba(0, 0, 0, 0.06));
+    text-decoration: none;
+    white-space: nowrap;
+    transition: filter @gn-transition;
+
+    &:hover, &:focus {
+      filter: brightness(1.08);
+      text-decoration: none;
+      color: var(--gn-tag-color, var(--body-color));
+    }
+
+    i { font-size: 0.7rem; }
+  }
+
+  &-replyBtn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted-color, @gn-muted);
+    background: transparent;
+    border: 1px solid var(--border-color, @gn-border);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background @gn-transition, color @gn-transition, border-color @gn-transition;
+
+    &:hover, &:focus {
+      background: rgba(@gn-primary, 0.08);
+      color: @gn-primary;
+      border-color: rgba(@gn-primary, 0.3);
+      text-decoration: none;
+    }
+
+    i { font-size: 0.72rem; }
+  }
+
+  &-titleLink {
+    text-decoration: none;
+    color: inherit;
+    &:hover, &:focus { text-decoration: none; }
+  }
+
+  &-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.25;
+    color: var(--heading-color, var(--body-color));
+    margin: 0;
+
+    .GN-showcaseCard--unread & { color: var(--heading-color, @gn-text); }
+  }
+
+  &-excerpt {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--muted-color, @gn-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  &-reply {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--body-bg, @gn-bg);
+    border-radius: @gn-radius-sm;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+    transition: background @gn-transition;
+
+    &:hover, &:focus {
+      background: rgba(@gn-primary, 0.04);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .Avatar {
+      flex: 0 0 auto;
+      width: 22px;
+      height: 22px;
+      font-size: 0.7rem;
+      border-radius: 50%;
+    }
+  }
+
+  &-replyAvatar { flex: 0 0 auto; }
+
+  &-replyAuthor {
+    font-weight: 700;
+    color: var(--body-color, @gn-text);
+    white-space: nowrap;
+    font-size: 0.86rem;
+  }
+
+  &-replySnippet {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--muted-color, @gn-muted);
+    font-size: 0.86rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &-more {
+    align-self: flex-start;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted-color, @gn-muted);
+    text-decoration: none;
+    padding-left: 4px;
+
+    &:hover, &:focus {
+      color: @gn-primary;
+      text-decoration: none;
+    }
+  }
+
+  &-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-top: 2px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color, @gn-border);
+    font-size: 0.82rem;
+    color: var(--muted-color, @gn-muted);
+  }
+
+  &-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    i { font-size: 0.85rem; opacity: 0.8; }
+  }
+}
+
+@media (max-width: 540px) {
+  .GN-showcaseCard {
+    &-body { padding: 12px 14px 12px; gap: 6px; }
+    &-title { font-size: 1rem; }
+    &-replyBtn { display: none; }   // tighten the meta row on phone
+  }
+}
 
 // New discussion button
 .DiscussionComposer,
@@ -821,16 +1075,239 @@ body,
   border-radius: @gn-radius;
 }
 
-// ── Post stream ──────────────────────────────────────────────────────────────
+// ── Post stream — playcard layout ─────────────────────────────────────────────
 //
-// IMPORTANT: fbsfb does NOT restyle .Post. ramon/avocado ships its own
-// Post.less + DiscussionPage layout that takes care of the card chrome,
-// avatar rail, and OP highlighting. fbsfb runs on top of avocado on prod,
-// so anything we put here either duplicates avocado's work or fights it.
+// Standalone "playcard" treatment for .Post / .CommentPost — built on
+// Flarum's stock post structure, no avocado dependency. The rendered
+// shape from flarum/core CommentPost is:
 //
-// Football-specific decoration that IS additive — the FA tag-icon overlay
-// on the .DiscussionHero right edge — lives in its own .GN-discussionHero-icons
-// block above (anchored to the hero header avocado renders).
+//   <article class="Post CommentPost">
+//     <aside class="Post-side"><a><Avatar class="Post-avatar"></a></aside>
+//     <header class="Post-header"><ul>{PostUser}{PostMeta}{...}</ul></header>
+//     <div class="Post-body">{HTML}</div>
+//     <aside class="Post-actions">{controls dropdown}</aside>
+//     [reactions, social-groups extras, etc. injected by other extensions]
+//   </article>
+//
+// Football-stadium analogue: each post is a "playcard" — a panel of
+// chalkboard for one play. The OP carries a crimson yard-line accent
+// down the left edge (mirroring the discussion-list showcase card),
+// replies stay subtler so the eye lands on the OP first.
+//
+// Layout decisions:
+//   - Wider left-rail (78px) so the avatar feels deliberate vs. floating
+//   - Header username + role pill on one line; date below, muted
+//   - Body uses comfortable 1.65 line-height + 16px body type
+//   - Reactions / dropdown actions get a baked-in footer band
+//   - Hover lifts shadow tier — same elevation pattern as showcase card
+.PostStream {
+  // Tighten the gap between consecutive posts so the stream reads as a
+  // sequence of plays rather than detached blocks. Core ships with
+  // larger margins which feel airy on a football skin.
+  .PostStream-item {
+    margin-bottom: 14px;
+
+    &:last-child { margin-bottom: 0; }
+  }
+}
+
+.Post.CommentPost {
+  position: relative;
+  background: var(--control-bg, @gn-card);
+  border: 1px solid var(--border-color, @gn-border);
+  border-radius: @gn-radius;
+  box-shadow: @gn-shadow-sm;
+  padding: 20px 24px 16px 92px;        // left padding leaves room for the avatar rail
+  transition: box-shadow @gn-transition, transform @gn-transition;
+
+  // Yard-line accent down the left edge — muted on replies, crimson on the OP.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 4px;
+    border-radius: 4px;
+    background: var(--border-color, @gn-border);
+    transition: background @gn-transition;
+  }
+
+  // OP (first post in the stream) gets the crimson accent strip.
+  // Flarum's DiscussionPage stamps `.PostStream-item--first` on the
+  // wrapper for the OP — we use the parent selector via :where for
+  // specificity neutrality.
+  .PostStream-item--first &::before,
+  .PostStream-item:first-child &::before {
+    background: linear-gradient(180deg, var(--primary-color, @gn-primary) 0%, var(--primary-color-dark, @gn-primary-dark) 100%);
+  }
+
+  &:hover {
+    box-shadow: @gn-shadow-md;
+  }
+
+  // ── Avatar rail (Post-side) ────────────────────────────────────────────────
+  .Post-side {
+    position: absolute;
+    top: 18px;
+    left: 22px;
+    width: 56px;
+
+    .Post-avatar,
+    .Avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid var(--control-bg, @gn-card);
+      box-shadow: @gn-shadow-sm;
+    }
+  }
+
+  // ── Header (author + meta) ─────────────────────────────────────────────────
+  .Post-header {
+    margin: 0 0 12px;
+
+    > ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 14px;
+    }
+
+    .PostUser {
+      .PostUser-name {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.98rem;
+
+        a {
+          color: var(--body-color, @gn-text);
+          &:hover { color: var(--primary-color, @gn-primary); text-decoration: none; }
+        }
+      }
+
+      // Role / group badge pills next to the username
+      .UserBadge,
+      .GroupBadge {
+        margin-left: 6px;
+      }
+    }
+
+    .PostMeta {
+      color: var(--muted-color, @gn-muted);
+      font-size: 0.83rem;
+      font-family: 'DM Sans', sans-serif;
+
+      a { color: inherit; }
+      a:hover { color: var(--primary-color, @gn-primary); text-decoration: none; }
+    }
+  }
+
+  // ── Body ───────────────────────────────────────────────────────────────────
+  .Post-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--body-color, @gn-text);
+
+    p { margin: 0 0 0.85em; }
+    p:last-child { margin-bottom: 0; }
+
+    h1, h2, h3, h4 {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 800;
+      color: var(--heading-color, @gn-text);
+      margin: 1.2em 0 0.5em;
+    }
+
+    a {
+      color: var(--link-color, @gn-primary);
+      text-decoration-color: rgba(@gn-primary, 0.35);
+      &:hover { color: var(--link-hover-color, @gn-primary-dark); }
+    }
+
+    blockquote {
+      border-left: 3px solid var(--primary-color, @gn-primary);
+      background: rgba(@gn-primary, 0.04);
+      border-radius: 0 @gn-radius-sm @gn-radius-sm 0;
+      padding: 8px 14px;
+      color: var(--text-secondary, @gn-secondary);
+    }
+
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: rgba(0, 0, 0, 0.04);
+      border-radius: @gn-radius-sm;
+    }
+
+    code { padding: 1px 6px; font-size: 0.9em; }
+    pre {
+      padding: 12px 14px;
+      overflow: auto;
+
+      code { background: transparent; padding: 0; }
+    }
+  }
+
+  // ── Actions menu (top-right dropdown) ──────────────────────────────────────
+  .Post-actions {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+
+    .Button {
+      color: var(--muted-color, @gn-muted);
+      &:hover { color: var(--primary-color, @gn-primary); background: rgba(@gn-primary, 0.08); }
+    }
+  }
+
+  // ── Footer band (reactions, reply button, social-groups extras) ────────────
+  // Anything sibling to .Post-body that other extensions inject after the
+  // body (reactions row, fof/reactions, social-groups poll bar, etc.)
+  // gets a soft separator + tightened spacing.
+  .Post-body + *:not(.Post-actions):not(script) {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color, @gn-border);
+  }
+}
+
+// First post in the stream — slightly stronger card chrome so the OP
+// reads as the discussion's anchor rather than just another reply.
+.PostStream-item--first .Post.CommentPost,
+.PostStream-item:first-child .Post.CommentPost {
+  box-shadow: @gn-shadow-md;
+
+  .Post-body {
+    font-size: 1.04rem;
+  }
+}
+
+// Phone tightening — collapse the avatar rail under the header so the
+// body gets the full content width on small screens.
+@media (max-width: 540px) {
+  .Post.CommentPost {
+    padding: 56px 16px 14px;
+
+    .Post-side {
+      top: 14px;
+      left: 16px;
+      width: 40px;
+
+      .Post-avatar,
+      .Avatar { width: 36px; height: 36px; }
+    }
+
+    .Post-header { padding-left: 50px; min-height: 36px; margin-bottom: 10px; }
+    .Post-header > ul { row-gap: 2px; }
+    .Post-actions { top: 10px; right: 10px; }
+
+    &::before { top: 10px; bottom: 10px; }
+  }
+}
 
 // Composer
 .ComposerBody {

@@ -4,6 +4,7 @@ import IndexPage          from 'flarum/forum/components/IndexPage';
 import IndexSidebar       from 'flarum/forum/components/IndexSidebar';
 import WelcomeHero        from 'flarum/forum/components/WelcomeHero';
 import DiscussionHero     from 'flarum/forum/components/DiscussionHero';
+import DiscussionListItem from 'flarum/forum/components/DiscussionListItem';
 
 import LiveScoresWidget  from './forum/components/LiveScoresWidget';
 import TrendingWidget    from './forum/components/TrendingWidget';
@@ -11,6 +12,7 @@ import TopRecruitsWidget from './forum/components/TopRecruitsWidget';
 import GridIronHero      from './forum/components/GridIronHero';
 import GNHeroNav         from './forum/components/GNHeroNav';
 import GNComposerTrigger from './forum/components/GNComposerTrigger';
+import GNDiscussionCard  from './forum/components/GNDiscussionCard';
 
 /**
  * Forum-frontend wiring.
@@ -166,7 +168,26 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
     );
   });
 
-  // ── 5. Sidebar: keep IndexSidebar (hidden), append widget stack ───────────
+  // ── 5. Discussion list rows → GNDiscussionCard showcase layout ───────────
+  // Override DiscussionListItem.view() to render our showcase card
+  // instead of Flarum's stock row. We keep ALL the host machinery
+  // (state, subtree retention, slidable behavior, isUnread/isRead
+  // calculations) — only the rendered vdom changes.
+  //
+  // The original `view()` also wires `attrs.className` and Slidable
+  // — we reproduce just enough of that wrapper to keep `.active`
+  // routing highlighting working.
+  override(DiscussionListItem.prototype, 'view', function () {
+    return m(GNDiscussionCard, {
+      discussion:      this.attrs.discussion,
+      params:          this.attrs.params,
+      jumpTo:          this.attrs.jumpTo,
+      author:          this.attrs.author,
+      highlightRegExp: this.highlightRegExp,
+    });
+  });
+
+  // ── 6. Sidebar: keep IndexSidebar (hidden), append widget stack ───────────
   // CSS flips the .Page-container flex direction so the sidebar lands on
   // the right of the discussion list. IndexSidebar stays mounted so its
   // navItems() can feed our hero pill row + GNComposerTrigger's click
