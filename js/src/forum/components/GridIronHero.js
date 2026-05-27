@@ -137,10 +137,11 @@ export default class GridIronHero extends Component {
 
   view() {
     const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.hero.${key}`);
-    const tags = (app.store.all('tags') || []).slice(0, 7);
 
+    // Tag chips were removed from the hero — they now live in the pill
+    // nav row below the hero (see GNHeroNav). Keeps the hero focused
+    // on stats + the composer trigger card.
     return m('.GN-hero-extras', [
-      // ── Stats row ─────────────────────────────────────────────────────────
       m('.GN-hero-stats', [
         this.stat(this.fmt(this.users),       t('stats.members')),
         m('.GN-hero-statDivider'),
@@ -151,21 +152,6 @@ export default class GridIronHero extends Component {
           ? [m('.GN-hero-statDivider'), this.onlineStat(t('stats.online'))]
           : null,
       ]),
-
-      // ── Conference / tag chips ─────────────────────────────────────────────
-      tags.length > 0
-        ? m('.GN-hero-chips', [
-            m('button.GN-hero-chip.is-active', {
-              onclick: () => m.route.set(app.route('index')),
-            }, t('chips.all')),
-            tags.map((tag) =>
-              m('button.GN-hero-chip', {
-                key:     tag.id(),
-                onclick: () => m.route.set(app.route('tag', { slug: tag.attribute('slug') })),
-              }, tag.attribute('name'))
-            ),
-          ])
-        : null,
     ]);
   }
 

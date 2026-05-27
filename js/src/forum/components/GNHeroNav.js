@@ -37,13 +37,16 @@ export default class GNHeroNav extends Component {
     // Drop entries that don't belong in a horizontal pill row:
     //   - 'allDiscussions' — implicit; we ARE on the home page.
     //   - 'loading'        — placeholder.
-    //   - 'tags'           — the top-level "Tags" link from flarum/tags;
-    //                        excluded so the pill row stays terse and
-    //                        the tag chips inside GridIronHero are the
-    //                        canonical tag-browse surface.
     //   - 'moreTags'       — overflow link from flarum/tags.
     //   - 'separator'      — divider between tag groups.
-    ['allDiscussions', 'loading', 'tags', 'moreTags', 'separator'].forEach((k) =>
+    //
+    // The top-level 'tags' link IS kept (it routes to /tags, the
+    // browse-all-tags page) since the hero no longer carries tag chips
+    // — operators wanted a single "Tags" pill in the nav instead.
+    // Per-tag rows ARE still stripped via the .model attr / `/t/` href
+    // filter below so the row stays terse rather than ballooning to
+    // every individual tag.
+    ['allDiscussions', 'loading', 'moreTags', 'separator'].forEach((k) =>
       itemList.remove(k)
     );
 

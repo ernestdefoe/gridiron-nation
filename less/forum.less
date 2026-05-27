@@ -594,31 +594,10 @@ body,
   margin: 0 0 0 1.25rem;   // gap on the LEFT of the divider
 }
 
-.GN-hero-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end; // chips align right
-  gap: 6px;
-}
-
-.GN-hero-chip {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #fff;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background @gn-transition, border-color @gn-transition;
-
-  &:hover,
-  &.is-active {
-    background: rgba(255, 255, 255, 0.28);
-    border-color: rgba(255, 255, 255, 0.50);
-  }
-}
+// Hero tag chips removed — tag navigation lives in the pill row below
+// the hero now (see .GN-heroNav). The old `.GN-hero-chip` rules used
+// to render small white chips inside GridIronHero on the crimson
+// gradient; those styles are gone with the chips themselves.
 
 // ── Tags / Filters bar ────────────────────────────────────────────────────────
 .TagLabel {
@@ -1108,13 +1087,13 @@ select {
 
 .GN-scorecard {
   flex: 0 0 auto;
-  width: 170px;
+  width: 240px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 8px 12px;
-  margin: 4px 6px;
-  gap: 4px;
+  padding: 12px 16px;
+  margin: 6px 8px;
+  gap: 8px;
   background: var(--control-bg, @gn-surface);
   border: 1px solid var(--border-color, @gn-border);
   border-radius: @gn-radius-sm;
@@ -1129,22 +1108,22 @@ select {
   &-teams {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    font-size: 0.82rem;
+    gap: 6px;
+    font-size: 1.02rem;
     font-weight: 700;
   }
 
   &-team {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
 
     &.is-winning .GN-scorecard-score { color: @gn-primary; }
   }
 
   &-logo {
-    width: 18px;
-    height: 18px;
+    width: 26px;
+    height: 26px;
     object-fit: contain;
     flex-shrink: 0;
   }
@@ -1155,24 +1134,29 @@ select {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 1.02rem;
+    letter-spacing: 0.01em;
   }
 
   &-score {
     font-weight: 800;
-    font-size: 0.9rem;
-    min-width: 22px;
+    font-size: 1.25rem;
+    min-width: 32px;
     text-align: right;
     color: var(--body-color);
+    font-variant-numeric: tabular-nums;
   }
 
   &-status {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.7rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: @gn-muted;
-    gap: 4px;
+    gap: 6px;
+    padding-top: 4px;
+    border-top: 1px solid var(--border-color, @gn-border);
   }
 
   &-detail {
@@ -1649,14 +1633,6 @@ a.GN-online-row {
     background: linear-gradient(135deg, rgba(120, 10, 10, 0.97) 0%, rgba(30, 2, 2, 0.99) 100%);
   }
 
-  .GN-hero-chip {
-    background: rgba(255, 255, 255, 0.10);
-    border-color: rgba(255, 255, 255, 0.18);
-
-    &:hover, &.is-active {
-      background: rgba(255, 255, 255, 0.20);
-    }
-  }
 
   .GN-composerTrigger {
     background: #16171c;
