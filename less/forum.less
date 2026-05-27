@@ -793,234 +793,27 @@ body,
   border-radius: 999px;
 }
 
-// ── Discussion list — mirrors ramon/avocado's card pattern ──────────────────
+// ── Discussion list ──────────────────────────────────────────────────────────
 //
-// Each row is a flat card with a circular avatar on the left, the title +
-// meta block in the middle, a horizontal stats row on the right, and the
-// per-row controls dropdown absolute-positioned at the right edge,
-// vertically centered. Unread rows get a small primary-color dot next to
-// the title; badges (locked / pinned / etc.) become 20px circles at the
-// top-right corner of the main block.
-.DiscussionList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  // Hide flarum/realtime's "N updates available" banner — auto-release
-  // refreshes the list silently every ~10s.
-  &-update { display: none !important; }
-
-  // Avocado pattern: the LIST container rotates the organic blob radii
-  // across each row's avatar via nth-child. This is the visual hook
-  // that makes the theme feel avocado-shaped rather than rectangular.
-  &-discussions > li {
-    .gn-organic-radius(~".Avatar");
-  }
-}
-
-.DiscussionListItem {
-  // Verbatim from ramon/avocado's DiscussionList.less.
-  //
-  // Key visual: 4px Flarum-default border-radius (NOT a 14px card
-  // radius). Avocado items are tightly-rounded list rows, not
-  // floating cards. The ONLY organic shape is on the .Avatar inside,
-  // applied via .gn-organic-radius rotation on the parent <li>.
-  --discussion-list-item-bg-hover: var(--control-bg-light, @gn-bg);
-  background: var(--control-bg, @gn-card);
-  border-radius: 4px;
-  border: 0;
-  box-shadow: none;
-  padding: 0;
-  margin: 0 0 4px;
-  transition: background 0.1s ease !important;
-  overflow: visible;
-
-  &:hover {
-    background: var(--discussion-list-item-bg-hover);
-  }
-
-  &--unapproved {
-    background: rgba(@gn-primary, 0.06);
-  }
-
-  &-content {
-    display: flex;
-    align-items: center;
-    padding: 12px 56px 12px 12px;   // 56px right gutter for the controls dropdown
-  }
-
-  &-author {
-    flex-shrink: 0;
-    margin: 0 15px 0 0;
-    position: relative;
-    display: block;
-    float: none;
-
-    // Avatar sized 50px, using --body-bg as its background so it
-    // visibly "punches through" the lighter --control-bg row. Soft
-    // 2-layer shadow + 4px border-radius (overridden to an organic
-    // blob shape by .gn-organic-radius on the parent <li>).
-    //
-    // `!important` here is defensive: other extensions (social-groups,
-    // theme variants, etc.) sometimes ship `.DiscussionListItem
-    // .DiscussionListItem-author .Avatar { … !important }` rules
-    // designed for their own contexts but bleed onto every list. Our
-    // values are theme baseline — we win.
-    .Avatar {
-      width: 50px !important;
-      height: 50px !important;
-      line-height: 50px !important;
-      font-size: 1.1rem !important;
-      min-width: 50px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      background-color: var(--body-bg, @gn-bg) !important;
-      border-radius: 4px;
-      box-shadow: @gn-soft-shadow !important;
-    }
-  }
-
-  &-main {
-    flex: 1;
-    min-width: 0;
-    padding: 0;
-    margin: 0;
-    position: relative;
-  }
-
-  &-title {
-    color: var(--text-color, @gn-text) !important;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 0.98rem;
-    line-height: 1.3;
-  }
-
-  &--unread &-title::after {
-    content: '';
-    display: inline-flex;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: @gn-primary;
-    vertical-align: text-top;
-    margin: 6px 0 0 6px;
-  }
-
-  &-info {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 10px;
-    margin-top: 4px;
-    font-size: 12px;
-    color: var(--muted-color, @gn-muted);
-  }
-
-  &-badges {
-    position: absolute;
-    right: -7px;
-    top: -4px;
-    margin: 0;
-    width: auto;
-    float: none;
-
-    .Badge {
-      --size: 20px;
-      width: var(--size);
-      height: var(--size);
-      line-height: var(--size);
-      box-shadow: -1px 1px 2px rgba(0, 0, 0, 0.22);
-
-      &-icon { font-size: 10px; }
-    }
-  }
-
-  // Horizontal stats row on the right (reply count + last-poster, etc.).
-  // Flarum 2 wraps each stat in `.DiscussionListItem-stats-item` with an
-  // icon + label pair.
-  &-stats {
-    flex-shrink: 0;
-    align-self: center;
-    margin-left: 10px;
-    margin-right: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: auto;
-    flex-direction: row;
-  }
-
-  &-stats-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--muted-color, @gn-muted);
-    font-size: 13px;
-  }
-
-  &-count {
-    margin: 0;
-    padding: 0;
-    float: none;
-    background: transparent;
-    color: var(--muted-color, @gn-muted);
-    font-weight: 600;
-    font-size: 13px;
-    min-width: auto;
-
-    &.unread,
-    &.Button--ua-reset {
-      color: @gn-primary;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      ._checkmark { display: none; }
-      &:hover { opacity: 0.7; }
-    }
-  }
-
-  // Controls dropdown (⋯) — absolute-positioned, vertically centered.
-  &-controls {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-
-    .Dropdown-toggle {
-      width: 30px;
-      height: 30px;
-      padding: 0;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted-color, @gn-muted);
-      background: transparent;
-      transition: background 0.15s ease, color 0.15s ease;
-
-      .Button-caret { display: none; }
-      .Button-icon  { font-size: 14px; }
-
-      &:hover {
-        background: rgba(0, 0, 0, 0.07);
-        color: var(--heading-color, @gn-text);
-      }
-    }
-
-    .Dropdown-menu {
-      min-width: 180px;
-      border: 1px solid @gn-border;
-      box-shadow: @gn-shadow-md;
-    }
-  }
-}
-
-@media (max-width: 767.98px) {
-  .DiscussionListItem-content {
-    padding: 12px 48px 12px 10px;
-  }
-}
+// IMPORTANT: fbsfb intentionally does NOT restyle .DiscussionListItem or
+// the .DiscussionList container. The production fbsfb forum runs
+// ramon/avocado as its layout substrate — avocado replaces Flarum's stock
+// IndexPage with its own `<AvocadoHome>` JSX that renders
+// .AvocadoHome-showcaseGrid / .AvocadoHome-showcaseCard markup. Those are
+// avocado's surface; restyling .DiscussionListItem here would apply to
+// dead nodes (avocado doesn't render them) AND fight avocado where the
+// classnames do overlap.
+//
+// Per avocado's design: cards carry author header + tag pill row + title +
+// excerpt + reply preview + reaction footer. fbsfb leaves all of that to
+// avocado and contributes the football-specific palette (--primary-color,
+// --link-color, --button-primary-bg via body.colored--active when
+// ramon/colored is also installed) plus the hero/sidebar/widget chrome.
+//
+// The single rule we keep: hide flarum/realtime's "N discussions have
+// updated" banner so the list refreshes silently — that's a small UX
+// preference independent of the avocado layout.
+.DiscussionList-update { display: none !important; }
 
 // New discussion button
 .DiscussionComposer,
@@ -1028,69 +821,16 @@ body,
   border-radius: @gn-radius;
 }
 
-// ── Post stream — verbatim avocado Post.less pattern ────────────────────────
-// Avocado posts are minimal: 8px border-radius card on --control-bg
-// with 15px bottom margin. The avatar sits in its own left rail with
-// the organic blob radius via .gn-organic-radius. No card border.
-.PostStream > .PostStream-item {
-  .gn-organic-radius(~".Avatar");
-}
-
-.Post {
-  position: relative;
-  margin: 0 0 15px;
-  background: var(--control-bg, @gn-card);
-  border-radius: 8px;
-  border: 0;
-  box-shadow: none;
-  overflow: visible;
-
-  // Subtle left-edge primary-color "yard-line" strip on the OP
-  // (first post in the stream). Marks the kickoff visually without
-  // adding a strip to every reply down the thread.
-  &::before {
-    content: '';
-    position: absolute;
-    top: 14px;
-    bottom: 14px;
-    left: 0;
-    width: 0;
-    background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%);
-    border-radius: 0 2px 2px 0;
-    transition: width @gn-transition;
-  }
-
-  &-header {
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  &-body {
-    line-height: 1.6;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .Avatar {
-    width: 48px;
-    height: 48px;
-    line-height: 48px;
-    background-color: var(--body-bg, @gn-bg);
-    box-shadow: @gn-soft-shadow;
-  }
-}
-
-// Only the OP gets the yard-line accent — first PostStream-item only.
-.PostStream > .PostStream-item:first-child .Post::before {
-  width: 4px;
-}
-
-.PostStream-item .EventPost,
-.PostStream-item .DiscussionRenamedPost,
-.PostStream-item .DiscussionLockedPost {
-  background: @gn-surface;
-  border-radius: @gn-radius-sm;
-  border: 1px solid @gn-border;
-  box-shadow: none;
-}
+// ── Post stream ──────────────────────────────────────────────────────────────
+//
+// IMPORTANT: fbsfb does NOT restyle .Post. ramon/avocado ships its own
+// Post.less + DiscussionPage layout that takes care of the card chrome,
+// avatar rail, and OP highlighting. fbsfb runs on top of avocado on prod,
+// so anything we put here either duplicates avocado's work or fights it.
+//
+// Football-specific decoration that IS additive — the FA tag-icon overlay
+// on the .DiscussionHero right edge — lives in its own .GN-discussionHero-icons
+// block above (anchored to the hero header avocado renders).
 
 // Composer
 .ComposerBody {
