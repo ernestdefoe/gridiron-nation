@@ -1100,8 +1100,52 @@ body,
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    // The likes stat is rendered as a <button> for click-to-like —
+    // strip the default browser chrome (bg, border, padding) so it
+    // shares the visual silhouette of the replies <span>. Cursor +
+    // hover state on the modifier class below make the button feel
+    // interactive without changing its layout.
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
 
     i { font-size: 0.85rem; opacity: 0.8; }
+  }
+
+  // Likes stat in its INTERACTIVE state — cursor, hover, active
+  // styling. The `--liked` modifier flips icon weight to solid + paints
+  // it crimson; `--disabled` muts the cursor for guests / users who
+  // can't like (e.g. their own post when the forum forbids self-like).
+  &-stat--likes {
+    cursor: pointer;
+    transition: color @gn-transition;
+
+    &:hover, &:focus-visible {
+      color: var(--primary-color, @gn-primary);
+      i { opacity: 1; }
+    }
+    &:focus-visible {
+      outline: 2px solid rgba(@gn-primary, 0.35);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+
+  &-stat--liked {
+    color: var(--primary-color, @gn-primary);
+    i { opacity: 1; }
+  }
+
+  &-stat--disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+
+    &:hover, &:focus-visible {
+      color: inherit;
+      i { opacity: 0.8; }
+    }
   }
 }
 

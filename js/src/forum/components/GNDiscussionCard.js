@@ -38,9 +38,17 @@ import DiscussionControls from 'flarum/forum/utils/DiscussionControls';
  *   - highlightRegExp    used for search hit highlighting
  */
 export default class GNDiscussionCard extends Component {
+  oninit(vnode) {
+    super.oninit(vnode);
+    // In-flight latch: prevents stacking like requests if the user
+    // clicks the thumbs faster than the API can respond.
+    this.likeBusy = false;
+  }
+
   view() {
     const d = this.attrs.discussion;
     const author = d.user();
+    const firstPost = d.firstPost && d.firstPost();
     const lastPost = d.lastPost && d.lastPost();
     const replyUser = d.lastPostedUser && d.lastPostedUser();
     const tags = (d.tags && d.tags()) || [];
@@ -50,7 +58,20 @@ export default class GNDiscussionCard extends Component {
     const isSticky = d.isSticky && d.isSticky();
     const isLocked = d.isLocked && d.isLocked();
     const replyCount = Math.max(0, (d.commentCount && d.commentCount() || 1) - 1);
+
+    // Total likes across every post in the discussion. Maintained by
+    // the SyncDiscussionLikesCount PHP listener — read here via the
+    // Schema field exposed in extend.php. Falls back to 0 if the
+    // attribute isn't loaded (older API responses or flarum/likes
+    // disabled).
     const likesCount = (d.likesCount && d.likesCount()) || 0;
+
+    // Whether the OP (first post) is currently liked by the actor.
+    // Click target for the thumbs button — toggling like state on the
+    // OP is the closest single-action analogue to "like the discussion"
+    // since likes are scoped per-post in flarum/likes.
+    const isOpLiked = !!(firstPost && firstPost.isLiked && firstPost.isLiked());
+    const canLikeOp = !!(firstPost && firstPost.canLike && firstPost.canLike()) && !!app.session.user;
 
     // Build the moderation 3-dot dropdown from DiscussionControls. Returns
     // an ItemList of <Button>s (Reply, Edit, Move, Delete, Restore,
@@ -145,13 +166,34 @@ export default class GNDiscussionCard extends Component {
             : null,
 
           // ── Footer: like count + reply count
-          // The likes/replies trans keys use ICU plural so we pass the
-          // raw count — abbreviateNumber renders the visual number
-          // separately, but the translator needs the integer to pick
-          // singular vs plural.
+          // The likes stat is a real button — clicking it toggles a
+          // like on the OP (first post). The count refreshes both
+          // optimistically and after the API responds, since the
+          // SyncDiscussionLikesCount listener bumps the discussion-
+          // level total in lockstep.
           m('.GN-showcaseCard-footer', [
-            m('span.GN-showcaseCard-stat', [
-              m('i.far.fa-thumbs-up', { 'aria-hidden': 'true' }),
+            m('button.GN-showcaseCard-stat.GN-showcaseCard-stat--likes', {
+              type: 'button',
+              className: classList({
+                'GN-showcaseCard-stat--liked':    isOpLiked,
+                'GN-showcaseCard-stat--disabled': !canLikeOp,
+              }),
+              disabled: !canLikeOp || this.likeBusy,
+              title: canLikeOp
+                ? null
+                : (app.session.user
+                    ? null
+                    : 'Sign in to like'),
+              onclick: (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleOpLike();
+              },
+            }, [
+              m('i', {
+                className: classList(isOpLiked ? 'fas fa-thumbs-up' : 'far fa-thumbs-up'),
+                'aria-hidden': 'true',
+              }),
               ' ',
               abbreviateNumber(likesCount),
               ' ',
@@ -168,6 +210,61 @@ export default class GNDiscussionCard extends Component {
         ]),
       ]
     );
+  }
+
+  /**
+   * Toggle a like on the OP (first post) when the showcase card's
+   * thumbs button is clicked. Updates the model optimistically so the
+   * count flips immediately, then persists via the standard Flarum
+   * `model.save()` path which targets the post's `isLiked` attribute
+   * (provided by flarum/likes). On the backend, our SyncDiscussion-
+   * LikesCount listener picks up the PostWasLiked / PostWasUnliked
+   * event and bumps `discussions.likes_count` accordingly — that flows
+   * back into the discussion attribute on the next API touch.
+   *
+   * Optimistic refresh: we manually patch `discussion.likesCount` AND
+   * the post's `isLiked` so Mithril re-renders with the new values
+   * before the round-trip completes. If the save fails, we revert.
+   */
+  async toggleOpLike() {
+    const d = this.attrs.discussion;
+    const firstPost = d.firstPost && d.firstPost();
+
+    if (!firstPost) return;
+    if (!firstPost.canLike || !firstPost.canLike()) return;
+    if (!app.session.user) return;
+    if (this.likeBusy) return;
+
+    this.likeBusy = true;
+
+    const wasLiked = !!firstPost.isLiked();
+    const willBeLiked = !wasLiked;
+    const delta = willBeLiked ? 1 : -1;
+    const currentTotal = (d.likesCount && d.likesCount()) || 0;
+
+    // Optimistic patch — store reaches inside the model's data, so we
+    // also push the new attribute through pushAttributes so the model's
+    // .isLiked() reader returns the new value immediately.
+    firstPost.pushAttributes({ isLiked: willBeLiked });
+    d.pushAttributes({ likesCount: Math.max(0, currentTotal + delta) });
+    m.redraw();
+
+    try {
+      await firstPost.save({ isLiked: willBeLiked });
+    } catch (err) {
+      // Revert on failure — restore the original isLiked + total.
+      firstPost.pushAttributes({ isLiked: wasLiked });
+      d.pushAttributes({ likesCount: currentTotal });
+      m.redraw();
+      app.alerts.show(
+        { type: 'error' },
+        (err && err.response && err.response.errors && err.response.errors[0] && err.response.errors[0].detail)
+        || 'Could not save like'
+      );
+    } finally {
+      this.likeBusy = false;
+      m.redraw();
+    }
   }
 
   /**

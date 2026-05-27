@@ -28,12 +28,15 @@ if (function_exists('ini_get')) {
 
 use Ernestdefoe\GridironNation\Api\Controller\LiveScoresController;
 use Ernestdefoe\GridironNation\Api\Controller\OnlineNowController;
+use Ernestdefoe\GridironNation\Listener\SyncDiscussionLikesCount;
+use Flarum\Api\Resource\DiscussionResource;
 use Flarum\Api\Resource\ForumResource;
 use Flarum\Api\Schema;
+use Flarum\Discussion\Discussion;
 use Flarum\Extend;
 use Flarum\User\User;
 
-return [
+$extenders = [
     // ── Frontend ──────────────────────────────────────────────────────────────
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
@@ -119,4 +122,40 @@ return [
                     ];
                 }),
         ]),
+
+    // ── Discussion `likesCount` field ───────────────────────────────────────
+    // Surface the running total of post-likes per discussion (maintained
+    // by the SyncDiscussionLikesCount listener below + the 2026_05_27
+    // migration). The showcase card's thumbs stat reads
+    // `discussion.likesCount()` from this field. Always 0 when
+    // flarum/likes isn't installed (column defaults to 0 and never
+    // increments).
+    (new Extend\ApiResource(DiscussionResource::class))
+        ->fields(fn () => [
+            Schema\Integer::make('likesCount')
+                ->property('likes_count'),
+        ]),
 ];
+
+// ── Optional flarum/likes integration ─────────────────────────────────────
+// flarum/likes ships `PostWasLiked` / `PostWasUnliked` events that fire
+// every time a like is added or removed. We listen for both and update
+// `discussions.likes_count` in lockstep. Gated on `class_exists` so the
+// extension boots cleanly on a forum that doesn't have flarum/likes —
+// the migration still adds the column (it stays at 0) and the field is
+// still exposed (it returns 0), the listener just doesn't register.
+//
+// Closures (not `[Class, 'method']` arrays) because `Extend\Event::listen`
+// strictly types its second argument as `callable|string` and rejects
+// arrays at runtime even though they ARE callable per PHP semantics.
+if (class_exists(\Flarum\Likes\Event\PostWasLiked::class)) {
+    $extenders[] = (new Extend\Event())
+        ->listen(\Flarum\Likes\Event\PostWasLiked::class, function ($event) {
+            resolve(SyncDiscussionLikesCount::class)->whenPostLiked($event);
+        })
+        ->listen(\Flarum\Likes\Event\PostWasUnliked::class, function ($event) {
+            resolve(SyncDiscussionLikesCount::class)->whenPostUnliked($event);
+        });
+}
+
+return $extenders;
