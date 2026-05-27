@@ -1190,6 +1190,16 @@ body,
   box-shadow: @gn-shadow-sm;
   transition: box-shadow @gn-transition, border-color @gn-transition;
 
+  // Push the header + body text away from the perforation line. The
+  // perforation `::before` sits at left: (avatar-column-width - 2px)
+  // = 108px, and the .Post-main grid track starts at 110px — leaving
+  // only 2px of gap that made the text feel crammed against the
+  // dashes. 18px gives the dashes room to read as a divider rather
+  // than an outline on the heading.
+  .Post-main {
+    padding-left: 18px;
+  }
+
   // ── Ticket-stub tint ─────────────────────────────────────────────────────
   // Subtle off-color band on the avatar-column side of the perforation,
   // hard-stopping at the perf line. The stub reads as a clearly distinct
