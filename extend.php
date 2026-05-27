@@ -67,7 +67,17 @@ return [
         ->serializeToForum('fbsfb.widget_live_scores',  'ernestdefoe-fbsfb.widget_live_scores',  'boolval', true)
         ->serializeToForum('fbsfb.widget_trending',     'ernestdefoe-fbsfb.widget_trending',     'boolval', true)
         ->serializeToForum('fbsfb.widget_top_recruits', 'ernestdefoe-fbsfb.widget_top_recruits', 'boolval', true)
-        ->default('ernestdefoe-fbsfb.widget_live_scores',  '1')
-        ->default('ernestdefoe-fbsfb.widget_trending',     '1')
-        ->default('ernestdefoe-fbsfb.widget_top_recruits', '1'),
+        // DiscussionHero secondary-tag icon decoration. Mirrors ramon/avocado
+        // — child tags only, up to 2 icons on desktop, configurable opacity.
+        // Opacity is stored as a 0-100 integer so the admin UI is a plain
+        // text field; the frontend divides by 100 before applying.
+        ->serializeToForum('fbsfb.hero_deco_enabled',    'ernestdefoe-fbsfb.hero_deco_enabled',    'boolval', true)
+        ->serializeToForum('fbsfb.hero_deco_icon_count', 'ernestdefoe-fbsfb.hero_deco_icon_count', 'intval', 2)
+        ->serializeToForum('fbsfb.hero_deco_opacity',    'ernestdefoe-fbsfb.hero_deco_opacity',    'intval', 12)
+        ->default('ernestdefoe-fbsfb.widget_live_scores',   '1')
+        ->default('ernestdefoe-fbsfb.widget_trending',      '1')
+        ->default('ernestdefoe-fbsfb.widget_top_recruits',  '1')
+        ->default('ernestdefoe-fbsfb.hero_deco_enabled',    '1')
+        ->default('ernestdefoe-fbsfb.hero_deco_icon_count', '2')
+        ->default('ernestdefoe-fbsfb.hero_deco_opacity',    '12'),
 ];

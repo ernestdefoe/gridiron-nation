@@ -1053,22 +1053,83 @@ select {
   }
 }
 
-// ── Live Scores widget ────────────────────────────────────────────────────────
-.GN-scorecard {
-  display: flex;
-  align-items: center;
-  padding: 8px 14px;
-  gap: 10px;
-  transition: background @gn-transition;
+// ── Live Scores widget — horizontal auto-scroll ticker ──────────────────────
+// Each game is a fixed-width pill; the track holds two back-to-back
+// copies of the game list and animates leftward by -50% so when the
+// first copy slides off the second is already in position. The
+// keyframes loop snaps back to 0 at the end of one cycle for a
+// seamless infinite scroll. Pause on hover so visitors can read a
+// specific score.
+.GN-tickerViewport {
+  position: relative;
+  overflow: hidden;
 
-  &:hover { background: @gn-surface; }
+  // Soft edge fades so games don't pop in/out abruptly at the
+  // viewport edges. Mask the same gradient as the WelcomeHero pattern
+  // for visual continuity.
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 20px,
+    #000 calc(100% - 20px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 20px,
+    #000 calc(100% - 20px),
+    transparent 100%
+  );
+
+  &:hover .GN-tickerTrack {
+    animation-play-state: paused;
+  }
+}
+
+.GN-tickerTrack {
+  display: flex;
+  width: max-content;            // grows to fit the doubled game list
+  animation: gn-ticker linear infinite;
+  // animation-duration is set inline from JS based on game count
+
+  // Respect prefers-reduced-motion — show all games as a static row
+  // and let the viewport scroll horizontally on user interaction.
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    overflow-x: auto;
+  }
+}
+
+@keyframes gn-ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.GN-scorecard {
+  flex: 0 0 auto;
+  width: 170px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin: 4px 6px;
+  gap: 4px;
+  background: var(--control-bg, @gn-surface);
+  border: 1px solid var(--border-color, @gn-border);
+  border-radius: @gn-radius-sm;
+  font-family: 'DM Sans', sans-serif;
+  transition: background @gn-transition, transform @gn-transition;
+
+  &:hover {
+    background: var(--body-bg, @gn-bg);
+    transform: translateY(-1px);
+  }
 
   &-teams {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    font-family: 'DM Sans', sans-serif;
     font-size: 0.82rem;
     font-weight: 700;
   }
@@ -1076,25 +1137,51 @@ select {
   &-team {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 6px;
 
     &.is-winning .GN-scorecard-score { color: @gn-primary; }
+  }
+
+  &-logo {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  &-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &-score {
     font-weight: 800;
     font-size: 0.9rem;
-    min-width: 24px;
+    min-width: 22px;
     text-align: right;
     color: var(--body-color);
   }
 
   &-status {
-    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.7rem;
     font-weight: 700;
     color: @gn-muted;
-    text-align: center;
-    min-width: 38px;
+    gap: 4px;
+  }
+
+  &-detail {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
   }
 }
 
@@ -1298,46 +1385,6 @@ select {
   font-style: italic;
 }
 
-// ── Scorecard layout refinements ──────────────────────────────────────────────
-
-.GN-scorecard-logo {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  flex-shrink: 0;
-  border-radius: 3px;
-}
-
-.GN-scorecard-abbr {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  font-size: 0.82rem;
-  flex: 1;
-}
-
-// Team abbreviation label (always shown, optionally alongside logo img)
-.GN-scorecard-name {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  font-size: 0.82rem;
-  flex: 1;
-}
-
-.GN-scorecard-status {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 50px;
-}
-
-.GN-scorecard-detail {
-  font-size: 0.70rem;
-  color: @gn-muted;
-  text-align: center;
-  font-weight: 600;
-}
-
 // ── Trending link reset ───────────────────────────────────────────────────────
 
 a.GN-trending-item {
@@ -1435,33 +1482,73 @@ a.GN-online-row {
   }
 }
 
-// ── DiscussionHero — decorative tag-icon overlay ─────────────────────────────
+// ── DiscussionHero — decorative tag-icon overlay (avocado pattern) ───────────
 // Injected via extend(DiscussionHero.prototype, 'bodyItems', …) in
-// forum.js. Mirrors avocado's .DiscussionHero-decorationIcon — a huge
-// semi-transparent FA glyph anchored to the hero's right edge.
+// forum.js. The icons come from SECONDARY tags only (tag.parent()
+// truthy); admin can configure count (1 or 2), opacity (0-100), and
+// enable/disable via theme settings.
 .DiscussionHero {
   position: relative;
   overflow: hidden;
 }
 
-.GN-discussionHero-icon {
+.GN-discussionHero-icons {
   position: absolute;
   right: 24px;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
   pointer-events: none;
   z-index: 1;
-  font-size: clamp(48px, 9vw, 96px);
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.12);
+  max-width: 50vw;
+  overflow: visible;
 
-  i { display: block; }
-
-  // Hide on small screens — at this point the hero text is dense
-  // enough that the decoration competes for space.
+  // Hide entirely on phone — the hero copy is dense and the icons
+  // would compete with the title.
   @media (max-width: 480px) {
     display: none;
   }
+
+  // On tablet (481px – 767px) the icon-2 slot is dropped by JS already
+  // (it only renders renderCount=1), but the wrapper still needs to be
+  // narrower so the title line wraps cleanly.
+  @media (max-width: 767px) {
+    right: 14px;
+    gap: 10px;
+    max-width: 35vw;
+  }
+}
+
+.GN-discussionHero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(48px, 9vw, 110px);
+  line-height: 1;
+
+  // `color-mix` with a soft transparent fallback lets the per-tag
+  // color blend toward transparent at the operator-configured opacity.
+  // We fall back to white-on-fade when the browser doesn't support
+  // color-mix OR when no tag color is set on the inline style.
+  color: rgba(255, 255, 255, var(--gn-deco-opacity, 0.12));
+
+  @supports (color: color-mix(in srgb, red, blue)) {
+    color: color-mix(
+      in srgb,
+      currentColor calc(var(--gn-deco-opacity, 0.12) * 100%),
+      transparent
+    );
+  }
+
+  i { display: block; line-height: 1; }
+}
+
+// Two-icon layout adjusts placement to keep both glyphs readable.
+.GN-discussionHero-icons[data-icon-count='2'] {
+  gap: 22px;
+  .GN-discussionHero-icon { font-size: clamp(40px, 7vw, 84px); }
 }
 
 // Ensure hero text + items stay above the decoration.

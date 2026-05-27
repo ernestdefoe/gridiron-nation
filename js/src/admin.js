@@ -25,5 +25,30 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
       label:    app.translator.trans('ernestdefoe-fbsfb.admin.settings.widget_top_recruits'),
       help:     app.translator.trans('ernestdefoe-fbsfb.admin.settings.widget_top_recruits_help'),
       type:     'boolean',
+    })
+    // ── DiscussionHero decoration icons ─────────────────────────────────
+    .registerSetting({
+      setting:  'ernestdefoe-fbsfb.hero_deco_enabled',
+      label:    app.translator.trans('ernestdefoe-fbsfb.admin.settings.hero_deco_enabled'),
+      help:     app.translator.trans('ernestdefoe-fbsfb.admin.settings.hero_deco_enabled_help'),
+      type:     'boolean',
+    })
+    .registerSetting({
+      setting:  'ernestdefoe-fbsfb.hero_deco_icon_count',
+      label:    app.translator.trans('ernestdefoe-fbsfb.admin.settings.hero_deco_icon_count'),
+      help:     app.translator.trans('ernestdefoe-fbsfb.admin.settings.hero_deco_icon_count_help'),
+      type:     'select',
+      options:  { '1': '1', '2': '2' },
+      default:  '2',
+    })
+    .registerSetting({
+      setting:    'ernestdefoe-fbsfb.hero_deco_opacity',
+      label:      app.translator.trans('ernestdefoe-fbsfb.admin.settings.hero_deco_opacity'),
+      help:       app.translator.trans('ernestdefoe-fbsfb.admin.settings.hero_deco_opacity_help'),
+      type:       'number',
+      min:        0,
+      max:        100,
+      step:       1,
+      default:    12,
     });
 });

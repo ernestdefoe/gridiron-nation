@@ -68,30 +68,77 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
     ];
   });
 
-  // ── 4. DiscussionHero — decorative FontAwesome tag icon ───────────────────
-  // Adds a big semi-transparent tag-icon to the right side of every
-  // tagged discussion's hero, like ramon/avocado's
-  // `.DiscussionHero-decorationIcon` pattern. Falls back through
-  // child-tag-with-icon → first-tag-with-icon → no decoration.
+  // ── 4. DiscussionHero — decorative FontAwesome tag icons ──────────────────
+  // Anchors up to two big semi-transparent tag icons to the right side
+  // of every tagged discussion's hero, mirroring ramon/avocado's
+  // `.DiscussionHero-decorationIcon` + `has-two-deco-icons` pattern.
+  //
+  // Rules:
+  //   - SECONDARY tags only. A tag qualifies when `tag.parent()`
+  //     returns truthy (i.e. it's nested under a primary tag) AND it
+  //     has an icon class set in the flarum/tags admin.
+  //   - Up to 2 icons rendered, controlled by the
+  //     `hero_deco_icon_count` admin setting (1 or 2). The 2-icon
+  //     layout requires ≥ 768px viewport width — on tablet/phone we
+  //     fall back to a single icon to avoid layout compression.
+  //   - Opacity is the `hero_deco_opacity` admin setting (0–100,
+  //     default 12). Applied via a CSS custom property so the LESS
+  //     reads `color-mix(in srgb, white calc(var(--gn-deco-opacity, …)
+  //     * 100%), transparent)`. An admin setting of 0 hides the
+  //     decoration entirely without changing the markup.
+  //   - The whole feature is gated by `hero_deco_enabled` so an
+  //     operator can turn the decoration off without losing tag-icon
+  //     metadata.
   extend(DiscussionHero.prototype, 'bodyItems', function (items) {
+    if (app.forum.attribute('fbsfb.hero_deco_enabled') === false) return;
+
     const discussion = this.attrs.discussion;
     if (!discussion) return;
 
     const tags = (discussion.tags && discussion.tags()) || [];
     if (!tags.length) return;
 
-    const childWithIcon = tags.find((t) => t && t.parent && t.parent() && t.icon && t.icon());
-    const anyWithIcon   = tags.find((t) => t && t.icon && t.icon());
-    const decorationTag = childWithIcon || anyWithIcon;
-    if (!decorationTag) return;
+    // Secondary tags = tags with a parent set. flarum/tags exposes the
+    // parent relation via tag.parent(); if the relation isn't loaded
+    // (rare on the discussion page where the bootstrap eagerLoads
+    // tags + parents), tag.parent() returns false and we correctly
+    // skip the tag.
+    const secondaryWithIcon = tags.filter((t) =>
+      t && t.parent && t.parent() && t.icon && t.icon()
+    );
+    if (!secondaryWithIcon.length) return;
 
-    const iconClass = decorationTag.icon();
-    if (!iconClass) return;
+    const wideEnoughForTwo = typeof window !== 'undefined' && window.innerWidth > 767;
+    const requestedCount   = Math.min(2, Math.max(1,
+      parseInt(app.forum.attribute('fbsfb.hero_deco_icon_count'), 10) || 2
+    ));
+    const renderCount = wideEnoughForTwo ? requestedCount : 1;
+
+    const picked = secondaryWithIcon.slice(0, renderCount);
+    if (!picked.length) return;
+
+    const opacityPct = Math.min(100, Math.max(0,
+      parseInt(app.forum.attribute('fbsfb.hero_deco_opacity'), 10)
+    ));
+    if (opacityPct === 0) return;
 
     items.add(
-      'gn-hero-deco-icon',
-      m('.GN-discussionHero-icon', { 'aria-hidden': 'true' },
-        m('i', { className: iconClass })),
+      'gn-hero-deco-icons',
+      m('.GN-discussionHero-icons',
+        {
+          'aria-hidden': 'true',
+          'data-icon-count': picked.length,
+          style: { '--gn-deco-opacity': (opacityPct / 100).toFixed(2) },
+        },
+        picked.map((tag, i) =>
+          m('span.GN-discussionHero-icon', {
+            key: tag.id ? tag.id() : i,
+            style: tag.color && tag.color() ? { color: tag.color() } : null,
+          },
+            m('i', { className: tag.icon() })
+          )
+        )
+      ),
       1
     );
   });

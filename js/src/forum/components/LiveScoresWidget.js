@@ -4,10 +4,16 @@ import Component from 'flarum/common/Component';
 /**
  * LiveScoresWidget — Phase 2
  *
- * Fetches college football scores from our ESPN proxy (/api/gn-live-scores)
- * and auto-refreshes every 60 seconds while mounted. The proxy caches the
- * upstream ESPN response for 60s server-side, so the polling cadence here
- * effectively matches the cache TTL.
+ * Horizontal auto-scrolling ticker of NCAA football scores. The full
+ * scoreboard (up to 25 games) is duplicated in the DOM and the row is
+ * animated leftward via @keyframes so the loop is seamless — when the
+ * first copy slides out of view the second copy is already in place
+ * at the same position. Pauses on hover so a visitor can read a
+ * specific score.
+ *
+ * Data source: /api/gn-live-scores (our ESPN proxy, 60s server-side
+ * cache). We poll every 60s while the widget is mounted, which lines
+ * up with the cache TTL and avoids hammering ESPN.
  */
 export default class LiveScoresWidget extends Component {
   oninit(vnode) {
@@ -34,7 +40,7 @@ export default class LiveScoresWidget extends Component {
     fetch(`${base}/gn-live-scores`, { credentials: 'same-origin' })
       .then((r) => r.json())
       .then((data) => {
-        this.games   = data.games || [];
+        this.games   = Array.isArray(data.games) ? data.games : [];
         this.loading = false;
         this.error   = false;
         m.redraw();
@@ -49,6 +55,18 @@ export default class LiveScoresWidget extends Component {
   view() {
     const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.widgets.${key}`);
 
+    // The marquee track holds TWO copies of the game list back-to-back.
+    // CSS animates `translateX(-50%)` from 0 to -50% so each copy
+    // takes the full duration to slide off, then snaps back when the
+    // second copy reaches the leftmost position. Result: seamless
+    // infinite scroll without JS doing per-frame layout work.
+    //
+    // Tune duration by game count: longer lists need a longer cycle
+    // so any one game gets ~3 seconds of legibility. We cap at 90s so
+    // a 50-game scoreboard doesn't crawl.
+    const games = this.games.slice(0, 25);
+    const cycleSeconds = Math.min(90, Math.max(20, games.length * 3));
+
     return m('.GN-widget.GN-liveScoresWidget', [
       m('.GN-widget-header', [
         m('i.fas.fa-tv'),
@@ -60,23 +78,40 @@ export default class LiveScoresWidget extends Component {
           ? m('.GN-widget-loading', m('i.fas.fa-spinner.fa-spin'))
           : this.error
           ? m('.GN-widget-empty', t('live_scores_unavailable'))
-          : !this.games.length
+          : !games.length
           ? m('.GN-widget-empty', t('live_scores_empty'))
-          : this.games.map((g) => this.viewGame(g, t)),
+          : m('.GN-tickerViewport', [
+              m('.GN-tickerTrack', {
+                style: { 'animation-duration': `${cycleSeconds}s` },
+              }, [
+                ...games.map((g, i) => this.viewGame(g, t, `a-${i}`)),
+                // Second copy of the list — invisible from the user's
+                // POV because it occupies the same animated slot as
+                // the first copy shifted one cycle later. aria-hidden
+                // because the screen reader gets the names once from
+                // copy A.
+                ...games.map((g, i) =>
+                  this.viewGame(g, t, `b-${i}`, /* aria */ true)
+                ),
+              ]),
+            ]),
       ]),
     ]);
   }
 
-  viewGame(g, t) {
-    return m('.GN-scorecard', { key: g.id }, [
+  viewGame(g, t, key, ariaHidden = false) {
+    return m('.GN-scorecard', {
+      key,
+      'aria-hidden': ariaHidden ? 'true' : null,
+    }, [
       m('.GN-scorecard-teams', [
         m('.GN-scorecard-team', { class: g.awayWins ? 'is-winning' : '' }, [
-          g.away.logo ? m('img.GN-scorecard-logo', { src: g.away.logo, alt: g.away.abbr }) : null,
+          g.away.logo ? m('img.GN-scorecard-logo', { src: g.away.logo, alt: '' }) : null,
           m('span.GN-scorecard-name', g.away.abbr),
           m('span.GN-scorecard-score', g.away.score),
         ]),
         m('.GN-scorecard-team', { class: g.homeWins ? 'is-winning' : '' }, [
-          g.home.logo ? m('img.GN-scorecard-logo', { src: g.home.logo, alt: g.home.abbr }) : null,
+          g.home.logo ? m('img.GN-scorecard-logo', { src: g.home.logo, alt: '' }) : null,
           m('span.GN-scorecard-name', g.home.abbr),
           m('span.GN-scorecard-score', g.home.score),
         ]),
