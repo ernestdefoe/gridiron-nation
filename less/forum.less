@@ -554,6 +554,41 @@ body,
     margin-bottom: 2px;
   }
 
+  // NEWEST member slot — small avatar in place of the FA icon.
+  &-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+    margin-bottom: 4px;
+
+    &--initial {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, @gn-primary 0%, @gn-primary-dark 100%);
+      color: #fff;
+      font-size: 0.62rem;
+      font-weight: 700;
+    }
+  }
+
+  // The "value" line for the NEWEST slot is a display name, not a
+  // number — drop the monospace + tabular-nums + glow that the other
+  // slots use, and shrink it so a long handle still fits.
+  &-value--name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-shadow: none;
+    letter-spacing: 0;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   &-chev {
     font-size: 0.55rem;
     transition: transform 0.18s @gn-ease;
@@ -600,6 +635,21 @@ body,
 
   &:hover, &.is-open {
     background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+// Newest member slot is a link — strip default underline + inherit
+// color from the scoreboard so the slot doesn't read as a stray
+// hyperlink.
+.GN-newestWrap {
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s @gn-ease;
+
+  &:hover, &:focus {
+    background: rgba(255, 255, 255, 0.04);
+    text-decoration: none;
+    color: inherit;
   }
 }
 

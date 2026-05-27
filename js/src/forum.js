@@ -102,23 +102,32 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
   //     via the `--gn-deco-opacity` CSS custom property. Setting 0
   //     hides the decoration.
   //   - Gated by `hero_deco_enabled`.
-  extend(DiscussionHero.prototype, 'view', function (vdom) {
-    if (app.forum.attribute('fbsfb.hero_deco_enabled') === false) return;
+  override(DiscussionHero.prototype, 'view', function (original, ...args) {
+    const vdom = original.apply(this, args);
+    if (!vdom) return vdom;
+    if (app.forum.attribute('fbsfb.hero_deco_enabled') === false) return vdom;
 
     const discussion = this.attrs.discussion;
-    if (!discussion) return;
+    if (!discussion) return vdom;
 
     const tags = (discussion.tags && discussion.tags()) || [];
-    if (!tags.length) return;
+    if (!tags.length) return vdom;
 
-    // Secondary tags = tags with a parent set. flarum/tags exposes the
-    // parent relation via tag.parent(); if the relation isn't loaded
-    // tag.parent() returns false. Filter to secondary-with-icon
-    // first; fall back to ANY tag with an icon for flat tag setups.
-    const withIcon = tags.filter((t) => t && t.icon && t.icon());
-    if (!withIcon.length) return;
+    // Filter to tags that have an icon set in flarum/tags admin.
+    // tag.icon() returns string | null per the Tag model.
+    const withIcon = tags.filter((t) => t && typeof t.icon === 'function' && t.icon());
+    if (!withIcon.length) return vdom;
 
-    const secondary = withIcon.filter((t) => t.parent && t.parent());
+    // Prefer secondary tags (those with a parent). Fall back to ANY
+    // tag with an icon so flat tag setups still get decoration.
+    // tag.parent() returns the parent Tag or false when no parent —
+    // unequal-to-false captures both a loaded Tag model and any
+    // truthy stand-in.
+    const secondary = withIcon.filter((t) => {
+      if (typeof t.parent !== 'function') return false;
+      const p = t.parent();
+      return !!p;
+    });
     const candidates = secondary.length ? secondary : withIcon;
 
     const wideEnoughForTwo = typeof window !== 'undefined' && window.innerWidth > 767;
@@ -128,40 +137,40 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
     const renderCount = wideEnoughForTwo ? requestedCount : 1;
 
     const picked = candidates.slice(0, renderCount);
-    if (!picked.length) return;
+    if (!picked.length) return vdom;
 
     const opacityPct = parseInt(app.forum.attribute('fbsfb.hero_deco_opacity'), 10);
     const opacity = isNaN(opacityPct) ? 12 : Math.min(100, Math.max(0, opacityPct));
-    if (opacity === 0) return;
+    if (opacity === 0) return vdom;
 
-    // Append the decoration vnode as a direct child of the hero root.
-    // vdom.children is the array of root-level children of the
-    // <header className="Hero DiscussionHero"> element.
-    if (!Array.isArray(vdom.children)) {
-      vdom.children = vdom.children != null ? [vdom.children] : [];
-    }
-
-    vdom.children.push(
-      m('.GN-discussionHero-icons',
-        {
-          'aria-hidden': 'true',
-          'data-icon-count': picked.length,
-          style: { '--gn-deco-opacity': (opacity / 100).toFixed(2) },
+    const decoration = m('.GN-discussionHero-icons',
+      {
+        'aria-hidden': 'true',
+        'data-icon-count': picked.length,
+        style: { '--gn-deco-opacity': (opacity / 100).toFixed(2) },
+      },
+      picked.map((tag, i) =>
+        m('span.GN-discussionHero-icon', {
+          key: tag.id ? tag.id() : i,
+          style: tag.color && tag.color() ? { '--gn-deco-color': tag.color() } : null,
         },
-        picked.map((tag, i) =>
-          m('span.GN-discussionHero-icon', {
-            key: tag.id ? tag.id() : i,
-            // Inline tag color sets `--gn-deco-color` so the LESS can
-            // blend it with the opacity var. Avoids the previous bug
-            // where setting `color: <tag>` opaque overrode the
-            // color-mix fade in the stylesheet.
-            style: tag.color && tag.color() ? { '--gn-deco-color': tag.color() } : null,
-          },
-            m('i', { className: tag.icon() })
-          )
+          m('i', { className: tag.icon() })
         )
       )
     );
+
+    // Reconstruct the hero vnode with our decoration appended as a
+    // direct child of the <header>. We rebuild via m() instead of
+    // mutating vdom.children because Mithril's diffing can miss
+    // in-place push() mutations on a vnode that was returned from
+    // another component's view. Returning a fresh vnode with the
+    // children array Mithril already expects guarantees the
+    // decoration ends up in the next render.
+    const existingChildren = Array.isArray(vdom.children)
+      ? vdom.children
+      : (vdom.children != null ? [vdom.children] : []);
+
+    return m(vdom.tag, vdom.attrs, [...existingChildren, decoration]);
   });
 
   // ── 5. Sidebar: keep IndexSidebar (hidden), append widget stack ───────────

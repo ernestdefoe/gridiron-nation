@@ -32,6 +32,7 @@ ernestdefoe-fbsfb:
         topics: TOPICS
         posts: POSTS
         online: ONLINE
+        newest: NEWEST
       chips:
         all: All
 

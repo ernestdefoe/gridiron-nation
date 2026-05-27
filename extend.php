@@ -28,7 +28,10 @@ if (function_exists('ini_get')) {
 
 use Ernestdefoe\Fbsfb\Api\Controller\LiveScoresController;
 use Ernestdefoe\Fbsfb\Api\Controller\OnlineNowController;
+use Flarum\Api\Resource\ForumResource;
+use Flarum\Api\Schema;
 use Flarum\Extend;
+use Flarum\User\User;
 
 return [
     // ── Frontend ──────────────────────────────────────────────────────────────
@@ -80,4 +83,32 @@ return [
         ->default('ernestdefoe-fbsfb.hero_deco_enabled',    '1')
         ->default('ernestdefoe-fbsfb.hero_deco_icon_count', '2')
         ->default('ernestdefoe-fbsfb.hero_deco_opacity',    '12'),
+
+    // ── Forum payload — newest registered member ────────────────────────────
+    // Exposes the most recently joined user as `app.forum.attribute('fbsfbNewestMember')`
+    // so the hero scoreboard can render a "NEWEST" slot without an extra API
+    // round-trip. Returns a tiny shape — just id / displayName / username /
+    // avatarUrl — so we don't bloat the bootstrap payload with full user
+    // resources. Falls back to null on a forum with no users yet (fresh
+    // install during onboarding).
+    (new Extend\ApiResource(ForumResource::class))
+        ->fields(fn () => [
+            Schema\Arr::make('fbsfbNewestMember')
+                ->get(function () {
+                    $user = User::query()
+                        ->orderByDesc('joined_at')
+                        ->first(['id', 'username', 'avatar_url', 'joined_at']);
+
+                    if (! $user) {
+                        return null;
+                    }
+
+                    return [
+                        'id'          => (int) $user->id,
+                        'username'    => $user->username,
+                        'displayName' => $user->display_name ?: $user->username,
+                        'avatarUrl'   => $user->avatar_url,
+                    ];
+                }),
+        ]),
 ];

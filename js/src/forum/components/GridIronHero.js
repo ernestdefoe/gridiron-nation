@@ -144,15 +144,44 @@ export default class GridIronHero extends Component {
     // Each slot stacks an FA icon, a big condensed-digit value, and
     // a small uppercase label. The ONLINE slot is interactive
     // (button + dropdown of online users).
+    // Newest registered member — comes from the ForumResource extender
+    // in extend.php as `app.forum.attribute('fbsfbNewestMember')`. When
+    // present, renders a 5th slot in the scoreboard showing the user's
+    // display name with their avatar, click-routable to the profile.
+    const newest = app.forum.attribute('fbsfbNewestMember');
+
     return m('.GN-hero-extras', [
       m('.GN-scoreboard', [
         this.scoreSlot('fa-solid fa-users',       this.fmt(this.users),       t('stats.members')),
         this.scoreSlot('fa-solid fa-football',    this.fmt(this.discussions), t('stats.topics')),
         this.scoreSlot('fa-solid fa-clipboard',   this.fmt(this.posts),       t('stats.posts')),
+        newest ? this.newestScoreSlot(newest, t('stats.newest')) : null,
         this.online > 0 || app.session.user
           ? this.onlineScoreSlot(t('stats.online'))
           : null,
       ]),
+    ]);
+  }
+
+  /**
+   * NEWEST member slot — small avatar in place of the FA icon, the
+   * user's display name as the "value", "NEWEST" label below. Click
+   * routes to the user's profile.
+   */
+  newestScoreSlot(user, label) {
+    const href = app.route('user', { username: user.username });
+
+    return m('a.GN-scoreSlot.GN-newestWrap', {
+      href,
+      onclick: (e) => { e.preventDefault(); m.route.set(href); },
+      'aria-label': `${label}: ${user.displayName}`,
+    }, [
+      user.avatarUrl
+        ? m('img.GN-scoreSlot-avatar', { src: user.avatarUrl, alt: '' })
+        : m('span.GN-scoreSlot-avatar.GN-scoreSlot-avatar--initial',
+            (user.displayName || '?')[0].toUpperCase()),
+      m('span.GN-scoreSlot-value.GN-scoreSlot-value--name', user.displayName),
+      m('span.GN-scoreSlot-label', label),
     ]);
   }
 
