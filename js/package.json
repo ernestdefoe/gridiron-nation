@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@ernestdefoe/fbsfb",
+  "name": "@ernestdefoe/gridiron-nation",
   "version": "1.0.0",
   "scripts": {
     "dev": "webpack --mode development --watch",

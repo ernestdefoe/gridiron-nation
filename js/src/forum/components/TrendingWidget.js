@@ -52,7 +52,7 @@ export default class TrendingWidget extends Component {
   }
 
   view() {
-    const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.widgets.${key}`);
+    const t = (key) => app.translator.trans(`ernestdefoe-gridiron-nation.forum.widgets.${key}`);
 
     return m('.GN-widget.GN-trendingWidget', [
       m('.GN-widget-header', [

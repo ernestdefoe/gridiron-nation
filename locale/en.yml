@@ -1,4 +1,4 @@
-ernestdefoe-fbsfb:
+ernestdefoe-gridiron-nation:
   admin:
     settings:
       title: GridIron Nation Theme
@@ -56,7 +56,7 @@ ernestdefoe-fbsfb:
 
       recruits: Top Recruits
       recruits_empty: No recruits in the feed yet
-      recruits_unconfigured: "Add a CollegeFootballData.com API key in the FBSFB Recruiting admin panel."
+      recruits_unconfigured: "Add a CollegeFootballData.com API key in the GridIron Nation Recruiting admin panel."
       recruits_unavailable: Recruits unavailable
 
       online_now: Online Now

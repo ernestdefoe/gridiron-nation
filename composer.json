@@ -1,9 +1,9 @@
 {
-    "name": "ernestdefoe/fbsfb",
-    "description": "GridIron Nation — College football fan forum theme for Flarum 2. Crimson & DM Sans, Avocado-style organic radius, dark mode, live score widget.",
+    "name": "ernestdefoe/gridiron-nation",
+    "description": "GridIron Nation — College football fan forum theme for Flarum 2. Crimson & DM Sans, organic radius, dark mode, live score widget.",
     "type": "flarum-extension",
     "keywords": ["flarum", "theme", "college football", "gridiron", "sports"],
-    "homepage": "https://github.com/ernestdefoe/fbsfb",
+    "homepage": "https://github.com/ernestdefoe/gridiron-nation",
     "license": "MIT",
     "authors": [
         {
@@ -17,13 +17,13 @@
         "guzzlehttp/guzzle": "^7.0"
     },
     "suggest": {
-        "ramon/colored": "Per-tag color tinting on the hero + discussion list border stripes. fbsfb wires the data-colored-border=left/full integration without competing with the hero gradient.",
+        "ramon/colored": "Per-tag color tinting on the hero + discussion list border stripes. GridIron Nation wires the data-colored-border=left/full integration without competing with the hero gradient.",
         "ernestdefoe/recruiting": "Powers the Top Recruits sidebar widget with live CollegeFootballData.com data + On3 photo headshots. Without this extension installed, the widget is hidden.",
-        "flarum/realtime": "Self-hosted websocket daemon for live discussion list / notification / typing-indicator updates. fbsfb hides the 'N updates available' banner so the list refreshes silently."
+        "flarum/realtime": "Self-hosted websocket daemon for live discussion list / notification / typing-indicator updates. GridIron Nation hides the 'N updates available' banner so the list refreshes silently."
     },
     "autoload": {
         "psr-4": {
-            "Ernestdefoe\\Fbsfb\\": "src/"
+            "Ernestdefoe\\GridironNation\\": "src/"
         }
     },
     "extra": {

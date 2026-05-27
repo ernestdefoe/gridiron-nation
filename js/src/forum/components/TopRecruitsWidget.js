@@ -104,7 +104,7 @@ export default class TopRecruitsWidget extends Component {
   view() {
     if (!this.shouldRender()) return null;
 
-    const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.widgets.${key}`);
+    const t = (key) => app.translator.trans(`ernestdefoe-gridiron-nation.forum.widgets.${key}`);
 
     // Header label respects the admin-set widget_title from the
     // recruiting extension if present, falling back to our localized
@@ -137,7 +137,7 @@ export default class TopRecruitsWidget extends Component {
   }
 
   viewRecruit(r) {
-    const trans = (key, params) => app.translator.trans(`ernestdefoe-fbsfb.forum.recruits.status.${key}`, params);
+    const trans = (key, params) => app.translator.trans(`ernestdefoe-gridiron-nation.forum.recruits.status.${key}`, params);
 
     const statusClass = {
       committed:   'GN-recruit-commit--committed',

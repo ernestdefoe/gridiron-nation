@@ -82,13 +82,13 @@ Crimson & DM Sans, Avocado-style organic radius, real-time live scores, trending
 
 ### Via Composer
 ```bash
-composer require ernestdefoe/fbsfb
+composer require ernestdefoe/gridiron-nation
 php flarum migrate
 php flarum cache:clear
 ```
 
 ### Manual
-1. Download or clone this repo into `extensions/ernestdefoe-fbsfb/`
+1. Download or clone this repo into `extensions/ernestdefoe-gridiron-nation/`
 2. Run `composer install` in the Flarum root
 3. Run `php flarum migrate`
 4. Run `php flarum cache:clear`

@@ -136,7 +136,7 @@ export default class GridIronHero extends Component {
   }
 
   view() {
-    const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.hero.${key}`);
+    const t = (key) => app.translator.trans(`ernestdefoe-gridiron-nation.forum.hero.${key}`);
 
     // Stats render as ONE unified Jumbotron-style scoreboard panel —
     // dark gradient bg with four slots separated by thin vertical
@@ -145,10 +145,10 @@ export default class GridIronHero extends Component {
     // a small uppercase label. The ONLINE slot is interactive
     // (button + dropdown of online users).
     // Newest registered member — comes from the ForumResource extender
-    // in extend.php as `app.forum.attribute('fbsfbNewestMember')`. When
+    // in extend.php as `app.forum.attribute('gridironNewestMember')`. When
     // present, renders a 5th slot in the scoreboard showing the user's
     // display name with their avatar, click-routable to the profile.
-    const newest = app.forum.attribute('fbsfbNewestMember');
+    const newest = app.forum.attribute('gridironNewestMember');
 
     return m('.GN-hero-extras', [
       m('.GN-scoreboard', [
@@ -245,7 +245,7 @@ export default class GridIronHero extends Component {
     if (this.onlineUsers.length === 0) {
       return m('.GN-onlinePopover',
         m('.GN-onlinePopover-empty',
-          app.translator.trans('ernestdefoe-fbsfb.forum.widgets.online_empty')
+          app.translator.trans('ernestdefoe-gridiron-nation.forum.widgets.online_empty')
         )
       );
     }

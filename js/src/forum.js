@@ -31,7 +31,7 @@ import GNDiscussionCard  from './forum/components/GNDiscussionCard';
  *   - DiscussionHero bodyItems — semi-transparent FA tag icon at right
  *   - GridIronHero stats       — ONLINE tile opens a dropdown of online users
  */
-app.initializers.add('ernestdefoe-fbsfb', () => {
+app.initializers.add('ernestdefoe-gridiron-nation', () => {
 
   // ── 1. Force the WelcomeHero to always render ─────────────────────────────
   // Honor the operator's empty-title escape hatch (blank welcomeTitle =
@@ -111,7 +111,7 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
   // mutating the returned vdom in place — Mithril's diff sees the
   // ItemList output the moment the hero re-renders.
   extend(DiscussionHero.prototype, 'items', function (items) {
-    if (app.forum.attribute('fbsfb.hero_deco_enabled') === false) return;
+    if (app.forum.attribute('gridiron-nation.hero_deco_enabled') === false) return;
 
     const discussion = this.attrs.discussion;
     if (!discussion) return;
@@ -133,7 +133,7 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
 
     const wideEnoughForTwo = typeof window !== 'undefined' && window.innerWidth > 767;
     const requestedCount   = Math.min(2, Math.max(1,
-      parseInt(app.forum.attribute('fbsfb.hero_deco_icon_count'), 10) || 2
+      parseInt(app.forum.attribute('gridiron-nation.hero_deco_icon_count'), 10) || 2
     ));
     const renderCount = wideEnoughForTwo ? requestedCount : 1;
 
@@ -143,7 +143,7 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
     // Default opacity bumped to 35% — the original 12% was so faint on
     // a real install that operators thought the feature wasn't firing.
     // Admin can dial it down via the hero_deco_opacity setting.
-    const opacityRaw = parseInt(app.forum.attribute('fbsfb.hero_deco_opacity'), 10);
+    const opacityRaw = parseInt(app.forum.attribute('gridiron-nation.hero_deco_opacity'), 10);
     const opacity = isNaN(opacityRaw) ? 35 : Math.min(100, Math.max(0, opacityRaw));
     if (opacity === 0) return;
 
@@ -199,9 +199,9 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
   // them self-gate so the toggle is a runtime concern, not a wiring
   // concern.
   override(IndexPage.prototype, 'sidebar', function (original) {
-    const showLive     = app.forum.attribute('fbsfb.widget_live_scores')  !== false;
-    const showTrending = app.forum.attribute('fbsfb.widget_trending')     !== false;
-    const showRecruits = app.forum.attribute('fbsfb.widget_top_recruits') !== false;
+    const showLive     = app.forum.attribute('gridiron-nation.widget_live_scores')  !== false;
+    const showTrending = app.forum.attribute('gridiron-nation.widget_trending')     !== false;
+    const showRecruits = app.forum.attribute('gridiron-nation.widget_top_recruits') !== false;
 
     return [
       original(),

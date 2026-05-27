@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Fbsfb\Api\Controller;
+namespace Ernestdefoe\GridironNation\Api\Controller;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -26,7 +26,7 @@ class LiveScoresController implements RequestHandlerInterface
 {
     private const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard';
 
-    private const CACHE_KEY = 'fbsfb.live_scores';
+    private const CACHE_KEY = 'gridiron-nation.live_scores';
     private const CACHE_TTL = 60; // seconds
 
     public function __construct(
@@ -94,10 +94,10 @@ class LiveScoresController implements RequestHandlerInterface
             // distinguishes "no games" from "ESPN unavailable" via the
             // shape of the response, but for caching purposes we treat
             // both as `games=[]`.
-            $this->log->info('[fbsfb] ESPN unreachable: ' . $e->getMessage());
+            $this->log->info('[gridiron-nation] ESPN unreachable: ' . $e->getMessage());
             return [];
         } catch (\Throwable $e) {
-            $this->log->error('[fbsfb] LiveScoresController: ' . $e->getMessage());
+            $this->log->error('[gridiron-nation] LiveScoresController: ' . $e->getMessage());
             return [];
         }
     }

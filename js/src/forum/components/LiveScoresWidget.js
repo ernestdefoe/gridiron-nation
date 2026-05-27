@@ -53,7 +53,7 @@ export default class LiveScoresWidget extends Component {
   }
 
   view() {
-    const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.widgets.${key}`);
+    const t = (key) => app.translator.trans(`ernestdefoe-gridiron-nation.forum.widgets.${key}`);
 
     // The marquee track holds TWO copies of the game list back-to-back.
     // CSS animates `translateX(-50%)` from 0 to -50% so each copy

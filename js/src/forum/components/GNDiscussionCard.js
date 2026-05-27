@@ -8,7 +8,7 @@ import classList from 'flarum/common/utils/classList';
 import abbreviateNumber from 'flarum/common/utils/abbreviateNumber';
 
 /**
- * GNDiscussionCard — fbsfb's showcase card.
+ * GNDiscussionCard — GridIron Nation's showcase card.
  *
  * Rendered in place of Flarum's stock DiscussionListItem layout via
  * an override in forum.js. The structure is football-forum native —
@@ -112,7 +112,7 @@ export default class GNDiscussionCard extends Component {
             ? m(Link, {
                 className: 'GN-showcaseCard-more',
                 href: replyHref,
-              }, app.translator.trans('ernestdefoe-fbsfb.forum.discussion.see_other_replies', {
+              }, app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.see_other_replies', {
                 count: replyCount - 1,
               }))
             : null,
@@ -128,14 +128,14 @@ export default class GNDiscussionCard extends Component {
               ' ',
               abbreviateNumber(likesCount),
               ' ',
-              app.translator.trans('ernestdefoe-fbsfb.forum.discussion.likes', { count: likesCount }),
+              app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.likes', { count: likesCount }),
             ]),
             m('span.GN-showcaseCard-stat', [
               m('i.far.fa-comment', { 'aria-hidden': 'true' }),
               ' ',
               abbreviateNumber(replyCount),
               ' ',
-              app.translator.trans('ernestdefoe-fbsfb.forum.discussion.replies', { count: replyCount }),
+              app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.replies', { count: replyCount }),
             ]),
           ]),
         ]),

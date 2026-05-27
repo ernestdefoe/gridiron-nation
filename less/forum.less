@@ -793,11 +793,11 @@ body,
   border-radius: 999px;
 }
 
-// ── Discussion list — fbsfb-native showcase cards ───────────────────────────
+// ── Discussion list — GridIron Nation-native showcase cards ─────────────────
 //
-// fbsfb overrides DiscussionListItem.view() in forum.js so each row
-// renders a GNDiscussionCard instead of Flarum's stock layout. The
-// markup the LESS below targets is FBSFB's own — no external theme
+// GridIron Nation overrides DiscussionListItem.view() in forum.js so each
+// row renders a GNDiscussionCard instead of Flarum's stock layout. The
+// markup the LESS below targets is this theme's own — no external theme
 // dependency.
 //
 // Card anatomy (matches forum.fbsfb.com production look):
@@ -2363,9 +2363,9 @@ a.GN-online-row {
 //     --item-tag-color    → per-DiscussionListItem tag color
 //                            (consumed by the border styles below)
 //
-// fbsfb already plays well with the BODY-level primary color override
-// — ramon/colored sets --primary-color on body.colored--active, and
-// our LESS uses @gn-primary (a literal crimson) only for our own
+// GridIron Nation already plays well with the BODY-level primary color
+// override — ramon/colored sets --primary-color on body.colored--active,
+// and our LESS uses @gn-primary (a literal crimson) only for our own
 // branding surfaces (WelcomeHero gradient, composer trigger CTA).
 // Flarum core's primary-color-driven elements (form focus rings, link
 // color, etc.) pick up the tag color cleanly.

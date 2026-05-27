@@ -26,8 +26,8 @@ if (function_exists('ini_get')) {
     }
 }
 
-use Ernestdefoe\Fbsfb\Api\Controller\LiveScoresController;
-use Ernestdefoe\Fbsfb\Api\Controller\OnlineNowController;
+use Ernestdefoe\GridironNation\Api\Controller\LiveScoresController;
+use Ernestdefoe\GridironNation\Api\Controller\OnlineNowController;
 use Flarum\Api\Resource\ForumResource;
 use Flarum\Api\Schema;
 use Flarum\Extend;
@@ -64,36 +64,44 @@ return [
     // sidebar can honor the operator's preference without an extra API
     // round-trip. `boolval` cast normalizes the persisted "1"/"0" string
     // back to a real JS bool — the widgets read these via
-    // `app.forum.attribute('fbsfb.widget_*')` and skip rendering when
-    // the value is explicitly `false`.
+    // `app.forum.attribute('gridiron-nation.widget_*')` and skip rendering
+    // when the value is explicitly `false`.
+    //
+    // Storage-key prefix:   ernestdefoe-gridiron-nation.*   (canonical settings table key)
+    // Frontend payload key: gridiron-nation.*               (what JS reads via app.forum.attribute)
+    //
+    // The rename migration (see migrations/2026_05_27_*.php) copies any
+    // legacy fbsfb.* / ernestdefoe-fbsfb.* rows into these new keys on
+    // first boot so upgraders don't lose their widget toggles.
     (new Extend\Settings())
-        ->serializeToForum('fbsfb.widget_live_scores',  'ernestdefoe-fbsfb.widget_live_scores',  'boolval', true)
-        ->serializeToForum('fbsfb.widget_trending',     'ernestdefoe-fbsfb.widget_trending',     'boolval', true)
-        ->serializeToForum('fbsfb.widget_top_recruits', 'ernestdefoe-fbsfb.widget_top_recruits', 'boolval', true)
-        // DiscussionHero secondary-tag icon decoration. Mirrors ramon/avocado
-        // — child tags only, up to 2 icons on desktop, configurable opacity.
-        // Opacity is stored as a 0-100 integer so the admin UI is a plain
-        // text field; the frontend divides by 100 before applying.
-        ->serializeToForum('fbsfb.hero_deco_enabled',    'ernestdefoe-fbsfb.hero_deco_enabled',    'boolval', true)
-        ->serializeToForum('fbsfb.hero_deco_icon_count', 'ernestdefoe-fbsfb.hero_deco_icon_count', 'intval', 2)
-        ->serializeToForum('fbsfb.hero_deco_opacity',    'ernestdefoe-fbsfb.hero_deco_opacity',    'intval', 35)
-        ->default('ernestdefoe-fbsfb.widget_live_scores',   '1')
-        ->default('ernestdefoe-fbsfb.widget_trending',      '1')
-        ->default('ernestdefoe-fbsfb.widget_top_recruits',  '1')
-        ->default('ernestdefoe-fbsfb.hero_deco_enabled',    '1')
-        ->default('ernestdefoe-fbsfb.hero_deco_icon_count', '2')
-        ->default('ernestdefoe-fbsfb.hero_deco_opacity',    '35'),
+        ->serializeToForum('gridiron-nation.widget_live_scores',  'ernestdefoe-gridiron-nation.widget_live_scores',  'boolval', true)
+        ->serializeToForum('gridiron-nation.widget_trending',     'ernestdefoe-gridiron-nation.widget_trending',     'boolval', true)
+        ->serializeToForum('gridiron-nation.widget_top_recruits', 'ernestdefoe-gridiron-nation.widget_top_recruits', 'boolval', true)
+        // DiscussionHero secondary-tag icon decoration. Child tags only,
+        // up to 2 icons on desktop, configurable opacity. Opacity is
+        // stored as a 0-100 integer so the admin UI is a plain text
+        // field; the frontend divides by 100 before applying.
+        ->serializeToForum('gridiron-nation.hero_deco_enabled',    'ernestdefoe-gridiron-nation.hero_deco_enabled',    'boolval', true)
+        ->serializeToForum('gridiron-nation.hero_deco_icon_count', 'ernestdefoe-gridiron-nation.hero_deco_icon_count', 'intval', 2)
+        ->serializeToForum('gridiron-nation.hero_deco_opacity',    'ernestdefoe-gridiron-nation.hero_deco_opacity',    'intval', 35)
+        ->default('ernestdefoe-gridiron-nation.widget_live_scores',   '1')
+        ->default('ernestdefoe-gridiron-nation.widget_trending',      '1')
+        ->default('ernestdefoe-gridiron-nation.widget_top_recruits',  '1')
+        ->default('ernestdefoe-gridiron-nation.hero_deco_enabled',    '1')
+        ->default('ernestdefoe-gridiron-nation.hero_deco_icon_count', '2')
+        ->default('ernestdefoe-gridiron-nation.hero_deco_opacity',    '35'),
 
     // ── Forum payload — newest registered member ────────────────────────────
-    // Exposes the most recently joined user as `app.forum.attribute('fbsfbNewestMember')`
-    // so the hero scoreboard can render a "NEWEST" slot without an extra API
-    // round-trip. Returns a tiny shape — just id / displayName / username /
-    // avatarUrl — so we don't bloat the bootstrap payload with full user
-    // resources. Falls back to null on a forum with no users yet (fresh
-    // install during onboarding).
+    // Exposes the most recently joined user as
+    // `app.forum.attribute('gridironNewestMember')` so the hero
+    // scoreboard can render a "NEWEST" slot without an extra API
+    // round-trip. Returns a tiny shape — just id / displayName /
+    // username / avatarUrl — so we don't bloat the bootstrap payload
+    // with full user resources. Falls back to null on a forum with no
+    // users yet (fresh install during onboarding).
     (new Extend\ApiResource(ForumResource::class))
         ->fields(fn () => [
-            Schema\Arr::make('fbsfbNewestMember')
+            Schema\Arr::make('gridironNewestMember')
                 ->get(function () {
                     $user = User::query()
                         ->orderByDesc('joined_at')

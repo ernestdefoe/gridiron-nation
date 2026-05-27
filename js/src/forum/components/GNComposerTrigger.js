@@ -27,9 +27,9 @@ export default class GNComposerTrigger extends Component {
 
     const user = app.session.user;
     const placeholder = user
-      ? t('ernestdefoe-fbsfb.forum.composer.prompt', "Tell everyone what you're working on…")
-      : t('ernestdefoe-fbsfb.forum.composer.guest_prompt', 'Sign in to start a discussion…');
-    const ctaLabel = t('ernestdefoe-fbsfb.forum.nav.start_discussion', 'Start a Discussion');
+      ? t('ernestdefoe-gridiron-nation.forum.composer.prompt', "Tell everyone what you're working on…")
+      : t('ernestdefoe-gridiron-nation.forum.composer.guest_prompt', 'Sign in to start a discussion…');
+    const ctaLabel = t('ernestdefoe-gridiron-nation.forum.nav.start_discussion', 'Start a Discussion');
 
     return m(
       '.GN-composerTrigger',

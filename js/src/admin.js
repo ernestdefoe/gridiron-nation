@@ -9,7 +9,7 @@ import app from 'flarum/admin/app';
 import extend from './extend';
 export { extend };
 
-app.initializers.add('ernestdefoe-fbsfb', () => {
+app.initializers.add('ernestdefoe-gridiron-nation', () => {
   // No imperative admin work — settings are declarative via extend.js
   // above. This empty initializer is kept as a hook for future
   // per-theme admin UI (preview pane, palette editor, etc.).

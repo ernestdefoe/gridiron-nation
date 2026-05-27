@@ -1,6 +1,6 @@
 <?php
 
-namespace Ernestdefoe\Fbsfb\Api\Controller;
+namespace Ernestdefoe\GridironNation\Api\Controller;
 
 use Carbon\Carbon;
 use Flarum\Http\RequestUtil;
@@ -46,14 +46,14 @@ class OnlineNowController implements RequestHandlerInterface
 
         try {
             $payload = $this->cache->remember(
-                "fbsfb.online_now.actor.{$actor->id}",
+                "gridiron-nation.online_now.actor.{$actor->id}",
                 self::CACHE_TTL,
                 fn () => $this->snapshot($actor),
             );
 
             return new JsonResponse($payload);
         } catch (\Throwable $e) {
-            $this->log->error('[fbsfb] OnlineNowController: ' . $e->getMessage());
+            $this->log->error('[gridiron-nation] OnlineNowController: ' . $e->getMessage());
             return new JsonResponse(['count' => 0, 'users' => []], 200);
         }
     }
