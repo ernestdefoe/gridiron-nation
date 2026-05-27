@@ -46,6 +46,21 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   // matching the existing `commentCount()`/`title()`/etc. style.
   Discussion.prototype.likesCount = Model.attribute('likesCount');
 
+  // ── 0.5. Mobile nav: rely on Flarum's native @phone pattern ──────────────
+  // On phone widths, Flarum auto-positions three pieces inside the
+  // 56px `#app-navigation` strip:
+  //   • `.App-backControl`     ← left — drawer toggle (search, auth, theme)
+  //   • `.App-titleControl`    ← center — IndexSidebar's SelectDropdown,
+  //                              i.e. THE NAV MENU (All Discussions, tags,
+  //                              custom pages). Same surface Mosaic uses.
+  //   • `.App-primaryControl`  ← right — search / notifications / user menu
+  //
+  // We don't override any of that in JS — we just keep `IndexSidebar`
+  // mounted (the sidebar override below) so its `titleControl()` method
+  // returns the SelectDropdown that Flarum then teleports into
+  // `.App-titleControl`. Theming lives entirely in less/forum.less under
+  // the `@media (max-width: 767.98px)` block.
+
   // ── 1. Force the WelcomeHero to always render ─────────────────────────────
   // Honor the operator's empty-title escape hatch (blank welcomeTitle =
   // hide the hero) but ignore the per-visitor localStorage dismiss flag

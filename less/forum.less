@@ -152,6 +152,125 @@ body,
   align-items: center;
   gap: 2px;
   margin: 0 8px;
+
+  // Phone: hide the inline header nav — Flarum's mobile drawer
+  // (triggered by `.Navigation-drawer` in App-backControl) is the
+  // primary navigation surface on phones. Leaving the inline links
+  // visible competes with the hamburger for tap targets and crowds
+  // the 58px-tall header bar.
+  @media (max-width: 767.98px) {
+    display: none;
+  }
+}
+
+// ── Mobile hamburger nav (Flarum core) ───────────────────────────────────────
+//
+// Flarum 2 renders `<button class="Navigation-drawer">` inside
+// `#app-navigation.App-navigation > .App-backControl` (NOT inside
+// `.App-header` — that was a wrong assumption that cost us a build).
+// Flarum positions the drawer trigger absolutely in the top-left at
+// (0, 0), 40px wide × 46px tall, and toggles `<html class="drawerOpen">`
+// to slide the navigation drawer in.
+//
+// We don't own this markup — we just guarantee:
+//   1. The icon is recognizably crimson so users see "this is the
+//      themed forum's menu button" rather than a stock greyed control
+//      that blends into the page bg.
+//   2. The hit target keeps Flarum's 40×46 size so iOS tap targets
+//      stay above the 44px Apple guideline.
+//   3. Tinted hover/active feedback matches the rest of the theme.
+// On mobile, Flarum core slides the entire `.App-header` (logo, search,
+// nav, secondary controls) INTO `.App-drawer`, then `transform`s the
+// drawer offscreen to the left. The only visible chrome at the top of
+// the page is `#app-navigation` — a 46px tall, fixed-position strip
+// with three absolutely-positioned slots:
+//
+//   • `.App-backControl`     (left)   — hamburger that toggles the drawer
+//                                       (Search / Notifications / Theme / Auth)
+//   • `.App-titleControl`    (center) — IndexSidebar's escaped SelectDropdown
+//                                       === THE REAL NAV MENU. Shows the current
+//                                       view ("All Discussions" / tag name / etc.)
+//                                       and tap-opens a bottom-sheet of every
+//                                       nav destination (tags, custom pages, all
+//                                       the items that live in the desktop sidebar).
+//                                       Same pattern Mosaic/Avocado rely on.
+//   • `.App-primaryControl`  (right)  — Search + Notifications + User menu
+//
+// We theme the strip (white surface in light, dark in dark, themed
+// border + shadow), color the burger crimson, and tune the center
+// title-control so it reads on our header instead of the muted core
+// grey. We deliberately do NOT inject our own static title — that
+// would occlude the title-control dropdown and remove the nav menu.
+@media (max-width: 767.98px) {
+  #app-navigation.App-navigation {
+    background: var(--header-bg, #fff);
+    border-bottom: 1px solid var(--border-color, @gn-border);
+    box-shadow: @gn-shadow-sm;
+    // Core sets `--header-height-phone` (default 56px); make sure our
+    // padded content area below clears it.
+  }
+
+  // --- Burger (left) — opens the slide-in drawer with search, notifications,
+  // theme toggle, login/signup. NOT the nav menu — that's the title control.
+  #app-navigation .Navigation-drawer,
+  #app-navigation .Navigation-drawer .Button-icon,
+  #app-navigation .Navigation-drawer i {
+    color: var(--primary-color, @gn-primary) !important;
+  }
+  #app-navigation .Navigation-drawer {
+    background: transparent;
+    border-radius: @gn-radius-sm;
+    transition: background @gn-transition, color @gn-transition;
+
+    &:hover, &:focus, &:active,
+    &:hover .Button-icon, &:focus .Button-icon, &:active .Button-icon {
+      background: rgba(@gn-primary, 0.10);
+      color: @gn-primary !important;
+    }
+
+    i { font-size: 1.25rem; }
+  }
+
+  // --- Title control (center) — THE NAV MENU. Flarum's core CSS sizes it
+  // at 200px wide and positions it at left: 50% / margin-left: -100px.
+  // We widen it on phone-portrait so longer page titles ("All Discussions",
+  // "General Discussion", custom-tag names with team mascots) don't truncate,
+  // and we re-color the chevron + label crimson so it reads as "this is
+  // the themed nav menu, tap to switch view".
+  .App-titleControl {
+    width: 260px !important;
+    margin-left: -130px !important;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+
+    > .Button,
+    .Dropdown-toggle {
+      color: var(--primary-color, @gn-primary) !important;
+      font-weight: 700;
+      font-size: 1rem !important;
+    }
+    .Button-icon,
+    .Button-caret,
+    i.icon {
+      color: var(--primary-color, @gn-primary) !important;
+    }
+  }
+
+  // --- Primary control (right) — Search / Notifications / User menu.
+  // Tint the buttons crimson too so the whole strip reads as one
+  // themed bar rather than three differently-styled icon zones.
+  .App-primaryControl {
+    > .Button,
+    .Dropdown-toggle,
+    > .Button .Button-icon,
+    > .Button i {
+      color: var(--primary-color, @gn-primary) !important;
+    }
+    > .Button:hover,
+    > .Button:focus {
+      background: rgba(@gn-primary, 0.10) !important;
+    }
+  }
 }
 
 // Hero navigation — pill row BELOW the WelcomeHero gradient, rendered
@@ -1239,11 +1358,101 @@ body,
   z-index: calc(~"var(--zindex-dropdown) + 1");
 }
 
+// ── Showcase card responsive trim ────────────────────────────────────────────
+//
+// Three-tier compression matched to layout breakpoints:
+//
+//   ≤ 900px (matches the .Page-container column-flip breakpoint above):
+//     • slightly tighter padding so the card uses more of the column
+//     • forced `max-width: 100%` so the card never overflows
+//       (we saw 898px wide cards at a 375px viewport before this — the
+//       parent column was flex-basis: 0 + content-sized, so the card
+//       was free to claim its natural width and clip the page)
+//     This tier is what users at 768–900 px (tablet portrait + narrow
+//     desktop windows) see — without it, cards stayed at full desktop
+//     padding inside a column layout and looked oversized.
+//
+//   ≤ 767.98px (matches Flarum's @phone breakpoint):
+//     • drop the Reply pill (the title link still routes to the
+//       discussion, and the embedded last-reply chip is enough surface
+//       for tap-to-reply intent)
+//     • title down to 1rem, excerpt 0.88rem
+//
+//   ≤ 540px (phone portrait):
+//     • hide the "See N other replies" link — the snippet conveys the
+//       continued-conversation cue, and the link wraps badly on phones
+//     • drop tag pills that aren't the primary one (we keep the first
+//       to preserve the category cue but the rest were wrapping into a
+//       second row and pushing the meta block tall)
+//     • shrink avatar in last-reply chip to 18 px so the row fits
+//
+// We don't touch the inset stripe (`box-shadow: inset 4px 0 0 ...`) —
+// that scales fine because it's a fixed pixel width regardless of card
+// width.
+@media (max-width: 900px) {
+  .GN-showcaseCard {
+    max-width: 100%;
+    &-body { padding: 14px 16px 12px 20px; gap: 7px; }
+  }
+}
+
+@media (max-width: 767.98px) {
+  .GN-showcaseCard {
+    &-body { padding: 13px 14px 12px 18px; gap: 6px; }
+    &-title { font-size: 1rem; line-height: 1.22; }
+    &-excerpt { font-size: 0.88rem; -webkit-line-clamp: 2; }
+    &-replyBtn { display: none; }   // tighten the meta row on phone
+    &-meta { gap: 4px 6px; font-size: 0.8rem; }
+    &-footer { gap: 12px; font-size: 0.78rem; padding-top: 6px; }
+
+    // Embedded last-reply chip — at mobile width the snippet has no
+    // room left on the row (avatar + author + ellipsised snippet was
+    // clipping ~310 chars of the actual reply text). Switch the chip
+    // to a two-row flex-wrap layout: row 1 = avatar + author + time,
+    // row 2 = the full snippet wrapping to two lines with normal
+    // word-break instead of single-line ellipsis.
+    &-reply {
+      flex-wrap: wrap;
+      row-gap: 4px;
+    }
+    &-replySnippet {
+      // Force onto a new row.
+      flex: 1 0 100%;
+      white-space: normal;
+      overflow: hidden;
+      text-overflow: clip;
+      // Cap at two lines so a wall-of-text reply doesn't blow the
+      // card height past the title/excerpt above.
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      // Indent under the avatar so the snippet visually attaches to
+      // the author chip above (22px avatar + 10px chip gap = 32px).
+      padding-left: 32px;
+      line-height: 1.35;
+    }
+  }
+}
+
 @media (max-width: 540px) {
   .GN-showcaseCard {
-    &-body { padding: 12px 14px 12px; gap: 6px; }
-    &-title { font-size: 1rem; }
-    &-replyBtn { display: none; }   // tighten the meta row on phone
+    &-body { padding: 12px 12px 11px 16px; gap: 5px; }
+    &-title { font-size: 0.95rem; }
+    &-excerpt { font-size: 0.82rem; }
+    &-more { display: none; }
+
+    &-tags {
+      // Only show the first pill on phone — additional pills wrap to a
+      // second line and inflate the meta block.
+      .GN-showcaseCard-tagPill ~ .GN-showcaseCard-tagPill { display: none; }
+    }
+
+    // Embedded last-reply preview chip — keep but tighten typography.
+    &-reply {
+      gap: 8px;
+      .Avatar { width: 18px; height: 18px; font-size: 0.62rem; }
+    }
+    &-replyAuthor, &-replySnippet { font-size: 0.78rem; }
   }
 }
 
@@ -1598,11 +1807,26 @@ select {
   margin-bottom: 12px;
   overflow: hidden;
 
+  // Header reads as real football leather:
+  //   • A saturated pigskin-brown wash gives the strip a clearly-brown
+  //     base (not the previous barely-tinted tan).
+  //   • A pebbled-dimple SVG layered on top via ::before — small
+  //     darker-brown circles scattered pseudo-randomly across a
+  //     60×60 tile, mimicking the raised grain of real football
+  //     leather. NO football-shape icons (those read as decoration,
+  //     not texture). Each circle is a 1.2-1.6 px filled disc in a
+  //     darker pigskin brown at 45% opacity so the grain is clearly
+  //     visible without competing with the title text.
+  //
+  // The ::before is `position: absolute; inset: 0` underneath the
+  // flex children, so the title text + crimson icon float above it
+  // with full contrast.
   &-header {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 14px 8px;
+    padding: 12px 14px 10px;
     border-bottom: 1px solid @gn-border;
     font-family: 'DM Sans', sans-serif;
     font-weight: 800;
@@ -1610,6 +1834,41 @@ select {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: @gn-muted;
+    overflow: hidden;
+
+    // Real pigskin-brown wash — saturated enough that you actually
+    // see "this is a brown leather band", not a barely-tinted strip.
+    // 22-30% opacity sits well over a white card bg without clobbering
+    // the title text (the text-color stays muted-grey but reads cleanly
+    // because the wash + dimples are well below 50% lightness shift).
+    background:
+      linear-gradient(
+        180deg,
+        rgba(139, 69, 19, 0.30) 0%,
+        rgba(139, 69, 19, 0.22) 100%
+      );
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      // Pebbled-leather dimple pattern. 60×60 tile with ~26 small
+      // filled circles at varied positions and radii. Stroke + fill
+      // both in dark pigskin (#5b3a1a) at 45% opacity — strong enough
+      // that the grain reads from across the room, light enough that
+      // the title text (positioned above this layer at z-index:1) is
+      // never compromised. Inline data-URI keeps it cache-friendly
+      // and free of asset-pipeline plumbing.
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%235b3a1a' fill-opacity='0.45'%3E%3Ccircle cx='5' cy='4' r='1.4'/%3E%3Ccircle cx='14' cy='9' r='1.1'/%3E%3Ccircle cx='23' cy='3' r='1.5'/%3E%3Ccircle cx='31' cy='8' r='1.2'/%3E%3Ccircle cx='40' cy='11' r='1.4'/%3E%3Ccircle cx='49' cy='5' r='1.3'/%3E%3Ccircle cx='56' cy='14' r='1.5'/%3E%3Ccircle cx='9' cy='17' r='1.3'/%3E%3Ccircle cx='19' cy='22' r='1.4'/%3E%3Ccircle cx='28' cy='18' r='1.1'/%3E%3Ccircle cx='36' cy='25' r='1.5'/%3E%3Ccircle cx='45' cy='20' r='1.3'/%3E%3Ccircle cx='53' cy='28' r='1.4'/%3E%3Ccircle cx='3' cy='30' r='1.2'/%3E%3Ccircle cx='12' cy='35' r='1.5'/%3E%3Ccircle cx='22' cy='39' r='1.3'/%3E%3Ccircle cx='31' cy='33' r='1.4'/%3E%3Ccircle cx='40' cy='37' r='1.2'/%3E%3Ccircle cx='49' cy='41' r='1.5'/%3E%3Ccircle cx='57' cy='45' r='1.3'/%3E%3Ccircle cx='6' cy='47' r='1.4'/%3E%3Ccircle cx='16' cy='52' r='1.2'/%3E%3Ccircle cx='25' cy='48' r='1.5'/%3E%3Ccircle cx='34' cy='55' r='1.3'/%3E%3Ccircle cx='43' cy='51' r='1.4'/%3E%3Ccircle cx='52' cy='57' r='1.2'/%3E%3C/g%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 60px 60px;
+      pointer-events: none;
+      // Pattern sits above the brown wash but below the title text.
+      z-index: 0;
+    }
+
+    // Text + icon float above the pattern.
+    > * { position: relative; z-index: 1; }
 
     .fas {
       color: @gn-primary;
@@ -2040,16 +2299,68 @@ a.GN-online-row {
 // still read from its navItems(). The newDiscussion button inside it is
 // also what GNComposerTrigger delegates clicks to (see open() in the
 // component), so we want it in the DOM but invisible.
-.IndexPage .Page-sidebar .IndexPage-nav.sideNav {
-  display: none;
+//
+// CRITICAL: only hide on DESKTOP (≥ 768px). On phone widths Flarum
+// nests `.App-titleControl` INSIDE `.IndexPage-nav.sideNav` — that's
+// the SelectDropdown that becomes the center mobile nav menu (All
+// Discussions / tags / custom pages). `display: none` on the parent
+// nav also removes the title-control from the layout tree, even though
+// the title-control itself is `position: fixed` — so we'd lose the
+// entire mobile nav menu. Restrict the hide to ≥ 768px.
+@media (min-width: 768px) {
+  .IndexPage .Page-sidebar .IndexPage-nav.sideNav {
+    display: none;
+  }
 }
 
-// On narrow viewports — widgets stack below the discussion list.
+// On phone widths, we DO want most of the sidebar nav hidden because
+// the page-title bottom-sheet (App-titleControl) is the user-facing
+// surface — but only the title-control should peek through. Hide the
+// actual `<ul>` list of nav items + the "Start a Discussion" button
+// (Flarum re-renders that for us inside the drawer), letting just the
+// dropdown trigger escape via its own `position: fixed`.
+@media (max-width: 767.98px) {
+  .IndexPage .Page-sidebar .IndexPage-nav.sideNav > ul > li:not(.item-nav) {
+    display: none;
+  }
+  .IndexPage .Page-sidebar .IndexPage-nav.sideNav {
+    // Make the nav itself contribute zero layout space — the title
+    // control inside escapes via position: fixed and the rest is hidden
+    // above, so the wrapper can collapse to 0 height without affecting
+    // the visible title-control.
+    height: 0;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+// On narrow viewports — widgets stack BELOW the discussion list.
+//
+// `.Page-container` has `flex-direction: row-reverse` + `align-items: flex-start`
+// for desktop (sidebar floats to the right, content takes remaining flex). When
+// we switch to `column` at ≤ 900px:
+//
+//   1. `align-items: flex-start` would keep cross-axis (horizontal) sizing at
+//      content-width, leaving `.Page-content` narrower than the viewport and
+//      letting the showcase cards overflow horizontally. Reset to `stretch`
+//      so the column children fill the viewport width.
+//   2. `flex-direction: column` (NOT column-reverse) plus explicit `order` on
+//      content/sidebar puts the discussion list first and the widgets second.
+//      Column-reverse would also reverse vertical scroll behavior of the
+//      sticky sidebar — explicit order is safer.
 @media (max-width: 900px) {
   .IndexPage .Page-container {
     flex-direction: column;
+    align-items: stretch;
+  }
+  .IndexPage .Page-content {
+    order: 1;
+    width: 100%;
+    min-width: 0;
   }
   .IndexPage .Page-sidebar {
+    order: 2;
     width: 100%;
     position: static;
     margin-top: 1rem;
@@ -2290,7 +2601,24 @@ a.GN-online-row {
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.60);
   }
 
-  .GN-widget-header { border-bottom-color: rgba(255, 255, 255, 0.055); }
+  .GN-widget-header {
+    border-bottom-color: rgba(255, 255, 255, 0.055);
+    // Dark-mode wash: richer amber-leather. The light-mode wash uses
+    // saddle-brown (#8B4513), which goes nearly black on a #16171c
+    // surface. Shift toward an orange-amber tone (#c08040-ish) so the
+    // brown reads as "tan leather" rather than collapsing to black.
+    background:
+      linear-gradient(
+        180deg,
+        rgba(192, 128, 64, 0.30) 0%,
+        rgba(192, 128, 64, 0.20) 100%
+      );
+    &::before {
+      // Lighter, more amber dimples so the grain is visible on the
+      // darker wash. Same 60×60 tile + 26-circle layout as light mode.
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%23d99963' fill-opacity='0.40'%3E%3Ccircle cx='5' cy='4' r='1.4'/%3E%3Ccircle cx='14' cy='9' r='1.1'/%3E%3Ccircle cx='23' cy='3' r='1.5'/%3E%3Ccircle cx='31' cy='8' r='1.2'/%3E%3Ccircle cx='40' cy='11' r='1.4'/%3E%3Ccircle cx='49' cy='5' r='1.3'/%3E%3Ccircle cx='56' cy='14' r='1.5'/%3E%3Ccircle cx='9' cy='17' r='1.3'/%3E%3Ccircle cx='19' cy='22' r='1.4'/%3E%3Ccircle cx='28' cy='18' r='1.1'/%3E%3Ccircle cx='36' cy='25' r='1.5'/%3E%3Ccircle cx='45' cy='20' r='1.3'/%3E%3Ccircle cx='53' cy='28' r='1.4'/%3E%3Ccircle cx='3' cy='30' r='1.2'/%3E%3Ccircle cx='12' cy='35' r='1.5'/%3E%3Ccircle cx='22' cy='39' r='1.3'/%3E%3Ccircle cx='31' cy='33' r='1.4'/%3E%3Ccircle cx='40' cy='37' r='1.2'/%3E%3Ccircle cx='49' cy='41' r='1.5'/%3E%3Ccircle cx='57' cy='45' r='1.3'/%3E%3Ccircle cx='6' cy='47' r='1.4'/%3E%3Ccircle cx='16' cy='52' r='1.2'/%3E%3Ccircle cx='25' cy='48' r='1.5'/%3E%3Ccircle cx='34' cy='55' r='1.3'/%3E%3Ccircle cx='43' cy='51' r='1.4'/%3E%3Ccircle cx='52' cy='57' r='1.2'/%3E%3C/g%3E%3C/svg%3E");
+    }
+  }
 
   .GN-scorecard-logo { filter: brightness(0.9); }
 
