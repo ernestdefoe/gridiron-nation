@@ -1198,6 +1198,31 @@ body,
   box-shadow: @gn-shadow-sm;
   transition: box-shadow @gn-transition, border-color @gn-transition;
 
+  // ── Real ticket-stub punch-throughs ─────────────────────────────────────
+  // mask-image with `mask-composite: intersect` literally CUTS the card
+  // background where the holes are — the page bg shows through cleanly,
+  // not a painted-on dark disc.
+  //
+  // How it works:
+  //   - Each gradient is OPAQUE black (#000) everywhere EXCEPT a 24px
+  //     transparent circle at left:0 / right:100%.
+  //   - `mask-composite: intersect` says: the element is visible only
+  //     where ALL masks are opaque. So a hole in EITHER mask hides
+  //     the card at that point.
+  //   - Result: two true cutouts, the page background pours through.
+  //
+  // Border, background, AND background-image (the stub tint) all get
+  // clipped together because mask applies to the whole element box.
+  // box-shadow lives outside the masked region and still works.
+  mask-image:
+    radial-gradient(circle 24px at 0 50%, transparent 22.5px, #000 23px),
+    radial-gradient(circle 24px at 100% 50%, transparent 22.5px, #000 23px);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    radial-gradient(circle 24px at 0 50%, transparent 22.5px, #000 23px),
+    radial-gradient(circle 24px at 100% 50%, transparent 22.5px, #000 23px);
+  -webkit-mask-composite: source-in;
+
   // Push the header + body text away from the perforation line. The
   // perforation `::before` sits at left: (avatar-column-width - 2px)
   // = 108px, and the .Post-main grid track starts at 110px — leaving
@@ -1256,48 +1281,12 @@ body,
     clear: none;          // also override the clearfix `clear: both` on :after
   }
 
-  // ── Ticket punch-holes ───────────────────────────────────────────────────
-  // Two filled circles centered on the post's LEFT and RIGHT edges, like
-  // the tear-off perforations on a real stadium ticket. Each hole now
-  // uses a SOLID DARK fill (rgba black at 50%) with NO ring — earlier
-  // version used `var(--muted-color)` as the rim which read as a
-  // whitish outline in dark mode and softened the cutout effect.
-  // Black-with-opacity reads as a real shadow-cast hole in BOTH light
-  // and dark mode without any rim color choice.
-  //
-  // The ::after element is a thin 18px-tall horizontal strip that
-  // straddles the post vertically at top: 50%. Negative `left` and
-  // `right` of -9px push its endpoints 9px outside the card edges so
-  // each radial-gradient hole spans the boundary. `display: block`
-  // overrides Flarum core's `.Post:before/.Post:after` clearfix
-  // (`content: " "; display: table; clear: both`) that would otherwise
-  // collapse the pseudo to a 0-size box.
-  &::after {
-    content: '';
-    display: block;
-    position: absolute;
-    top: 50%;
-    left: -24px;
-    right: -24px;
-    height: 48px;
-    transform: translateY(-50%);
-    background:
-      radial-gradient(
-        circle 24px at 24px 50%,
-        rgba(0, 0, 0, 0.55) 0,
-        rgba(0, 0, 0, 0.55) 22px,
-        transparent 22.5px
-      ),
-      radial-gradient(
-        circle 24px at calc(~"100% - 24px") 50%,
-        rgba(0, 0, 0, 0.55) 0,
-        rgba(0, 0, 0, 0.55) 22px,
-        transparent 22.5px
-      );
-    pointer-events: none;
-    z-index: 2;
-    clear: none;
-  }
+  // The ::after is reserved for the clearfix that Flarum core ships on
+  // `.Post:after { content: " "; display: table; clear: both }`. We
+  // don't repurpose it for punch holes anymore — the mask-image above
+  // does the cutout work directly on the card's own box. We just need
+  // to make sure the clearfix doesn't break our layout (it shouldn't,
+  // since it's a 0-height block by default).
 }
 
 // ── OP color strip (mosaic-style) ────────────────────────────────────────
