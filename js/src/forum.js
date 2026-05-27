@@ -171,26 +171,52 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
 
   // ── 5. Discussion list rows → GNDiscussionCard showcase layout ───────────
   // Override DiscussionListItem.view() to render our showcase card inside
-  // the standard `<li class="DiscussionListItem">` wrapper. Keeping the
-  // wrapper is load-bearing for THREE integrations:
+  // the standard `<div class="DiscussionListItem">` wrapper. The wrapper is
+  // load-bearing — Slidable hooks, `.active` routing class, and especially
+  // ramon/colored's `--item-tag-color` inline style all live on it.
   //
-  //   1. ramon/colored — does
-  //        extend(DiscussionListItem.prototype, 'view', vdom =>
-  //          vdom.attrs.style['--item-tag-color'] = color)
-  //      The mutation only reaches the DOM if `vdom` is a real DOM vnode
-  //      (the <li>) rather than a component vnode. Inline style on the
-  //      <li> cascades --item-tag-color to every descendant (the showcase
-  //      card uses it for the accent strip and full-border modes).
-  //   2. Slidable — flarum/core swipe-to-mark-read targets `.Slidable`.
-  //   3. Routing — `active` class on the <li> drives `.DiscussionListItem.active`
-  //      highlighting in core / themes / ramon-colored.
+  // CRITICAL: extender ordering. ramon/colored does
+  //   `extend(DiscussionListItem.prototype, 'view', vdom =>
+  //      vdom.attrs.style['--item-tag-color'] = color)`
+  // — and `extend` WRAPS the previous prototype.view (the stock one).
+  // When my extension's initializer runs AFTER ramon/colored's (which
+  // happens because alphabetic order puts ramon after ernestdefoe in
+  // the Flarum 2 boot loop), my `override` REPLACES the wrapped function
+  // entirely and discards ramon's extender.
   //
-  // We reproduce core's `elementAttrs()` shape verbatim — Active class,
-  // hidden class, Slidable class, plus any caller-provided className.
-  override(DiscussionListItem.prototype, 'view', function () {
+  // Fix: call `original()` to re-run the wrapped view chain. That
+  // triggers every extender (ramon/colored's color injection, anyone
+  // else's view hooks) on a throwaway vnode whose `attrs.style` we
+  // then steal and apply to our own root. Result: the inline
+  // `--item-tag-color` lands on OUR `<div class="DiscussionListItem">`,
+  // cascades to the showcase card's accent strip via standard CSS
+  // custom property inheritance, and any onclick wrappers ramon stamps
+  // (the page-color-swap animation) keep firing.
+  //
+  // Yes, this re-runs the stock view we don't render. That's one
+  // wasted vdom per row at render time — cheap compared to the
+  // complexity of duplicating ramon/colored's logic in our extension.
+  override(DiscussionListItem.prototype, 'view', function (original) {
     const discussion = this.attrs.discussion;
+
+    // Throwaway invocation to let extenders mutate the root vnode.
+    // Most extenders read `this.attrs.discussion` (which is identical
+    // to what we render below), so the work is consistent.
+    let extenderStyle = null;
+    let extenderClick = null;
+    try {
+      const stock = original();
+      if (stock && stock.attrs) {
+        extenderStyle = stock.attrs.style || null;
+        extenderClick = typeof stock.attrs.onclick === 'function' ? stock.attrs.onclick : null;
+      }
+    } catch (e) {
+      // Belt-and-braces: if the stock view throws for any reason
+      // (missing data, partial state), we still render our card.
+    }
+
     return m(
-      'li',
+      'div',
       {
         className: classList(
           'DiscussionListItem',
@@ -201,6 +227,8 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
             Slidable: typeof this.isSlidableEnabled === 'function' ? this.isSlidableEnabled() : false,
           }
         ),
+        style: extenderStyle,
+        onclick: extenderClick,
       },
       m(GNDiscussionCard, {
         discussion:      discussion,
