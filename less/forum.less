@@ -818,7 +818,13 @@ body,
   border-radius: @gn-radius;
   border: 1px solid var(--border-color, @gn-border);
   margin: 0 0 14px;
-  overflow: hidden;
+  // NOTE: deliberately NOT `overflow: hidden`. An earlier version clipped
+  // the accent strip to the card's rounded corners that way, but the clip
+  // also hid the 3-dot moderation Dropdown menu when it opened (Flarum's
+  // Dropdown menu is `position: absolute` and renders inline — it gets
+  // clipped by the nearest overflow-hidden ancestor). We now give the
+  // .GN-showcaseCard-accent its OWN matching border-radius on the left so
+  // the strip self-contains, no parent clipping needed.
   transition: border-color @gn-transition, box-shadow @gn-transition, transform @gn-transition;
 
   &:hover {
@@ -835,7 +841,9 @@ body,
     flex: 0 0 4px;
     width: 4px;
     background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%);
-    border-radius: 2px 0 0 2px;
+    // Match the card's outer radius on the left so the strip curves
+    // along with the card corners without needing a parent overflow clip.
+    border-radius: @gn-radius 0 0 @gn-radius;
   }
 
   &--unread &-accent { background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%); }
