@@ -1177,15 +1177,12 @@ body,
 // bug from earlier in the rename.
 .Post.CommentPost {
   // Wider avatar column — was 85px (core default), bumped to 110px.
-  // The grid lives in .Post-container, so we set the variable here and
-  // core's `grid-template-columns: var(--avatar-column-width) 1fr`
-  // picks it up automatically. No layout overrides, no fighting the
-  // cascade.
+  // Flarum's `.Post-container` grid uses
+  // `grid-template-columns: var(--avatar-column-width) 1fr`,
+  // so setting the variable here resizes the column without
+  // touching the grid declaration.
   --avatar-column-width: 110px;
 
-  // Warm-paper tone — base bg shaded toward a hint of cream via a
-  // tiny linear-gradient. Falls back to plain control-bg when the
-  // var resolves to a hex (`color-mix` in modern browsers blends it).
   position: relative;
   background: var(--control-bg, @gn-card);
   border: 1px solid var(--border-color, @gn-border);
@@ -1193,54 +1190,87 @@ body,
   box-shadow: @gn-shadow-sm;
   transition: box-shadow @gn-transition, border-color @gn-transition;
 
+  // ── Ticket-stub tint ─────────────────────────────────────────────────────
+  // Subtle off-color band on the avatar-column side of the perforation,
+  // hard-stopping at the perf line. The stub reads as a clearly distinct
+  // region from the main ticket without competing with text. The
+  // gradient is layered ON TOP of the existing `background` (which is
+  // the solid card color) via `background-image`, so the card stays
+  // theme-aware.
+  background-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.035) 0,
+    rgba(0, 0, 0, 0.035) calc(~"var(--avatar-column-width) - 4px"),
+    transparent calc(~"var(--avatar-column-width) - 4px"),
+    transparent 100%
+  );
+
   &:hover {
     box-shadow: @gn-shadow-md;
-    border-color: rgba(@gn-primary, 0.18);
+    border-color: rgba(@gn-primary, 0.22);
   }
 
   // ── Ticket perforation ───────────────────────────────────────────────────
-  // Vertical dashed line at the avatar/body column boundary. The line is
-  // pulled in by 2px (var minus 2) so it sits in the visual gap between
-  // the avatar's 64px disc and the start of the header text. Faded
-  // (opacity 0.55) so it reads as paper-perforation, not as a rule.
+  // Dashed vertical line at the avatar/body column boundary. Uses
+  // `currentColor` so the line picks up legible contrast in both light
+  // and dark mode without hardcoding theme-specific hex.
+  //
+  // CRITICAL: `display: block !important`. Flarum core ships a
+  // clearfix on `.Post:before` / `.Post:after`:
+  //   .Post:before, .Post:after { content: " "; display: table; clear: both }
+  // (see vendor/flarum/core/less/forum/Post.less near the top — it's
+  // applied via the `.clearfix()` mixin on `.Post`). `display: table`
+  // collapses our absolutely-positioned pseudo to a 0-size box and
+  // makes width/height/border invisible. Forcing `display: block`
+  // restores normal pseudo-element rendering.
   &::before {
     content: '';
+    display: block;
     position: absolute;
-    top: 14px;
-    bottom: 14px;
+    top: 12px;
+    bottom: 12px;
     left: calc(~"var(--avatar-column-width) - 2px");
     width: 0;
-    border-left: 1.5px dashed var(--border-color, @gn-border);
-    opacity: 0.55;
+    border-left: 2px dashed currentColor;
+    opacity: 0.22;
     pointer-events: none;
     z-index: 1;
+    clear: none;          // also override the clearfix `clear: both` on :after
   }
 
   // ── Ticket punch-holes ───────────────────────────────────────────────────
-  // Two small filled circles in body-bg color (not control-bg), so they
-  // visually "cut through" the card edge. Positioned at the perforation
-  // line's top and bottom. Uses a single ::after with TWO radial
-  // gradients stacked vertically — saves one pseudo-element.
+  // Two filled circles at the perforation's top + bottom, overlapping
+  // the card edge so the stub looks tearable. Solid body-bg core +
+  // muted-color ring so they're unmistakable against either light or
+  // dark cards. Same `display: block` override as ::before above.
   &::after {
     content: '';
+    display: block;
     position: absolute;
-    top: -7px;
-    bottom: -7px;
-    left: calc(~"var(--avatar-column-width) - 9px");
-    width: 14px;
+    top: -9px;
+    bottom: -9px;
+    left: calc(~"var(--avatar-column-width) - 10px");
+    width: 18px;
     background:
       radial-gradient(
-        circle 6px at 50% 7px,
-        var(--body-bg, @gn-bg) 6px,
-        transparent 6.5px
+        circle 9px at 50% 9px,
+        var(--body-bg, @gn-bg) 0,
+        var(--body-bg, @gn-bg) 7px,
+        var(--muted-color, @gn-muted) 7.5px,
+        var(--muted-color, @gn-muted) 8px,
+        transparent 8.5px
       ),
       radial-gradient(
-        circle 6px at 50% calc(~"100% - 7px"),
-        var(--body-bg, @gn-bg) 6px,
-        transparent 6.5px
+        circle 9px at 50% calc(~"100% - 9px"),
+        var(--body-bg, @gn-bg) 0,
+        var(--body-bg, @gn-bg) 7px,
+        var(--muted-color, @gn-muted) 7.5px,
+        var(--muted-color, @gn-muted) 8px,
+        transparent 8.5px
       );
     pointer-events: none;
     z-index: 2;
+    clear: none;
   }
 }
 
