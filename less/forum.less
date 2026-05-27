@@ -812,47 +812,77 @@ body,
 .DiscussionList-update { display: none !important; }   // hide realtime "N updates" banner
 
 .GN-showcaseCard {
+  // CSS custom prop for the accent stripe color. Falls through:
+  //   1. --item-tag-color   (set inline by ramon/colored on the parent
+  //                          .DiscussionListItem when the discussion's
+  //                          first tag has a color — cascades to here)
+  //   2. --border-color     theme-aware muted edge color (read state)
+  //   3. @gn-border literal as a final fallback
+  //
+  // The `--unread` modifier (below) overrides the fallback to @gn-primary
+  // so unread rows still get a crimson stripe when no tag is set.
+  --gn-accent-color: var(--item-tag-color, var(--border-color, @gn-border));
+
   position: relative;
-  display: flex;
   background: var(--control-bg, @gn-card);
   border-radius: @gn-radius;
   border: 1px solid var(--border-color, @gn-border);
   margin: 0 0 14px;
-  // NOTE: deliberately NOT `overflow: hidden`. An earlier version clipped
-  // the accent strip to the card's rounded corners that way, but the clip
-  // also hid the 3-dot moderation Dropdown menu when it opened (Flarum's
-  // Dropdown menu is `position: absolute` and renders inline — it gets
-  // clipped by the nearest overflow-hidden ancestor). We now give the
-  // .GN-showcaseCard-accent its OWN matching border-radius on the left so
-  // the strip self-contains, no parent clipping needed.
+
+  // Accent stripe: an inset box-shadow on the card's left edge. Because
+  // `box-shadow inset` respects `border-radius`, the stripe automatically
+  // curves at the top-left and bottom-left corners — following the card's
+  // outer curve instead of cutting through it.
+  //
+  // We replaced the prior approach (a flex child `.GN-showcaseCard-accent`
+  // with its own `border-radius: 14px 0 0 14px`) because the flex child
+  // was a separate box: at the card's bottom-left corner the 4px strip
+  // would visually overshoot the curve, sticking out past the rounded
+  // edge. The inset shadow lives INSIDE the rounded card, so the curve is
+  // automatic and pixel-perfect.
+  //
+  // Two stacked shadows so the accent doesn't fight the existing
+  // `&:hover { box-shadow: ... }`:
+  box-shadow: inset 4px 0 0 var(--gn-accent-color);
+
   transition: border-color @gn-transition, box-shadow @gn-transition, transform @gn-transition;
 
   &:hover {
     border-color: rgba(@gn-primary, 0.4);
-    box-shadow: 0 4px 16px rgba(@gn-primary, 0.08);
+    box-shadow:
+      inset 4px 0 0 var(--gn-accent-color),
+      0 4px 16px rgba(@gn-primary, 0.08);
     transform: translateY(-1px);
   }
 
-  &--unread { border-left: 0; }
-  &--sticky { box-shadow: 0 0 0 1px rgba(@gn-primary, 0.25); }
-  &--locked { opacity: 0.85; }
-
-  &-accent {
-    flex: 0 0 4px;
-    width: 4px;
-    background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%);
-    // Match the card's outer radius on the left so the strip curves
-    // along with the card corners without needing a parent overflow clip.
-    border-radius: @gn-radius 0 0 @gn-radius;
+  // Unread cards: stripe falls back to @gn-primary (crimson) when no
+  // ramon/colored tag color is set, so the card still reads as
+  // "actionable" even with untagged discussions.
+  &--unread {
+    --gn-accent-color: var(--item-tag-color, @gn-primary);
   }
 
-  &--unread &-accent { background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%); }
-  &:not(&--unread) &-accent { background: var(--border-color, @gn-border); }
+  &--sticky {
+    box-shadow:
+      inset 4px 0 0 var(--gn-accent-color),
+      0 0 0 1px rgba(@gn-primary, 0.25);
+  }
+  &--locked { opacity: 0.85; }
+
+  // Legacy `.GN-showcaseCard-accent` element kept in the DOM (for
+  // backward compat with any extension that targets it) but visually
+  // suppressed — the inset box-shadow above handles the accent now.
+  &-accent {
+    display: none;
+  }
 
   &-body {
     flex: 1 1 auto;
     min-width: 0;
-    padding: 16px 18px 14px;
+    // Left padding pushes content past the inset box-shadow stripe
+    // (the previous flex layout had a 4px accent column outside the
+    // body — we replicate that gap with padding-left).
+    padding: 16px 18px 14px 22px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -2469,25 +2499,15 @@ html[data-colored-border='left'] .DiscussionListItem {
   border-left: 0;
 }
 
-// Specificity note: the existing default-state rule
-//   `.GN-showcaseCard:not(.GN-showcaseCard--unread) .GN-showcaseCard-accent`
-// is 0,3,0. Our colored-mode override must clear that, so we use
-//   `html[data-colored-border='left'] .GN-showcaseCard .GN-showcaseCard-accent`
-// which is 0,3,1 (one attr selector + two classes + html type). Without
-// the extra `.GN-showcaseCard` parent the rule was 0,2,1 and lost.
+// Left-stripe mode: the card's `--gn-accent-color` already defaults to
+// `var(--item-tag-color, ...)` so ramon/colored's inline-style
+// `--item-tag-color` on the parent DiscussionListItem cascades down and
+// the inset box-shadow paints with the tag color automatically. No
+// extra selectors needed — the cascade does the work.
 //
-// Left-stripe mode: recolor our accent strip with the tag color. We
-// fall back to the muted border color so untagged discussions still get
-// a visible (but neutral) accent.
-html[data-colored-border='left'] .GN-showcaseCard .GN-showcaseCard-accent {
-  background: var(--item-tag-color, var(--border-color, @gn-border));
-}
-
-// Unread cards get the tag color too when set; fall back to the
-// primary (solid, no gradient — var() can't carry gradient strings).
-html[data-colored-border='left'] .GN-showcaseCard.GN-showcaseCard--unread .GN-showcaseCard-accent {
-  background: var(--item-tag-color, @gn-primary);
-}
+// (Previously we recolored `.GN-showcaseCard-accent` here, but that
+// element is now display:none — the inset box-shadow on the card
+// handles the stripe and naturally follows the border-radius.)
 
 // Full-border mode: ring the card with the tag color, kill the 4px
 // bottom margin so consecutive bordered rows don't read as double-thick.
