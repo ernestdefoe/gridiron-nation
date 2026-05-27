@@ -1097,6 +1097,21 @@ body,
   }
 }
 
+// ── Dropdown overlay escalation when open ─────────────────────────────────
+// Flarum's `.Dropdown.open .Dropdown-menu` is `position: absolute` with
+// `z-index: var(--zindex-dropdown)`. When the menu opens on one showcase
+// card, the NEXT card sits in the regular flow with its own stacking
+// context, and the bottom of the open menu gets hidden behind it.
+//
+// Fix: when a row contains an open Dropdown, escalate the entire row's
+// z-index above the rest of the list. The row becomes the stacking
+// parent for the popover, and the menu floats over the next card
+// cleanly. `position: relative` is required so z-index actually applies.
+.DiscussionListItem:has(.Dropdown.open) {
+  position: relative;
+  z-index: calc(~"var(--zindex-dropdown) + 1");
+}
+
 @media (max-width: 540px) {
   .GN-showcaseCard {
     &-body { padding: 12px 14px 12px; gap: 6px; }
@@ -1146,25 +1161,27 @@ body,
   transition: box-shadow @gn-transition;
 
   &:hover { box-shadow: @gn-shadow-md; }
+}
 
-  // ── OP color strip (mosaic-style) ────────────────────────────────────────
-  // Every post by the discussion's start user gets a crimson left edge.
-  // Uses Flarum core's `Post--by-start-user` class (stamped via
-  // CommentPost.classes() in
-  // vendor/flarum/core/js/src/forum/components/Post.tsx:78).
-  //
-  // The color falls back through three layers:
-  //   1. --colored-color  — set by ramon/colored on body.colored--active
-  //      when the discussion has a tag color
-  //   2. --primary-color  — Flarum's themed primary
-  //   3. @gn-primary      — our crimson literal
-  //
-  // We use `border-left` directly (not a ::before strip) so the strip
-  // curves into the card's rounded corners — the same pattern mosaic
-  // uses, which is the look the user pointed at.
-  &.Post--by-start-user {
-    border-left: 3px solid var(--colored-color, var(--primary-color, @gn-primary));
-  }
+// ── OP color strip (mosaic-style) ────────────────────────────────────────
+// Every post by the discussion's start user gets a crimson left edge.
+// Uses Flarum core's `Post--by-start-user` class (stamped via
+// `AbstractPost.elementAttrs()` calling `this.classes()`, which Post.tsx
+// pushes the class to when `post.user() === discussion.user()`).
+//
+// Color falls back through three layers:
+//   1. --colored-color   set by ramon/colored on body.colored--active
+//                        when the discussion has a tag color
+//   2. --primary-color   Flarum's themed primary
+//   3. @gn-primary       our crimson literal
+//
+// We hoist this rule OUT of `.Post.CommentPost { ... &.Post--by-start-user { ... } }`
+// nesting because the parent block sets `border: 1px solid ...` (shorthand
+// for all four sides) which in some compile orderings was stamping AFTER
+// the OP override. With a flat selector at the same nesting depth +
+// !important on `border-left`, we win unambiguously against the shorthand.
+.Post.CommentPost.Post--by-start-user {
+  border-left: 3px solid var(--colored-color, var(--primary-color, @gn-primary)) !important;
 }
 
 // First post in the stream gets a slightly stronger shadow tier so the
@@ -2254,38 +2271,30 @@ a.GN-online-row {
 // ============================================================
 
 // ── DiscussionList border styles ──────────────────────────────────────────
-// Left-stripe mode: 3px tag-color flag down the left edge of each
-// list row, like a colored highlight tag in a paper inbox.
+// ramon/colored does
+//   `extend(DiscussionListItem.prototype, 'view', vdom =>
+//      vdom.attrs.style['--item-tag-color'] = color)`
+// — so the `--item-tag-color` inline style lands on the outer
+// `<li class="DiscussionListItem">`. Because our override (forum.js) now
+// preserves that wrapper, the custom property cascades into the showcase
+// card via standard CSS inheritance, and `.GN-showcaseCard-accent` /
+// `.GN-showcaseCard` can read it without an ancestor selector.
 //
-// Two selectors — `.DiscussionListItem` is the wrapper Flarum stamps on
-// every row even when we replace the rendered view via
-// `override(DiscussionListItem.prototype, 'view')` (the wrapper
-// component still exists, only the inner vdom changes). The override
-// keeps the wrapper class, so this rule survives. The
-// `.GN-showcaseCard` selector targets the inner article we render —
-// we want the colored stripe ON the actual card, not the invisible
-// outer wrapper, so we recolor the accent strip directly via the
-// `--gn-item-tag-color` custom prop fed by ramon/colored.
-html[data-colored-border='left'] .DiscussionListItem {
-  border-left: 3px solid var(--item-tag-color, transparent);
+// Left-stripe mode (data-colored-border=left): recolor our accent strip
+// with the tag color. We don't paint the outer <li>'s border-left
+// because ramon/colored's own rule already does (and the accent strip
+// is what visually reads as "the colored bar" on the card).
+html[data-colored-border='left'] .GN-showcaseCard-accent {
+  background: var(--item-tag-color, currentColor);
 }
 
-html[data-colored-border='left'] .DiscussionListItem .GN-showcaseCard-accent {
-  // Promote the muted gray accent to the tag color when ramon/colored
-  // sets `--item-tag-color`. Falls back to whatever the unread/sticky
-  // state would otherwise paint.
-  background: var(--item-tag-color, currentColor) !important;
-}
-
-// Full-border mode: 2px tag-color ring on every row. We also clear
-// the 4px bottom margin so consecutive bordered rows don't read as
-// double-thick separators.
+// Full-border mode: ring the card with the tag color, kill the 4px bottom
+// margin so consecutive bordered rows don't read as double-thick
+// separators.
 html[data-colored-border='full'] .DiscussionListItem {
-  border: 2px solid var(--item-tag-color, transparent);
   margin-bottom: 6px;
 }
-
-html[data-colored-border='full'] .DiscussionListItem .GN-showcaseCard {
+html[data-colored-border='full'] .GN-showcaseCard {
   border-color: var(--item-tag-color, var(--border-color, transparent));
 }
 

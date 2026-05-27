@@ -59,18 +59,13 @@ export default class GNDiscussionCard extends Component {
     // skip rendering the Dropdown entirely.
     const controls = DiscussionControls.controls(d, this).toArray();
 
-    // Forward any per-card style/onclick the parent DiscussionListItem
-    // extender stamped on our component vnode. ramon/colored ships an
-    // `extend(DiscussionListItem.prototype, 'view', ...)` that mutates
-    // `vdom.attrs.style['--item-tag-color']` AND wraps `onclick` so a
-    // tag-colored click animates the page primary into the tag's hex
-    // before navigation. Because we replace the entire view with a
-    // component vnode, that mutation lands on `this.attrs` instead of
-    // the DOM — we merge it down to the article root so the colored
-    // stripe + click animation both fire.
-    const parentStyle = this.attrs.style || {};
-    const parentClick = typeof this.attrs.onclick === 'function' ? this.attrs.onclick : null;
-
+    // No need to forward style/onclick here — the outer
+    // `<li class="DiscussionListItem">` wrapper rendered by forum.js
+    // receives ramon/colored's `vdom.attrs.style['--item-tag-color']`
+    // mutation and the `onclick` color-apply handler. The custom prop
+    // cascades to descendants via standard CSS inheritance, so the
+    // showcase card and its accent strip can read it via
+    // `var(--item-tag-color, …)`.
     return m(
       'article.GN-showcaseCard',
       {
@@ -79,8 +74,6 @@ export default class GNDiscussionCard extends Component {
           'GN-showcaseCard--sticky': isSticky,
           'GN-showcaseCard--locked': isLocked,
         }),
-        style: parentStyle,
-        onclick: parentClick,
       },
       [
         // ── Accent strip down the left edge — primary color for

@@ -1,5 +1,6 @@
 import app from 'flarum/forum/app';
 import { extend, override } from 'flarum/common/extend';
+import classList from 'flarum/common/utils/classList';
 import IndexPage          from 'flarum/forum/components/IndexPage';
 import IndexSidebar       from 'flarum/forum/components/IndexSidebar';
 import WelcomeHero        from 'flarum/forum/components/WelcomeHero';
@@ -169,22 +170,46 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   });
 
   // ── 5. Discussion list rows → GNDiscussionCard showcase layout ───────────
-  // Override DiscussionListItem.view() to render our showcase card
-  // instead of Flarum's stock row. We keep ALL the host machinery
-  // (state, subtree retention, slidable behavior, isUnread/isRead
-  // calculations) — only the rendered vdom changes.
+  // Override DiscussionListItem.view() to render our showcase card inside
+  // the standard `<li class="DiscussionListItem">` wrapper. Keeping the
+  // wrapper is load-bearing for THREE integrations:
   //
-  // The original `view()` also wires `attrs.className` and Slidable
-  // — we reproduce just enough of that wrapper to keep `.active`
-  // routing highlighting working.
+  //   1. ramon/colored — does
+  //        extend(DiscussionListItem.prototype, 'view', vdom =>
+  //          vdom.attrs.style['--item-tag-color'] = color)
+  //      The mutation only reaches the DOM if `vdom` is a real DOM vnode
+  //      (the <li>) rather than a component vnode. Inline style on the
+  //      <li> cascades --item-tag-color to every descendant (the showcase
+  //      card uses it for the accent strip and full-border modes).
+  //   2. Slidable — flarum/core swipe-to-mark-read targets `.Slidable`.
+  //   3. Routing — `active` class on the <li> drives `.DiscussionListItem.active`
+  //      highlighting in core / themes / ramon-colored.
+  //
+  // We reproduce core's `elementAttrs()` shape verbatim — Active class,
+  // hidden class, Slidable class, plus any caller-provided className.
   override(DiscussionListItem.prototype, 'view', function () {
-    return m(GNDiscussionCard, {
-      discussion:      this.attrs.discussion,
-      params:          this.attrs.params,
-      jumpTo:          this.attrs.jumpTo,
-      author:          this.attrs.author,
-      highlightRegExp: this.highlightRegExp,
-    });
+    const discussion = this.attrs.discussion;
+    return m(
+      'li',
+      {
+        className: classList(
+          'DiscussionListItem',
+          this.attrs.className,
+          {
+            active: typeof this.active === 'function' ? this.active() : false,
+            'DiscussionListItem--hidden': discussion && discussion.isHidden && discussion.isHidden(),
+            Slidable: typeof this.isSlidableEnabled === 'function' ? this.isSlidableEnabled() : false,
+          }
+        ),
+      },
+      m(GNDiscussionCard, {
+        discussion:      discussion,
+        params:          this.attrs.params,
+        jumpTo:          this.attrs.jumpTo,
+        author:          this.attrs.author,
+        highlightRegExp: this.highlightRegExp,
+      })
+    );
   });
 
   // ── 6. Sidebar: keep IndexSidebar (hidden), append widget stack ───────────
