@@ -118,20 +118,24 @@ export default class GNDiscussionCard extends Component {
             : null,
 
           // ── Footer: like count + reply count
+          // The likes/replies trans keys use ICU plural so we pass the
+          // raw count — abbreviateNumber renders the visual number
+          // separately, but the translator needs the integer to pick
+          // singular vs plural.
           m('.GN-showcaseCard-footer', [
             m('span.GN-showcaseCard-stat', [
               m('i.far.fa-thumbs-up', { 'aria-hidden': 'true' }),
               ' ',
               abbreviateNumber(likesCount),
               ' ',
-              app.translator.trans('ernestdefoe-fbsfb.forum.discussion.likes'),
+              app.translator.trans('ernestdefoe-fbsfb.forum.discussion.likes', { count: likesCount }),
             ]),
             m('span.GN-showcaseCard-stat', [
               m('i.far.fa-comment', { 'aria-hidden': 'true' }),
               ' ',
               abbreviateNumber(replyCount),
               ' ',
-              app.translator.trans('ernestdefoe-fbsfb.forum.discussion.replies'),
+              app.translator.trans('ernestdefoe-fbsfb.forum.discussion.replies', { count: replyCount }),
             ]),
           ]),
         ]),

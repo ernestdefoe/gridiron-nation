@@ -18,6 +18,15 @@ ernestdefoe-fbsfb:
       hero_deco_opacity_help: "Percentage opacity for the glyph against the hero background. Default 12. Set to 0 to hide without disabling the feature."
 
   forum:
+    discussion:
+      # GNDiscussionCard footer stats + overflow link.
+      # Flarum's translator uses ICU MessageFormat for pluralization;
+      # `{count, plural, ...}` lets a single key render "1 other reply"
+      # vs "5 other replies" without two keys.
+      likes: "{count, plural, =0{likes} one{like} other{likes}}"
+      replies: "{count, plural, =0{replies} one{reply} other{replies}}"
+      see_other_replies: "See {count, plural, one{# other reply} other{# other replies}}"
+
     nav:
       discussions: Discussions
       start_discussion: Start a Discussion

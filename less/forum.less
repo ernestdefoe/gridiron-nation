@@ -1164,35 +1164,25 @@ body,
   }
 
   // ── Header (author + meta) ─────────────────────────────────────────────────
+  // We deliberately do NOT touch the .Post-header > ul layout — Flarum
+  // ships sensible inline-block defaults that flow PostUser, PostMeta,
+  // PostEdited and any extension-injected items on a single line with
+  // wrap behavior. Overriding the container with display:flex broke that
+  // inline flow and stacked items vertically (and forced the username
+  // and date onto separate rows on tablet+). Just style the children
+  // for typography and color.
   .Post-header {
     margin: 0 0 12px;
 
-    > ul {
-      list-style: none;
+    .PostUser-name {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.98rem;
       margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px 14px;
-    }
 
-    .PostUser {
-      .PostUser-name {
-        font-family: 'DM Sans', sans-serif;
-        font-weight: 700;
-        font-size: 0.98rem;
-
-        a {
-          color: var(--body-color, @gn-text);
-          &:hover { color: var(--primary-color, @gn-primary); text-decoration: none; }
-        }
-      }
-
-      // Role / group badge pills next to the username
-      .UserBadge,
-      .GroupBadge {
-        margin-left: 6px;
+      a {
+        color: var(--body-color, @gn-text);
+        &:hover { color: var(--primary-color, @gn-primary); text-decoration: none; }
       }
     }
 
@@ -2390,8 +2380,25 @@ a.GN-online-row {
 // ── DiscussionList border styles ──────────────────────────────────────────
 // Left-stripe mode: 3px tag-color flag down the left edge of each
 // list row, like a colored highlight tag in a paper inbox.
+//
+// Two selectors — `.DiscussionListItem` is the wrapper Flarum stamps on
+// every row even when we replace the rendered view via
+// `override(DiscussionListItem.prototype, 'view')` (the wrapper
+// component still exists, only the inner vdom changes). The override
+// keeps the wrapper class, so this rule survives. The
+// `.GN-showcaseCard` selector targets the inner article we render —
+// we want the colored stripe ON the actual card, not the invisible
+// outer wrapper, so we recolor the accent strip directly via the
+// `--gn-item-tag-color` custom prop fed by ramon/colored.
 html[data-colored-border='left'] .DiscussionListItem {
   border-left: 3px solid var(--item-tag-color, transparent);
+}
+
+html[data-colored-border='left'] .DiscussionListItem .GN-showcaseCard-accent {
+  // Promote the muted gray accent to the tag color when ramon/colored
+  // sets `--item-tag-color`. Falls back to whatever the unread/sticky
+  // state would otherwise paint.
+  background: var(--item-tag-color, currentColor) !important;
 }
 
 // Full-border mode: 2px tag-color ring on every row. We also clear
@@ -2400,6 +2407,10 @@ html[data-colored-border='left'] .DiscussionListItem {
 html[data-colored-border='full'] .DiscussionListItem {
   border: 2px solid var(--item-tag-color, transparent);
   margin-bottom: 6px;
+}
+
+html[data-colored-border='full'] .DiscussionListItem .GN-showcaseCard {
+  border-color: var(--item-tag-color, var(--border-color, transparent));
 }
 
 // Suppress every transition + animation while ramon/colored is
