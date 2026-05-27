@@ -484,6 +484,51 @@ body,
   }
 }
 
+// ── Blinking-colon separator ─────────────────────────────────────────────
+// Lives between the forum stats (MEMBERS/TOPICS/POSTS) and the social
+// stats (NEWEST/ONLINE) — sized to match the slot values' visual weight,
+// painted in primary crimson so it reads as the scoreboard's
+// quarter/period colon. The hard-step animation (no easing, snaps
+// between visible and invisible) is what makes it feel like a real
+// scoreboard rather than a soft fade.
+.GN-scoreboard-sep {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--primary-color, @gn-primary);
+  text-shadow:
+    0 0 6px rgba(@gn-primary, 0.45),
+    0 0 14px rgba(@gn-primary, 0.20);
+  user-select: none;
+  pointer-events: none;
+  animation: gn-scoreboard-blink 1.2s steps(2, jump-none) infinite;
+
+  // Suppress the slot-divider rule for any slot that immediately
+  // follows the separator — we don't want a glowing vertical line
+  // beside the colon, the colon IS the divider.
+  + .GN-scoreSlot::before {
+    display: none;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.25rem;
+    padding: 0 4px;
+  }
+}
+
+@keyframes gn-scoreboard-blink {
+  // Hard step: visible for the first half of the cycle, invisible
+  // for the second. Combined with `steps(2, jump-none)` above this
+  // produces a clean on/off snap with no easing — the real-scoreboard
+  // tempo.
+  0%, 49.99%   { opacity: 1; }
+  50%, 100%    { opacity: 0; }
+}
+
 .GN-scoreSlot {
   position: relative;
   flex: 1 1 0;

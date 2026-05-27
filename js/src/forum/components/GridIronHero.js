@@ -150,11 +150,24 @@ export default class GridIronHero extends Component {
     // display name with their avatar, click-routable to the profile.
     const newest = app.forum.attribute('gridironNewestMember');
 
+    // Whether there's anything in the social-side group (NEWEST + ONLINE)
+    // worth rendering — if both are empty we skip the separator too so we
+    // don't ship a lone colon hanging off the right side of the panel.
+    const hasSocial = !!newest || this.online > 0 || !!app.session.user;
+
     return m('.GN-hero-extras', [
       m('.GN-scoreboard', [
         this.scoreSlot('fa-solid fa-users',       this.fmt(this.users),       t('stats.members')),
         this.scoreSlot('fa-solid fa-football',    this.fmt(this.discussions), t('stats.topics')),
         this.scoreSlot('fa-solid fa-clipboard',   this.fmt(this.posts),       t('stats.posts')),
+        // Blinking-colon separator between the static forum stats
+        // (members/topics/posts) and the social stats (newest member +
+        // online now) — mimics the period/quarter colon on a stadium
+        // scoreboard. Animation lives in less/forum.less under
+        // `@keyframes gn-scoreboard-blink`.
+        hasSocial
+          ? m('span.GN-scoreboard-sep', { 'aria-hidden': 'true' }, ':')
+          : null,
         newest ? this.newestScoreSlot(newest, t('stats.newest')) : null,
         this.online > 0 || app.session.user
           ? this.onlineScoreSlot(t('stats.online'))
