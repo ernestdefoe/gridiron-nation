@@ -1233,6 +1233,16 @@ body,
     padding-left: 18px;
   }
 
+  // Push the avatar past the left punch hole. The left mask-image
+  // cutout is centered at left:0 with radius 24px, so it bites into
+  // the card from x=-24 to x=24. Without compensating padding, the
+  // avatar (which Flarum renders at ~3px from the post's left edge)
+  // gets sliced in half. 28px padding-left on .Post-side places the
+  // avatar entirely clear of the cutout with a small visual gutter.
+  .Post-side {
+    padding-left: 28px;
+  }
+
   // ── Ticket-stub tint ─────────────────────────────────────────────────────
   // Subtle off-color band on the avatar-column side of the perforation,
   // hard-stopping at the perf line. The stub reads as a clearly distinct
@@ -2095,7 +2105,12 @@ a.GN-online-row {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.50);
   }
 
-  .DiscussionListItem,
+  // Our showcase-card override renders `<div class="DiscussionListItem">`
+  // as just a wrapper for `.GN-showcaseCard` — the card has its own bg /
+  // border / shadow / radius, so the wrapper must stay transparent. Same
+  // wrapper-vs-card rule on `.Post` (the post page playcard takes care
+  // of its own chrome via `.Post.CommentPost`, this generic .Post is for
+  // EventPost / DiscussionRenamedPost / other variants).
   .Post,
   .Dropdown-menu,
   .Modal-content,
@@ -2105,7 +2120,6 @@ a.GN-online-row {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.50), 0 2px 6px rgba(0, 0, 0, 0.35);
   }
 
-  .DiscussionListItem:hover,
   .Post:hover {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.60);
   }
@@ -2266,7 +2280,9 @@ a.GN-online-row {
     box-shadow: @gn-shadow-sm;
   }
 
-  .DiscussionListItem,
+  // DiscussionListItem deliberately excluded — see dark-mode comment above:
+  // the wrapper must stay transparent so the showcase card's surface
+  // reads cleanly without a wrapper-bg strip leaking through.
   .Post,
   .Dropdown-menu,
   .Modal-content,
@@ -2385,15 +2401,30 @@ a.GN-online-row {
 // so the colored stripe shows through.
 // ============================================================
 
-// ── DiscussionList border styles ──────────────────────────────────────────
-// ramon/colored does
-//   `extend(DiscussionListItem.prototype, 'view', vdom =>
-//      vdom.attrs.style['--item-tag-color'] = color)`
-// — so the `--item-tag-color` inline style lands on the outer
-// `<li class="DiscussionListItem">`. Because our override (forum.js) now
-// preserves that wrapper, the custom property cascades into the showcase
-// card via standard CSS inheritance.
-//
+// ── DiscussionList wrapper reset ─────────────────────────────────────────
+// Our showcase card supplies its OWN background, border, radius, and
+// shadow on `.GN-showcaseCard`. The `<div class="DiscussionListItem">`
+// wrapper we render must contribute nothing visually — its only job is
+// to host the inline `--item-tag-color` custom prop that ramon/colored
+// sets via its extender. Anything else (white-ish bg from theme blocks,
+// 15px wrapper padding from core, double colored bar from ramon/colored's
+// border-left) leaks through and creates the "different colored strip"
+// the user sees on the card's left edge.
+.DiscussionListItem {
+  background: transparent;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+// ramon/colored paints a 3px `border-left: solid var(--item-tag-color)`
+// on .DiscussionListItem when `data-colored-border=left` is active. That
+// would draw a second parallel colored bar outside our internal accent
+// strip. Override to zero — only our card-internal accent paints.
+html[data-colored-border='left'] .DiscussionListItem {
+  border-left: 0;
+}
+
 // Specificity note: the existing default-state rule
 //   `.GN-showcaseCard:not(.GN-showcaseCard--unread) .GN-showcaseCard-accent`
 // is 0,3,0. Our colored-mode override must clear that, so we use
