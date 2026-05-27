@@ -856,21 +856,28 @@ body,
     display: block;
     float: none;
 
-    // Avatar is sized 50px and uses --body-bg as its background so it
+    // Avatar sized 50px, using --body-bg as its background so it
     // visibly "punches through" the lighter --control-bg row. Soft
-    // 2-layer shadow + 4px border-radius (overridden to a blob shape
-    // by .gn-organic-radius on the parent <li>).
+    // 2-layer shadow + 4px border-radius (overridden to an organic
+    // blob shape by .gn-organic-radius on the parent <li>).
+    //
+    // `!important` here is defensive: other extensions (social-groups,
+    // theme variants, etc.) sometimes ship `.DiscussionListItem
+    // .DiscussionListItem-author .Avatar { … !important }` rules
+    // designed for their own contexts but bleed onto every list. Our
+    // values are theme baseline — we win.
     .Avatar {
-      width: 50px;
-      height: 50px;
-      line-height: 50px;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: var(--body-bg, @gn-bg);
+      width: 50px !important;
+      height: 50px !important;
+      line-height: 50px !important;
+      font-size: 1.1rem !important;
+      min-width: 50px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background-color: var(--body-bg, @gn-bg) !important;
       border-radius: 4px;
-      box-shadow: @gn-soft-shadow;
+      box-shadow: @gn-soft-shadow !important;
     }
   }
 
