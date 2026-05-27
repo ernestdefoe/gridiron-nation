@@ -1,6 +1,8 @@
 import app from 'flarum/forum/app';
 import { extend, override } from 'flarum/common/extend';
 import classList from 'flarum/common/utils/classList';
+import Model from 'flarum/common/Model';
+import Discussion from 'flarum/common/models/Discussion';
 import IndexPage          from 'flarum/forum/components/IndexPage';
 import IndexSidebar       from 'flarum/forum/components/IndexSidebar';
 import WelcomeHero        from 'flarum/forum/components/WelcomeHero';
@@ -33,6 +35,16 @@ import GNDiscussionCard  from './forum/components/GNDiscussionCard';
  *   - GridIronHero stats       — ONLINE tile opens a dropdown of online users
  */
 app.initializers.add('ernestdefoe-gridiron-nation', () => {
+
+  // ── 0. Expose `discussion.likesCount()` on the Discussion model ──────────
+  // The Schema field is registered in extend.php (DiscussionResource),
+  // but the API attribute doesn't automatically materialize as a JS
+  // accessor on the model. flarum/likes does the same dance for Post:
+  //   new Extend.Model(Post).attribute('likesCount')
+  // We do the imperative equivalent here so GNDiscussionCard can read
+  // `discussion.likesCount()` instead of `discussion.attribute('likesCount')`,
+  // matching the existing `commentCount()`/`title()`/etc. style.
+  Discussion.prototype.likesCount = Model.attribute('likesCount');
 
   // ── 1. Force the WelcomeHero to always render ─────────────────────────────
   // Honor the operator's empty-title escape hatch (blank welcomeTitle =
