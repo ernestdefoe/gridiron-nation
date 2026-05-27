@@ -67,10 +67,15 @@ export default class GNDiscussionCard extends Component {
     const likesCount = (d.likesCount && d.likesCount()) || 0;
 
     // Whether the OP (first post) is currently liked by the actor.
-    // Click target for the thumbs button — toggling like state on the
-    // OP is the closest single-action analogue to "like the discussion"
-    // since likes are scoped per-post in flarum/likes.
-    const isOpLiked = !!(firstPost && firstPost.isLiked && firstPost.isLiked());
+    // flarum/likes extends the Post model with a `likes()` hasMany
+    // relationship and a `canLike()` attribute — but NO `isLiked()`
+    // getter (it's only writable through `save({ isLiked })`). So we
+    // derive the state by checking whether the current user appears
+    // in the post's likes array. Mirrors flarum/likes' own
+    // addLikeAction.js logic:
+    //   const likes = post.likes();
+    //   isLiked = app.session.user && likes && likes.some(u => u === app.session.user)
+    const isOpLiked = this.computeIsOpLiked(firstPost);
     const canLikeOp = !!(firstPost && firstPost.canLike && firstPost.canLike()) && !!app.session.user;
 
     // Build the moderation 3-dot dropdown from DiscussionControls. Returns
@@ -213,47 +218,64 @@ export default class GNDiscussionCard extends Component {
   }
 
   /**
-   * Toggle a like on the OP (first post) when the showcase card's
-   * thumbs button is clicked. Updates the model optimistically so the
-   * count flips immediately, then persists via the standard Flarum
-   * `model.save()` path which targets the post's `isLiked` attribute
-   * (provided by flarum/likes). On the backend, our SyncDiscussion-
-   * LikesCount listener picks up the PostWasLiked / PostWasUnliked
-   * event and bumps `discussions.likes_count` accordingly — that flows
-   * back into the discussion attribute on the next API touch.
+   * Compute whether the current user has liked the OP (first post).
+   * flarum/likes doesn't expose a read-only `isLiked()` accessor —
+   * it only writes via `save({ isLiked })`. So we derive state from
+   * the `likes` hasMany relationship which DOES return the User
+   * instances who liked the post.
    *
-   * Optimistic refresh: we manually patch `discussion.likesCount` AND
-   * the post's `isLiked` so Mithril re-renders with the new values
-   * before the round-trip completes. If the save fails, we revert.
+   * Returns false for guests, posts without the likes relation loaded,
+   * or posts the current user hasn't liked.
+   */
+  computeIsOpLiked(post) {
+    const me = app.session.user;
+    if (!me || !post || typeof post.likes !== 'function') return false;
+    const likes = post.likes();
+    if (!Array.isArray(likes)) return false;
+    return likes.some((u) => u && u === me);
+  }
+
+  /**
+   * Toggle a like on the OP (first post) when the showcase card's
+   * thumbs button is clicked. Updates the discussion's `likesCount`
+   * attribute optimistically so the count flips immediately, then
+   * persists via `firstPost.save({ isLiked })`. On the backend, our
+   * SyncDiscussionLikesCount listener picks up the PostWasLiked /
+   * PostWasUnliked event and bumps `discussions.likes_count` to match
+   * — the optimistic value is replaced by the authoritative one on
+   * the next list refresh.
+   *
+   * flarum/likes' save() handler is responsible for updating the
+   * `likes` relationship on the model after the save — so a re-render
+   * after `await save()` will see the new isLiked state derived from
+   * the updated relationship.
    */
   async toggleOpLike() {
     const d = this.attrs.discussion;
     const firstPost = d.firstPost && d.firstPost();
+    const me = app.session.user;
 
-    if (!firstPost) return;
-    if (!firstPost.canLike || !firstPost.canLike()) return;
-    if (!app.session.user) return;
+    if (!firstPost || !me) return;
+    if (typeof firstPost.canLike !== 'function' || !firstPost.canLike()) return;
     if (this.likeBusy) return;
 
     this.likeBusy = true;
 
-    const wasLiked = !!firstPost.isLiked();
+    const wasLiked = this.computeIsOpLiked(firstPost);
     const willBeLiked = !wasLiked;
     const delta = willBeLiked ? 1 : -1;
     const currentTotal = (d.likesCount && d.likesCount()) || 0;
 
-    // Optimistic patch — store reaches inside the model's data, so we
-    // also push the new attribute through pushAttributes so the model's
-    // .isLiked() reader returns the new value immediately.
-    firstPost.pushAttributes({ isLiked: willBeLiked });
+    // Optimistic patch of the discussion's total. The OP's likes
+    // relationship is updated by flarum/likes when the save resolves;
+    // we don't poke at it directly here (the relationship's internal
+    // shape is owned by Flarum's store).
     d.pushAttributes({ likesCount: Math.max(0, currentTotal + delta) });
     m.redraw();
 
     try {
       await firstPost.save({ isLiked: willBeLiked });
     } catch (err) {
-      // Revert on failure — restore the original isLiked + total.
-      firstPost.pushAttributes({ isLiked: wasLiked });
       d.pushAttributes({ likesCount: currentTotal });
       m.redraw();
       app.alerts.show(
