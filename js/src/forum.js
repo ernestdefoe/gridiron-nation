@@ -175,45 +175,41 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   // load-bearing — Slidable hooks, `.active` routing class, and especially
   // ramon/colored's `--item-tag-color` inline style all live on it.
   //
-  // CRITICAL: extender ordering. ramon/colored does
-  //   `extend(DiscussionListItem.prototype, 'view', vdom =>
-  //      vdom.attrs.style['--item-tag-color'] = color)`
-  // — and `extend` WRAPS the previous prototype.view (the stock one).
-  // When my extension's initializer runs AFTER ramon/colored's (which
-  // happens because alphabetic order puts ramon after ernestdefoe in
-  // the Flarum 2 boot loop), my `override` REPLACES the wrapped function
-  // entirely and discards ramon's extender.
+  // Earlier we tried calling `original()` inside the override to let
+  // ramon/colored's `extend` extender mutate a throwaway vnode whose
+  // attrs.style we then stole. Cleaner in theory but it broke initial
+  // page-load rendering: invoking original() creates Mithril component
+  // vnodes (DiscussionControls, etc.) that the diff cycle thinks were
+  // mounted, so the next scheduled redraw (the one that should swap the
+  // empty-state Placeholder for the populated item list) never updated
+  // the DOM. Result: the user saw "There are no discussions" on every
+  // initial homepage load until a manual `m.redraw.sync()`.
   //
-  // Fix: call `original()` to re-run the wrapped view chain. That
-  // triggers every extender (ramon/colored's color injection, anyone
-  // else's view hooks) on a throwaway vnode whose `attrs.style` we
-  // then steal and apply to our own root. Result: the inline
-  // `--item-tag-color` lands on OUR `<div class="DiscussionListItem">`,
-  // cascades to the showcase card's accent strip via standard CSS
-  // custom property inheritance, and any onclick wrappers ramon stamps
-  // (the page-color-swap animation) keep firing.
-  //
-  // Yes, this re-runs the stock view we don't render. That's one
-  // wasted vdom per row at render time — cheap compared to the
-  // complexity of duplicating ramon/colored's logic in our extension.
-  override(DiscussionListItem.prototype, 'view', function (original) {
+  // The pragmatic fix: skip original() entirely and reproduce
+  // ramon/colored's `--item-tag-color` injection inline — it's a
+  // one-liner ("take the first tag's color"). We give up ramon/colored's
+  // onclick wrapper that pre-animates the body primary color before
+  // navigation; the discussion-page hero sets the same color on mount
+  // anyway, so the user just sees the swap a frame later. Net visual
+  // impact: negligible. Reliability impact: the homepage actually
+  // renders on first load.
+  override(DiscussionListItem.prototype, 'view', function () {
     const discussion = this.attrs.discussion;
 
-    // Throwaway invocation to let extenders mutate the root vnode.
-    // Most extenders read `this.attrs.discussion` (which is identical
-    // to what we render below), so the work is consistent.
-    let extenderStyle = null;
-    let extenderClick = null;
+    // Mirror ramon/colored's `--item-tag-color` injection so the
+    // showcase card accent strip can pick up the tag color via the
+    // CSS rule
+    //   `html[data-colored-border='left'] .GN-showcaseCard-accent
+    //      { background: var(--item-tag-color, …); }`
+    // without us depending on ramon/colored's extender ever running.
+    // Reads the first tag's color (matching ramon/colored's pattern —
+    // it sortTags()es first but the visible primary is usually first).
+    let tagColor = null;
     try {
-      const stock = original();
-      if (stock && stock.attrs) {
-        extenderStyle = stock.attrs.style || null;
-        extenderClick = typeof stock.attrs.onclick === 'function' ? stock.attrs.onclick : null;
-      }
-    } catch (e) {
-      // Belt-and-braces: if the stock view throws for any reason
-      // (missing data, partial state), we still render our card.
-    }
+      const tags = (discussion && discussion.tags && discussion.tags()) || [];
+      const first = tags[0];
+      if (first && typeof first.color === 'function') tagColor = first.color() || null;
+    } catch (e) { /* tag accessor failed — render plain card */ }
 
     return m(
       'div',
@@ -227,8 +223,7 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
             Slidable: typeof this.isSlidableEnabled === 'function' ? this.isSlidableEnabled() : false,
           }
         ),
-        style: extenderStyle,
-        onclick: extenderClick,
+        style: tagColor ? { '--item-tag-color': tagColor } : null,
       },
       m(GNDiscussionCard, {
         discussion:      discussion,
