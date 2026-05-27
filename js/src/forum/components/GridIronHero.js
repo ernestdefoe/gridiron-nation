@@ -138,60 +138,73 @@ export default class GridIronHero extends Component {
   view() {
     const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.hero.${key}`);
 
-    // Tag chips were removed from the hero — they now live in the pill
-    // nav row below the hero (see GNHeroNav). Keeps the hero focused
-    // on stats + the composer trigger card.
+    // Stats render as a horizontal row of cards. Each card carries a
+    // football-related FontAwesome icon on the left, a big number,
+    // and a small label below — visually consistent with how stadium
+    // scoreboards group team stats. The ONLINE card is the
+    // interactive one with the popover dropdown.
     return m('.GN-hero-extras', [
       m('.GN-hero-stats', [
-        this.stat(this.fmt(this.users),       t('stats.members')),
-        m('.GN-hero-statDivider'),
-        this.stat(this.fmt(this.discussions), t('stats.topics')),
-        m('.GN-hero-statDivider'),
-        this.stat(this.fmt(this.posts),       t('stats.posts')),
+        this.statCard('fa-solid fa-users',      this.fmt(this.users),       t('stats.members')),
+        this.statCard('fa-solid fa-football',   this.fmt(this.discussions), t('stats.topics')),
+        this.statCard('fa-solid fa-clipboard',  this.fmt(this.posts),       t('stats.posts')),
         this.online > 0 || app.session.user
-          ? [m('.GN-hero-statDivider'), this.onlineStat(t('stats.online'))]
+          ? this.onlineStatCard(t('stats.online'))
           : null,
       ]),
     ]);
   }
 
-  stat(value, label) {
-    return m('.GN-hero-stat', [
-      m('span.GN-hero-statNum',   value),
-      m('span.GN-hero-statLabel', label),
+  /**
+   * Static stat card: icon + value + label. Wrapped in a `.GN-hero-statCard`
+   * so the LESS can paint each card individually (frosted bg, FA icon
+   * stadium-light coloring, etc.) instead of styling a flex row of
+   * loose text nodes.
+   */
+  statCard(iconClass, value, label) {
+    return m('.GN-hero-statCard', [
+      m('.GN-hero-statCard-icon', m('i', { className: iconClass })),
+      m('.GN-hero-statCard-body', [
+        m('span.GN-hero-statNum',   value),
+        m('span.GN-hero-statLabel', label),
+      ]),
     ]);
   }
 
   /**
-   * Interactive ONLINE tile: button-shaped stat with a chevron, paired
-   * with an absolutely-positioned popover listing the live users.
-   * Pops below the stat row, right-aligned to the tile.
+   * Interactive ONLINE stat card: same visual shape as the other stat
+   * cards (icon left, value + label right) but wrapped in a button
+   * with a chevron so visitors can tell it's tappable. Click opens
+   * the popover listing online users.
    */
-  onlineStat(label) {
+  onlineStatCard(label) {
     const count = this.online;
 
-    return m('.GN-hero-stat.GN-onlineWrap', { class: this.onlineOpen ? 'is-open' : '' }, [
+    return m('.GN-hero-statCard.GN-onlineWrap', {
+      class: this.onlineOpen ? 'is-open' : '',
+    }, [
       m('button.GN-hero-statTrigger', {
-        type:           'button',
+        type: 'button',
         'aria-expanded': this.onlineOpen ? 'true' : 'false',
         'aria-haspopup': 'true',
         onclick: (e) => {
           e.stopPropagation();
-          // Refresh on each open so the dropdown reflects who's online
-          // *now*, not when the component first mounted 5 minutes ago.
           if (!this.onlineOpen && app.session.user) {
             this.fetchOnline();
           }
           this.onlineOpen = !this.onlineOpen;
         },
       }, [
-        m('span.GN-hero-statNum', count),
-        m('span.GN-hero-statLabel', [
-          label,
-          ' ',
-          m('i.fas.fa-chevron-down.GN-hero-statChev', {
-            style: { transform: this.onlineOpen ? 'rotate(180deg)' : 'none' },
-          }),
+        m('.GN-hero-statCard-icon', m('i.fa-solid.fa-circle-dot.GN-hero-statCard-icon--live')),
+        m('.GN-hero-statCard-body', [
+          m('span.GN-hero-statNum', count),
+          m('span.GN-hero-statLabel', [
+            label,
+            ' ',
+            m('i.fas.fa-chevron-down.GN-hero-statChev', {
+              style: { transform: this.onlineOpen ? 'rotate(180deg)' : 'none' },
+            }),
+          ]),
         ]),
       ]),
 

@@ -37,6 +37,25 @@
 @gn-shadow-md:    0 4px 16px rgba(0, 0, 0, 0.09), 0 2px 6px rgba(0, 0, 0, 0.05);
 @gn-shadow-lg:    0 8px 32px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.06);
 
+// ── Avocado-flavored organic geometry ───────────────────────────────────────
+// Ported from ramon/avocado's mixin pack. The signature look of the
+// avocado theme is asymmetric border-radius that rotates between three
+// different "blob" shapes via nth-child — discussion list rows and
+// avatars get organic edges rather than identical rectangles. Combined
+// with a soft 2-layer drop shadow, that's what visually separates an
+// avocado-style theme from stock Flarum.
+@gn-blob-a: ~"43% 57% 68% 32% / 33% 50% 50% 67%";
+@gn-blob-b: ~"42% 58% 33% 67% / 57% 49% 51% 43%";
+@gn-blob-c: ~"58% 42% 68% 32% / 48% 73% 27% 52%";
+@gn-soft-shadow: rgba(0, 0, 0, 0.25) 0 2px 5px -1px, rgba(0, 0, 0, 0.3) 0 1px 3px -1px;
+
+// Stamp the three blob radii across nth-child rotations on @elem.
+.gn-organic-radius(@elem) {
+  &:nth-child(2n)   { @{elem} { border-radius: @gn-blob-a; } }
+  &:nth-child(2n+1) { @{elem} { border-radius: @gn-blob-b; } }
+  &:nth-child(3n)   { @{elem} { border-radius: @gn-blob-c; } }
+}
+
 // ── CSS variable overrides (Flarum 2 theming layer) ───────────────────────────
 :root {
   --primary-color:       @gn-primary;
@@ -426,51 +445,93 @@ body,
 
 .GN-hero-stats {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
-  gap: 0;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.GN-hero-stat {
+// ── Stat cards — football-themed stadium-scoreboard chips ───────────────────
+// Each stat lives in its own card with an FA icon on the left and the
+// value + label stacked on the right. Frosted glass surface on the
+// crimson hero gradient + organic blob radius rotation that visually
+// echoes the discussion list below.
+.GN-hero-statCard {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding-right: 1.5rem;   // gap on the RIGHT (between stat and next divider)
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 10px 10px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: @gn-radius;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  min-width: 140px;
 
-  &:first-child { padding-left: 0; }
+  // Rotate organic blob shapes across the cards in the row so they
+  // echo the discussion list pattern below.
+  &:nth-child(2n)   { border-radius: @gn-blob-a; }
+  &:nth-child(2n+1) { border-radius: @gn-blob-b; }
+  &:nth-child(3n)   { border-radius: @gn-blob-c; }
+
+  &-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 1.1rem;
+    box-shadow: @gn-soft-shadow;
+
+    // Live-pulse for the ONLINE dot icon.
+    &--live {
+      color: #4ade80;
+      animation: gn-pulse 1.4s ease-in-out infinite;
+    }
+  }
+
+  &-body {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
 }
 
-// ── Interactive Online tile + popover ────────────────────────────────────────
-// The Online stat becomes a button + dropdown so visitors can see WHO is
-// currently active without having to scroll to the sidebar widget. Mirrors
-// the MosaicHero-onlineWrap pattern.
+// ── Interactive Online stat card + popover ──────────────────────────────────
+// Same outer shape as the other stat cards — frosted bg, organic
+// radius — but wraps a button so clicking opens the online-users
+// dropdown.
 .GN-onlineWrap {
   position: relative;
-  padding-right: 1.5rem;
+  padding: 0;                          // trigger button owns the inner padding
+  cursor: pointer;
+
+  &:hover, &.is-open {
+    background: rgba(255, 255, 255, 0.18);
+  }
 }
 
 .GN-hero-statTrigger {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px 10px 10px;
   background: transparent;
   border: 0;
-  padding: 0;
   cursor: pointer;
   color: inherit;
   font: inherit;
   text-align: left;
-
-  &:hover .GN-hero-statLabel,
-  &:focus .GN-hero-statLabel {
-    color: rgba(255, 255, 255, 0.9);
-  }
+  border-radius: inherit;
 
   &:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.6);
     outline-offset: 3px;
-    border-radius: @gn-radius-sm;
   }
 }
 
@@ -623,31 +684,34 @@ body,
 .DiscussionList {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 
   // Hide flarum/realtime's "N updates available" banner — auto-release
   // refreshes the list silently every ~10s.
   &-update { display: none !important; }
+
+  // Avocado pattern: the LIST container rotates the organic blob radii
+  // across each row's avatar via nth-child. This is the visual hook
+  // that makes the theme feel avocado-shaped rather than rectangular.
+  &-discussions > li {
+    .gn-organic-radius(~".Avatar");
+  }
 }
 
 .DiscussionListItem {
-  // Avocado uses --control-bg as the card surface (a slightly off-white
-  // light gray) with no static border — only a subtle hover lift. We
-  // mirror that: borderless cards with a hover-only emphasis, sitting
-  // on the body bg which provides the gutter between rows.
-  --discussion-list-item-bg-hover: var(--body-bg, @gn-bg);
+  --discussion-list-item-bg-hover: var(--control-bg);
   background: var(--control-bg, @gn-card);
   border-radius: @gn-radius;
   border: 0;
-  box-shadow: none;
+  box-shadow: @gn-soft-shadow;
   padding: 0;
   margin: 0;
-  transition: background 0.1s ease, box-shadow @gn-transition;
+  transition: background 0.1s ease, box-shadow @gn-transition, transform @gn-transition;
   overflow: visible;
 
   &:hover {
     background: var(--discussion-list-item-bg-hover);
-    box-shadow: @gn-shadow-sm;
+    transform: translateY(-1px);
   }
 
   &--unapproved {
@@ -824,17 +888,43 @@ body,
   border-radius: @gn-radius;
 }
 
-// ── Post stream ───────────────────────────────────────────────────────────────
-.Post {
-  border-radius: @gn-radius;
-  background: @gn-card;
-  box-shadow: @gn-shadow-sm;
-  border: 1px solid @gn-border;
-  margin-bottom: 8px;
+// ── Post stream — avocado-flavored cards on the discussion page ─────────────
+// Same shape language as the discussion list: organic blob radius
+// rotation, soft 2-layer shadow, frosted control-bg surface.
+.PostStream {
+  > .PostStream-item {
+    .gn-organic-radius(~".Post-header > h3, .Avatar");
+  }
 }
 
-.Post-header {
-  font-family: 'DM Sans', sans-serif;
+.Post {
+  background: var(--control-bg, @gn-card);
+  border-radius: @gn-radius;
+  box-shadow: @gn-soft-shadow;
+  border: 0;
+  margin-bottom: 12px;
+  padding: 0;
+  overflow: visible;
+
+  // Rotate post card radii too — adds visual variety down a long thread.
+  &:nth-child(2n)   { border-radius: @gn-blob-a; }
+  &:nth-child(2n+1) { border-radius: @gn-blob-b; }
+  &:nth-child(3n)   { border-radius: @gn-blob-c; }
+
+  &-header {
+    font-family: 'DM Sans', sans-serif;
+    padding-top: 10px;
+  }
+
+  &-body {
+    line-height: 1.55;
+  }
+
+  &-footer {
+    border-top: 1px solid var(--border-color, @gn-border);
+    padding-top: 8px;
+    margin-top: 12px;
+  }
 }
 
 .PostStream-item .EventPost,
@@ -1512,16 +1602,18 @@ a.GN-online-row {
   font-size: clamp(48px, 9vw, 110px);
   line-height: 1;
 
-  // `color-mix` with a soft transparent fallback lets the per-tag
-  // color blend toward transparent at the operator-configured opacity.
-  // We fall back to white-on-fade when the browser doesn't support
-  // color-mix OR when no tag color is set on the inline style.
+  // Two opacity strategies, picked at @supports time:
+  //   1. Modern: color-mix() blends --gn-deco-color (or white if no
+  //      tag color was inlined) toward transparent at the operator
+  //      opacity. Per-tag colors keep their hue.
+  //   2. Fallback: plain rgba white with the opacity applied. Tag
+  //      color is ignored on browsers without color-mix support.
   color: rgba(255, 255, 255, var(--gn-deco-opacity, 0.12));
 
   @supports (color: color-mix(in srgb, red, blue)) {
     color: color-mix(
       in srgb,
-      currentColor calc(var(--gn-deco-opacity, 0.12) * 100%),
+      var(--gn-deco-color, #fff) calc(var(--gn-deco-opacity, 0.12) * 100%),
       transparent
     );
   }

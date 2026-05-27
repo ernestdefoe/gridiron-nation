@@ -81,23 +81,28 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
   // of every tagged discussion's hero, mirroring ramon/avocado's
   // `.DiscussionHero-decorationIcon` + `has-two-deco-icons` pattern.
   //
+  // Uses the `view` extender (same pattern flarum/tags uses to add tag
+  // pills to the hero — see vendor/flarum/tags/js/src/forum/addTagLabels.js).
+  // We mutate the returned vdom in place, pushing our decoration vnode
+  // as a direct child of the .Hero <header>. That's more reliable than
+  // adding to bodyItems because it doesn't depend on the bodyItems
+  // ItemList being unwrapped inside `.container`, and it survives
+  // alongside other extensions that override DiscussionHero.view().
+  //
   // Rules:
   //   - SECONDARY tags only. A tag qualifies when `tag.parent()`
   //     returns truthy (i.e. it's nested under a primary tag) AND it
-  //     has an icon class set in the flarum/tags admin.
-  //   - Up to 2 icons rendered, controlled by the
-  //     `hero_deco_icon_count` admin setting (1 or 2). The 2-icon
-  //     layout requires ≥ 768px viewport width — on tablet/phone we
-  //     fall back to a single icon to avoid layout compression.
-  //   - Opacity is the `hero_deco_opacity` admin setting (0–100,
-  //     default 12). Applied via a CSS custom property so the LESS
-  //     reads `color-mix(in srgb, white calc(var(--gn-deco-opacity, …)
-  //     * 100%), transparent)`. An admin setting of 0 hides the
-  //     decoration entirely without changing the markup.
-  //   - The whole feature is gated by `hero_deco_enabled` so an
-  //     operator can turn the decoration off without losing tag-icon
-  //     metadata.
-  extend(DiscussionHero.prototype, 'bodyItems', function (items) {
+  //     has an icon class set in the flarum/tags admin. Falls back to
+  //     ANY tag with an icon if no secondary candidates exist — that
+  //     way flat tag setups still get decoration.
+  //   - Up to 2 icons rendered, controlled by `hero_deco_icon_count`
+  //     (1 or 2). The 2-icon layout requires ≥ 768px viewport — on
+  //     tablet/phone we fall back to 1 icon.
+  //   - Opacity is `hero_deco_opacity` (0–100, default 12), applied
+  //     via the `--gn-deco-opacity` CSS custom property. Setting 0
+  //     hides the decoration.
+  //   - Gated by `hero_deco_enabled`.
+  extend(DiscussionHero.prototype, 'view', function (vdom) {
     if (app.forum.attribute('fbsfb.hero_deco_enabled') === false) return;
 
     const discussion = this.attrs.discussion;
@@ -108,13 +113,13 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
 
     // Secondary tags = tags with a parent set. flarum/tags exposes the
     // parent relation via tag.parent(); if the relation isn't loaded
-    // (rare on the discussion page where the bootstrap eagerLoads
-    // tags + parents), tag.parent() returns false and we correctly
-    // skip the tag.
-    const secondaryWithIcon = tags.filter((t) =>
-      t && t.parent && t.parent() && t.icon && t.icon()
-    );
-    if (!secondaryWithIcon.length) return;
+    // tag.parent() returns false. Filter to secondary-with-icon
+    // first; fall back to ANY tag with an icon for flat tag setups.
+    const withIcon = tags.filter((t) => t && t.icon && t.icon());
+    if (!withIcon.length) return;
+
+    const secondary = withIcon.filter((t) => t.parent && t.parent());
+    const candidates = secondary.length ? secondary : withIcon;
 
     const wideEnoughForTwo = typeof window !== 'undefined' && window.innerWidth > 767;
     const requestedCount   = Math.min(2, Math.max(1,
@@ -122,32 +127,40 @@ app.initializers.add('ernestdefoe-fbsfb', () => {
     ));
     const renderCount = wideEnoughForTwo ? requestedCount : 1;
 
-    const picked = secondaryWithIcon.slice(0, renderCount);
+    const picked = candidates.slice(0, renderCount);
     if (!picked.length) return;
 
-    const opacityPct = Math.min(100, Math.max(0,
-      parseInt(app.forum.attribute('fbsfb.hero_deco_opacity'), 10)
-    ));
-    if (opacityPct === 0) return;
+    const opacityPct = parseInt(app.forum.attribute('fbsfb.hero_deco_opacity'), 10);
+    const opacity = isNaN(opacityPct) ? 12 : Math.min(100, Math.max(0, opacityPct));
+    if (opacity === 0) return;
 
-    items.add(
-      'gn-hero-deco-icons',
+    // Append the decoration vnode as a direct child of the hero root.
+    // vdom.children is the array of root-level children of the
+    // <header className="Hero DiscussionHero"> element.
+    if (!Array.isArray(vdom.children)) {
+      vdom.children = vdom.children != null ? [vdom.children] : [];
+    }
+
+    vdom.children.push(
       m('.GN-discussionHero-icons',
         {
           'aria-hidden': 'true',
           'data-icon-count': picked.length,
-          style: { '--gn-deco-opacity': (opacityPct / 100).toFixed(2) },
+          style: { '--gn-deco-opacity': (opacity / 100).toFixed(2) },
         },
         picked.map((tag, i) =>
           m('span.GN-discussionHero-icon', {
             key: tag.id ? tag.id() : i,
-            style: tag.color && tag.color() ? { color: tag.color() } : null,
+            // Inline tag color sets `--gn-deco-color` so the LESS can
+            // blend it with the opacity var. Avoids the previous bug
+            // where setting `color: <tag>` opaque overrode the
+            // color-mix fade in the stylesheet.
+            style: tag.color && tag.color() ? { '--gn-deco-color': tag.color() } : null,
           },
             m('i', { className: tag.icon() })
           )
         )
-      ),
-      1
+      )
     );
   });
 
