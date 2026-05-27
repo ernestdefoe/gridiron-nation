@@ -26,6 +26,11 @@ ernestdefoe-gridiron-nation:
       likes: "{count, plural, =0{likes} one{like} other{likes}}"
       replies: "{count, plural, =0{replies} one{reply} other{replies}}"
       see_other_replies: "See {count, plural, one{# other reply} other{# other replies}}"
+      # Reply pill in the showcase card header. Flarum 1.x exposed
+      # core.forum.discussion_list.reply_link, but the key was dropped
+      # in core 2.x — we own the string here so the button has a label
+      # regardless of which core version ships it.
+      reply: Reply
 
     nav:
       discussions: Discussions

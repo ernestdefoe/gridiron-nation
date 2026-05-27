@@ -1075,52 +1075,42 @@ body,
   border-radius: @gn-radius;
 }
 
-// ── Post stream — playcard layout ─────────────────────────────────────────────
+// ── Post stream — playcard chrome (NO layout overrides) ──────────────────────
 //
-// Standalone "playcard" treatment for .Post / .CommentPost — built on
-// Flarum's stock post structure, no avocado dependency. The rendered
-// shape from flarum/core CommentPost is:
+// Flarum 2 renders each post as a CSS Grid:
 //
-//   <article class="Post CommentPost">
-//     <aside class="Post-side"><a><Avatar class="Post-avatar"></a></aside>
-//     <header class="Post-header"><ul>{PostUser}{PostMeta}{...}</ul></header>
-//     <div class="Post-body">{HTML}</div>
-//     <aside class="Post-actions">{controls dropdown}</aside>
-//     [reactions, social-groups extras, etc. injected by other extensions]
-//   </article>
+//   .Post.CommentPost > .Post-container { display: grid;
+//                                          grid-template-columns: var(--avatar-column-width) 1fr; }
+//   .Post-container > .Post-side    (avatar column)
+//   .Post-container > .Post-main    (header + body column)
 //
-// Football-stadium analogue: each post is a "playcard" — a panel of
-// chalkboard for one play. The OP carries a crimson yard-line accent
-// down the left edge (mirroring the discussion-list showcase card),
-// replies stay subtler so the eye lands on the OP first.
+// Earlier versions of this block fought the grid by `position: absolute`-ing
+// .Post-side and adding a huge padding-left on .Post, which squeezed the
+// .Post-body column to ~0 width and caused every word in a reply to render
+// on its own line. We now leave the grid completely alone — only the OUTER
+// card chrome (background, border, radius, shadow) and a decorative
+// yard-line accent strip live here. Typography is fine via the existing
+// CSS custom properties.
 //
-// Layout decisions:
-//   - Wider left-rail (78px) so the avatar feels deliberate vs. floating
-//   - Header username + role pill on one line; date below, muted
-//   - Body uses comfortable 1.65 line-height + 16px body type
-//   - Reactions / dropdown actions get a baked-in footer band
-//   - Hover lifts shadow tier — same elevation pattern as showcase card
-.PostStream {
-  // Tighten the gap between consecutive posts so the stream reads as a
-  // sequence of plays rather than detached blocks. Core ships with
-  // larger margins which feel airy on a football skin.
-  .PostStream-item {
-    margin-bottom: 14px;
+// The yard-line strip uses ::before with `position: absolute` and is
+// hard-pinned to the left edge of the card — that's safe because Flarum's
+// .Post is `position: relative` and the grid lives inside .Post-container,
+// not on .Post itself.
+.PostStream-item {
+  margin-bottom: 14px;
 
-    &:last-child { margin-bottom: 0; }
-  }
+  &:last-child { margin-bottom: 0; }
 }
 
 .Post.CommentPost {
-  position: relative;
   background: var(--control-bg, @gn-card);
   border: 1px solid var(--border-color, @gn-border);
   border-radius: @gn-radius;
   box-shadow: @gn-shadow-sm;
-  padding: 20px 24px 16px 92px;        // left padding leaves room for the avatar rail
-  transition: box-shadow @gn-transition, transform @gn-transition;
+  transition: box-shadow @gn-transition;
 
-  // Yard-line accent down the left edge — muted on replies, crimson on the OP.
+  // Yard-line accent down the left edge — muted on replies, crimson on
+  // the OP. Pure decoration; does not affect grid layout.
   &::before {
     content: '';
     position: absolute;
@@ -1131,172 +1121,24 @@ body,
     border-radius: 4px;
     background: var(--border-color, @gn-border);
     transition: background @gn-transition;
+    pointer-events: none;
   }
 
   // OP (first post in the stream) gets the crimson accent strip.
-  // Flarum's DiscussionPage stamps `.PostStream-item--first` on the
-  // wrapper for the OP — we use the parent selector via :where for
-  // specificity neutrality.
   .PostStream-item--first &::before,
   .PostStream-item:first-child &::before {
     background: linear-gradient(180deg, var(--primary-color, @gn-primary) 0%, var(--primary-color-dark, @gn-primary-dark) 100%);
   }
 
-  &:hover {
-    box-shadow: @gn-shadow-md;
-  }
-
-  // ── Avatar rail (Post-side) ────────────────────────────────────────────────
-  .Post-side {
-    position: absolute;
-    top: 18px;
-    left: 22px;
-    width: 56px;
-
-    .Post-avatar,
-    .Avatar {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      border: 2px solid var(--control-bg, @gn-card);
-      box-shadow: @gn-shadow-sm;
-    }
-  }
-
-  // ── Header (author + meta) ─────────────────────────────────────────────────
-  // We deliberately do NOT touch the .Post-header > ul layout — Flarum
-  // ships sensible inline-block defaults that flow PostUser, PostMeta,
-  // PostEdited and any extension-injected items on a single line with
-  // wrap behavior. Overriding the container with display:flex broke that
-  // inline flow and stacked items vertically (and forced the username
-  // and date onto separate rows on tablet+). Just style the children
-  // for typography and color.
-  .Post-header {
-    margin: 0 0 12px;
-
-    .PostUser-name {
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700;
-      font-size: 0.98rem;
-      margin: 0;
-
-      a {
-        color: var(--body-color, @gn-text);
-        &:hover { color: var(--primary-color, @gn-primary); text-decoration: none; }
-      }
-    }
-
-    .PostMeta {
-      color: var(--muted-color, @gn-muted);
-      font-size: 0.83rem;
-      font-family: 'DM Sans', sans-serif;
-
-      a { color: inherit; }
-      a:hover { color: var(--primary-color, @gn-primary); text-decoration: none; }
-    }
-  }
-
-  // ── Body ───────────────────────────────────────────────────────────────────
-  .Post-body {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    line-height: 1.65;
-    color: var(--body-color, @gn-text);
-
-    p { margin: 0 0 0.85em; }
-    p:last-child { margin-bottom: 0; }
-
-    h1, h2, h3, h4 {
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 800;
-      color: var(--heading-color, @gn-text);
-      margin: 1.2em 0 0.5em;
-    }
-
-    a {
-      color: var(--link-color, @gn-primary);
-      text-decoration-color: rgba(@gn-primary, 0.35);
-      &:hover { color: var(--link-hover-color, @gn-primary-dark); }
-    }
-
-    blockquote {
-      border-left: 3px solid var(--primary-color, @gn-primary);
-      background: rgba(@gn-primary, 0.04);
-      border-radius: 0 @gn-radius-sm @gn-radius-sm 0;
-      padding: 8px 14px;
-      color: var(--text-secondary, @gn-secondary);
-    }
-
-    code, pre {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      background: rgba(0, 0, 0, 0.04);
-      border-radius: @gn-radius-sm;
-    }
-
-    code { padding: 1px 6px; font-size: 0.9em; }
-    pre {
-      padding: 12px 14px;
-      overflow: auto;
-
-      code { background: transparent; padding: 0; }
-    }
-  }
-
-  // ── Actions menu (top-right dropdown) ──────────────────────────────────────
-  .Post-actions {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-
-    .Button {
-      color: var(--muted-color, @gn-muted);
-      &:hover { color: var(--primary-color, @gn-primary); background: rgba(@gn-primary, 0.08); }
-    }
-  }
-
-  // ── Footer band (reactions, reply button, social-groups extras) ────────────
-  // Anything sibling to .Post-body that other extensions inject after the
-  // body (reactions row, fof/reactions, social-groups poll bar, etc.)
-  // gets a soft separator + tightened spacing.
-  .Post-body + *:not(.Post-actions):not(script) {
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color, @gn-border);
-  }
+  &:hover { box-shadow: @gn-shadow-md; }
 }
 
-// First post in the stream — slightly stronger card chrome so the OP
-// reads as the discussion's anchor rather than just another reply.
+// First post in the stream gets a slightly stronger shadow tier so the
+// OP reads as the anchor of the discussion. Body sizing / column widths
+// stay untouched — Flarum's grid handles that.
 .PostStream-item--first .Post.CommentPost,
 .PostStream-item:first-child .Post.CommentPost {
   box-shadow: @gn-shadow-md;
-
-  .Post-body {
-    font-size: 1.04rem;
-  }
-}
-
-// Phone tightening — collapse the avatar rail under the header so the
-// body gets the full content width on small screens.
-@media (max-width: 540px) {
-  .Post.CommentPost {
-    padding: 56px 16px 14px;
-
-    .Post-side {
-      top: 14px;
-      left: 16px;
-      width: 40px;
-
-      .Post-avatar,
-      .Avatar { width: 36px; height: 36px; }
-    }
-
-    .Post-header { padding-left: 50px; min-height: 36px; margin-bottom: 10px; }
-    .Post-header > ul { row-gap: 2px; }
-    .Post-actions { top: 10px; right: 10px; }
-
-    &::before { top: 10px; bottom: 10px; }
-  }
 }
 
 // Composer

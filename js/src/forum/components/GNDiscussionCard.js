@@ -87,7 +87,7 @@ export default class GNDiscussionCard extends Component {
             }, [
               m('i.fas.fa-reply', { 'aria-hidden': 'true' }),
               ' ',
-              app.translator.trans('core.forum.discussion_list.reply_link'),
+              app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.reply'),
             ]),
           ]),
 
