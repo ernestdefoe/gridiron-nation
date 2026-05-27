@@ -2,10 +2,12 @@ import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
 import Avatar from 'flarum/common/components/Avatar';
 import Link from 'flarum/common/components/Link';
+import Dropdown from 'flarum/common/components/Dropdown';
 import humanTime from 'flarum/common/helpers/humanTime';
 import highlight from 'flarum/common/helpers/highlight';
 import classList from 'flarum/common/utils/classList';
 import abbreviateNumber from 'flarum/common/utils/abbreviateNumber';
+import DiscussionControls from 'flarum/forum/utils/DiscussionControls';
 
 /**
  * GNDiscussionCard — GridIron Nation's showcase card.
@@ -50,6 +52,25 @@ export default class GNDiscussionCard extends Component {
     const replyCount = Math.max(0, (d.commentCount && d.commentCount() || 1) - 1);
     const likesCount = (d.likesCount && d.likesCount()) || 0;
 
+    // Build the moderation 3-dot dropdown from DiscussionControls. Returns
+    // an ItemList of <Button>s (Reply, Edit, Move, Delete, Restore,
+    // Pin/Unpin, Lock/Unlock, Hide, etc.) gated by the actor's permissions.
+    // Empty for guests / users without any controls — in that case we just
+    // skip rendering the Dropdown entirely.
+    const controls = DiscussionControls.controls(d, this).toArray();
+
+    // Forward any per-card style/onclick the parent DiscussionListItem
+    // extender stamped on our component vnode. ramon/colored ships an
+    // `extend(DiscussionListItem.prototype, 'view', ...)` that mutates
+    // `vdom.attrs.style['--item-tag-color']` AND wraps `onclick` so a
+    // tag-colored click animates the page primary into the tag's hex
+    // before navigation. Because we replace the entire view with a
+    // component vnode, that mutation lands on `this.attrs` instead of
+    // the DOM — we merge it down to the article root so the colored
+    // stripe + click animation both fire.
+    const parentStyle = this.attrs.style || {};
+    const parentClick = typeof this.attrs.onclick === 'function' ? this.attrs.onclick : null;
+
     return m(
       'article.GN-showcaseCard',
       {
@@ -58,6 +79,8 @@ export default class GNDiscussionCard extends Component {
           'GN-showcaseCard--sticky': isSticky,
           'GN-showcaseCard--locked': isLocked,
         }),
+        style: parentStyle,
+        onclick: parentClick,
       },
       [
         // ── Accent strip down the left edge — primary color for
@@ -65,7 +88,7 @@ export default class GNDiscussionCard extends Component {
         m('.GN-showcaseCard-accent', { 'aria-hidden': 'true' }),
 
         m('.GN-showcaseCard-body', [
-          // ── Header: avatar, author, date, tag pills, reply button
+          // ── Header: avatar, author, date, tag pills, reply button, 3-dot
           m('.GN-showcaseCard-header', [
             author
               ? m(Link, { className: 'GN-showcaseCard-avatar', href: app.route.user(author) },
@@ -89,6 +112,17 @@ export default class GNDiscussionCard extends Component {
               ' ',
               app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.reply'),
             ]),
+
+            controls.length
+              ? m(Dropdown, {
+                  icon: 'fas fa-ellipsis-v',
+                  className: 'GN-showcaseCard-controls',
+                  buttonClassName: 'Button Button--icon Button--flat',
+                  accessibleToggleLabel: app.translator.trans(
+                    'core.forum.discussion_controls.toggle_dropdown_accessible_label'
+                  ),
+                }, controls)
+              : null,
           ]),
 
           // ── Title (links to the discussion)

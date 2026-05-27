@@ -951,6 +951,34 @@ body,
     i { font-size: 0.72rem; }
   }
 
+  // 3-dot moderation dropdown — mirrors Flarum stock DiscussionListItem-controls
+  // but sized down to sit cleanly next to the Reply pill. Only renders when the
+  // actor has any controls available (Reply, Edit, Pin, Lock, Move, Delete, Hide,
+  // Restore, etc.) — guests get nothing and the chip is omitted entirely.
+  &-controls {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+
+    > .Button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 999px;
+      color: var(--muted-color, @gn-muted);
+      background: transparent;
+      transition: background @gn-transition, color @gn-transition;
+
+      &:hover, &:focus {
+        color: @gn-primary;
+        background: rgba(@gn-primary, 0.08);
+      }
+
+      i { font-size: 0.85rem; }
+    }
+  }
+
   &-titleLink {
     text-decoration: none;
     color: inherit;
@@ -1075,27 +1103,20 @@ body,
   border-radius: @gn-radius;
 }
 
-// ── Post stream — playcard chrome (NO layout overrides) ──────────────────────
+// ── Post stream — playcard chrome (NO grid overrides) ────────────────────────
 //
-// Flarum 2 renders each post as a CSS Grid:
+// Flarum 2 renders each post as a CSS Grid via .Post-container:
+//   .Post-container { display: grid;
+//                     grid-template-columns: var(--avatar-column-width) 1fr; }
+// where --avatar-column-width defaults to 85px
+// (vendor/flarum/core/less/common/root.less).
 //
-//   .Post.CommentPost > .Post-container { display: grid;
-//                                          grid-template-columns: var(--avatar-column-width) 1fr; }
-//   .Post-container > .Post-side    (avatar column)
-//   .Post-container > .Post-main    (header + body column)
-//
-// Earlier versions of this block fought the grid by `position: absolute`-ing
-// .Post-side and adding a huge padding-left on .Post, which squeezed the
-// .Post-body column to ~0 width and caused every word in a reply to render
-// on its own line. We now leave the grid completely alone — only the OUTER
-// card chrome (background, border, radius, shadow) and a decorative
-// yard-line accent strip live here. Typography is fine via the existing
-// CSS custom properties.
-//
-// The yard-line strip uses ::before with `position: absolute` and is
-// hard-pinned to the left edge of the card — that's safe because Flarum's
-// .Post is `position: relative` and the grid lives inside .Post-container,
-// not on .Post itself.
+// We deliberately do NOT touch the grid. Earlier attempts at
+// `position: absolute`-ing .Post-side caused every word of replies to
+// stack vertically because the body column got squeezed to ~0 width. Now
+// we only adjust the CHROME (background/border/radius/shadow) and one
+// CSS variable (--avatar-column-width, bumped to 110px so there's more
+// breathing room to the left of the avatar).
 .PostStream-item {
   margin-bottom: 14px;
 
@@ -1103,34 +1124,39 @@ body,
 }
 
 .Post.CommentPost {
+  // Wider avatar column — was 85px (core default), bumped to 110px.
+  // The grid is in .Post-container, so we set the variable here and
+  // core's `grid-template-columns: var(--avatar-column-width) 1fr`
+  // picks it up automatically. No layout overrides, no fighting the
+  // cascade.
+  --avatar-column-width: 110px;
+
   background: var(--control-bg, @gn-card);
   border: 1px solid var(--border-color, @gn-border);
   border-radius: @gn-radius;
   box-shadow: @gn-shadow-sm;
   transition: box-shadow @gn-transition;
 
-  // Yard-line accent down the left edge — muted on replies, crimson on
-  // the OP. Pure decoration; does not affect grid layout.
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 14px;
-    bottom: 14px;
-    width: 4px;
-    border-radius: 4px;
-    background: var(--border-color, @gn-border);
-    transition: background @gn-transition;
-    pointer-events: none;
-  }
-
-  // OP (first post in the stream) gets the crimson accent strip.
-  .PostStream-item--first &::before,
-  .PostStream-item:first-child &::before {
-    background: linear-gradient(180deg, var(--primary-color, @gn-primary) 0%, var(--primary-color-dark, @gn-primary-dark) 100%);
-  }
-
   &:hover { box-shadow: @gn-shadow-md; }
+
+  // ── OP color strip (mosaic-style) ────────────────────────────────────────
+  // Every post by the discussion's start user gets a crimson left edge.
+  // Uses Flarum core's `Post--by-start-user` class (stamped via
+  // CommentPost.classes() in
+  // vendor/flarum/core/js/src/forum/components/Post.tsx:78).
+  //
+  // The color falls back through three layers:
+  //   1. --colored-color  — set by ramon/colored on body.colored--active
+  //      when the discussion has a tag color
+  //   2. --primary-color  — Flarum's themed primary
+  //   3. @gn-primary      — our crimson literal
+  //
+  // We use `border-left` directly (not a ::before strip) so the strip
+  // curves into the card's rounded corners — the same pattern mosaic
+  // uses, which is the look the user pointed at.
+  &.Post--by-start-user {
+    border-left: 3px solid var(--colored-color, var(--primary-color, @gn-primary));
+  }
 }
 
 // First post in the stream gets a slightly stronger shadow tier so the
