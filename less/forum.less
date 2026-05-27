@@ -2130,39 +2130,57 @@ a.GN-online-row {
 }
 
 // ============================================================
-// ramon/colored extension compatibility
+// ramon/colored extension compatibility (verified against v1.3.1)
 //
-// Surfaces the extension uses on Flarum 2 (live-probed, NOT what the
-// README implies):
+// Live-probed surfaces that the extension uses:
 //   <html>:
-//     data-colored-header="true|false"      — paints --header-bg
-//     data-colored-border="left|full|off"   — discussion list border
-//     class .colored--instant               — no-transition flag
+//     data-colored-header="true|false"      — turns header bg tint on/off
+//     data-colored-border="left|full|off"   — discussion list border style
+//     class .colored--instant               — temporary "no transitions"
+//                                              flag while the JS swaps
+//                                              color vars between tags
 //   <body>:
-//     class .colored--active                — discussion pages
-//   CSS custom properties exposed:
-//     --hero-bg                             — per-tag hero tint (we
-//                                             already read it in the
-//                                             .Hero.WelcomeHero block)
-//     --header-bg / --header-color etc.     — header tints (Flarum-
-//                                             owned; we don't reach
-//                                             into the header)
+//     class .colored--active                — set on tagged pages; gates
+//                                              the primary/link/button
+//                                              color overrides
+//   Per-element inline CSS vars:
+//     --colored-color     → the active tag's hex color
+//     --colored-contrast  → white/black depending on contrast
+//     --item-tag-color    → per-DiscussionListItem tag color
+//                            (consumed by the border styles below)
 //
-// Most of the work was done in the hero block above (reading from
-// `var(--hero-bg, …)`). The rules below cover the smaller adjustments:
-//   1. Clear our DiscussionListItem bottom-row separator when colored
-//      paints a full row border (would double up).
-//   2. Suppress every transition + animation while
-//      `html.colored--instant` is set, so an admin flipping the
-//      scheme/border settings doesn't see intermediate-color flashes
-//      while our hover/focus states transition over the change.
+// fbsfb already plays well with the BODY-level primary color override
+// — ramon/colored sets --primary-color on body.colored--active, and
+// our LESS uses @gn-primary (a literal crimson) only for our own
+// branding surfaces (WelcomeHero gradient, composer trigger CTA).
+// Flarum core's primary-color-driven elements (form focus rings, link
+// color, etc.) pick up the tag color cleanly.
+//
+// The discussion-list integration is what needs explicit support:
+// ramon/colored renders `border-left: 3px solid var(--item-tag-color)`
+// (or full border) on each DiscussionListItem. Our default rule sets
+// `border: 0`, which would wipe it out. Re-establish per-mode below
+// so the colored stripe shows through.
 // ============================================================
 
+// ── DiscussionList border styles ──────────────────────────────────────────
+// Left-stripe mode: 3px tag-color flag down the left edge of each
+// list row, like a colored highlight tag in a paper inbox.
+html[data-colored-border='left'] .DiscussionListItem {
+  border-left: 3px solid var(--item-tag-color, transparent);
+}
+
+// Full-border mode: 2px tag-color ring on every row. We also clear
+// the 4px bottom margin so consecutive bordered rows don't read as
+// double-thick separators.
 html[data-colored-border='full'] .DiscussionListItem {
-  border-bottom: 0;
+  border: 2px solid var(--item-tag-color, transparent);
   margin-bottom: 6px;
 }
 
+// Suppress every transition + animation while ramon/colored is
+// mid-swap (.colored--instant flag is on for 2 frames) so the admin
+// flipping tags doesn't see intermediate color states fading in.
 html.colored--instant,
 html.colored--instant * {
   transition: none !important;
