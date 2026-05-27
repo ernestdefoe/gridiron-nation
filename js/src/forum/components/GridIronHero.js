@@ -138,52 +138,48 @@ export default class GridIronHero extends Component {
   view() {
     const t = (key) => app.translator.trans(`ernestdefoe-fbsfb.forum.hero.${key}`);
 
-    // Stats render as a horizontal row of cards. Each card carries a
-    // football-related FontAwesome icon on the left, a big number,
-    // and a small label below — visually consistent with how stadium
-    // scoreboards group team stats. The ONLINE card is the
-    // interactive one with the popover dropdown.
+    // Stats render as ONE unified Jumbotron-style scoreboard panel —
+    // dark gradient bg with four slots separated by thin vertical
+    // dividers, like the home/away splits on a stadium scoreboard.
+    // Each slot stacks an FA icon, a big condensed-digit value, and
+    // a small uppercase label. The ONLINE slot is interactive
+    // (button + dropdown of online users).
     return m('.GN-hero-extras', [
-      m('.GN-hero-stats', [
-        this.statCard('fa-solid fa-users',      this.fmt(this.users),       t('stats.members')),
-        this.statCard('fa-solid fa-football',   this.fmt(this.discussions), t('stats.topics')),
-        this.statCard('fa-solid fa-clipboard',  this.fmt(this.posts),       t('stats.posts')),
+      m('.GN-scoreboard', [
+        this.scoreSlot('fa-solid fa-users',       this.fmt(this.users),       t('stats.members')),
+        this.scoreSlot('fa-solid fa-football',    this.fmt(this.discussions), t('stats.topics')),
+        this.scoreSlot('fa-solid fa-clipboard',   this.fmt(this.posts),       t('stats.posts')),
         this.online > 0 || app.session.user
-          ? this.onlineStatCard(t('stats.online'))
+          ? this.onlineScoreSlot(t('stats.online'))
           : null,
       ]),
     ]);
   }
 
   /**
-   * Static stat card: icon + value + label. Wrapped in a `.GN-hero-statCard`
-   * so the LESS can paint each card individually (frosted bg, FA icon
-   * stadium-light coloring, etc.) instead of styling a flex row of
-   * loose text nodes.
+   * One slot inside the scoreboard — icon, value, label stacked
+   * vertically. Slots share a dark surface so the row reads as a
+   * single Jumbotron rather than four floating cards.
    */
-  statCard(iconClass, value, label) {
-    return m('.GN-hero-statCard', [
-      m('.GN-hero-statCard-icon', m('i', { className: iconClass })),
-      m('.GN-hero-statCard-body', [
-        m('span.GN-hero-statNum',   value),
-        m('span.GN-hero-statLabel', label),
-      ]),
+  scoreSlot(iconClass, value, label) {
+    return m('.GN-scoreSlot', [
+      m('i.GN-scoreSlot-icon', { className: iconClass }),
+      m('span.GN-scoreSlot-value', value),
+      m('span.GN-scoreSlot-label', label),
     ]);
   }
 
   /**
-   * Interactive ONLINE stat card: same visual shape as the other stat
-   * cards (icon left, value + label right) but wrapped in a button
-   * with a chevron so visitors can tell it's tappable. Click opens
-   * the popover listing online users.
+   * Interactive ONLINE slot — same scoreboard-slot shape as the static
+   * slots but wrapped in a button so clicking opens the popover
+   * listing online users. The pulsing green dot replaces the static
+   * FA icon so it visually reads as a live indicator.
    */
-  onlineStatCard(label) {
-    const count = this.online;
-
-    return m('.GN-hero-statCard.GN-onlineWrap', {
+  onlineScoreSlot(label) {
+    return m('.GN-scoreSlot.GN-onlineWrap', {
       class: this.onlineOpen ? 'is-open' : '',
     }, [
-      m('button.GN-hero-statTrigger', {
+      m('button.GN-scoreSlot-trigger', {
         type: 'button',
         'aria-expanded': this.onlineOpen ? 'true' : 'false',
         'aria-haspopup': 'true',
@@ -195,16 +191,14 @@ export default class GridIronHero extends Component {
           this.onlineOpen = !this.onlineOpen;
         },
       }, [
-        m('.GN-hero-statCard-icon', m('i.fa-solid.fa-circle-dot.GN-hero-statCard-icon--live')),
-        m('.GN-hero-statCard-body', [
-          m('span.GN-hero-statNum', count),
-          m('span.GN-hero-statLabel', [
-            label,
-            ' ',
-            m('i.fas.fa-chevron-down.GN-hero-statChev', {
-              style: { transform: this.onlineOpen ? 'rotate(180deg)' : 'none' },
-            }),
-          ]),
+        m('span.GN-scoreSlot-pulse', { 'aria-hidden': 'true' }),
+        m('span.GN-scoreSlot-value', this.online),
+        m('span.GN-scoreSlot-label', [
+          label,
+          ' ',
+          m('i.fas.fa-chevron-down.GN-scoreSlot-chev', {
+            style: { transform: this.onlineOpen ? 'rotate(180deg)' : 'none' },
+          }),
         ]),
       ]),
 

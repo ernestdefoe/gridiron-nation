@@ -443,95 +443,163 @@ body,
   width: 100%;
 }
 
-.GN-hero-stats {
+// ── Stadium scoreboard — single Jumbotron panel, not cards ──────────────────
+// The whole stats row reads as ONE dark scoreboard panel set into the
+// hero, with four slots split by thin vertical glow dividers. Each
+// slot stacks: FA icon (small, top) → big condensed-digit value
+// (center) → uppercase tracking label (below). Looks like the
+// out-of-town score panel on a stadium scoreboard, not four floating
+// chips.
+.GN-scoreboard {
   display: flex;
   align-items: stretch;
-  justify-content: flex-start;
-  gap: 10px;
-  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 0;
+  max-width: 580px;
+  padding: 16px 8px;
+  background:
+    linear-gradient(180deg, rgba(8, 10, 18, 0.92) 0%, rgba(4, 6, 12, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  color: #fff;
+
+  // Stadium pinstripe — subtle horizontal lines across the panel
+  // bg, like the field-line pattern under a Jumbotron readout.
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 5px,
+      rgba(255, 255, 255, 0.025) 5px,
+      rgba(255, 255, 255, 0.025) 6px
+    ),
+    linear-gradient(180deg, rgba(8, 10, 18, 0.92) 0%, rgba(4, 6, 12, 0.96) 100%);
+
+  @media (max-width: 480px) {
+    padding: 10px 4px;
+    gap: 0;
+  }
 }
 
-// ── Stat cards — football-themed stadium-scoreboard chips ───────────────────
-// Each stat lives in its own card with an FA icon on the left and the
-// value + label stacked on the right. Frosted glass surface on the
-// crimson hero gradient + organic blob radius rotation that visually
-// echoes the discussion list below.
-.GN-hero-statCard {
+.GN-scoreSlot {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px 10px 10px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: @gn-radius;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  min-width: 140px;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 14px;
+  text-align: center;
 
-  // Rotate organic blob shapes across the cards in the row so they
-  // echo the discussion list pattern below.
-  &:nth-child(2n)   { border-radius: @gn-blob-a; }
-  &:nth-child(2n+1) { border-radius: @gn-blob-b; }
-  &:nth-child(3n)   { border-radius: @gn-blob-c; }
+  // Thin glowing divider between slots — only on slots after the
+  // first, so the leftmost slot has no leading line.
+  + .GN-scoreSlot::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12%;
+    bottom: 12%;
+    width: 1px;
+    background: linear-gradient(180deg,
+      transparent 0,
+      rgba(255, 255, 255, 0.18) 50%,
+      transparent 100%
+    );
+  }
 
   &-icon {
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.18);
-    border-radius: 50%;
-    color: #fff;
-    font-size: 1.1rem;
-    box-shadow: @gn-soft-shadow;
-
-    // Live-pulse for the ONLINE dot icon.
-    &--live {
-      color: #4ade80;
-      animation: gn-pulse 1.4s ease-in-out infinite;
-    }
+    font-size: 0.85rem;
+    color: rgba(255, 200, 200, 0.7);     // soft crimson tint — team-color hint
+    line-height: 1;
+    margin-bottom: 2px;
   }
 
-  &-body {
+  &-value {
+    font-family: 'DM Sans', 'SF Mono', Menlo, monospace;
+    font-weight: 800;
+    font-size: 1.7rem;
+    line-height: 1;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 12px rgba(255, 200, 200, 0.35);   // subtle scoreboard glow
+  }
+
+  &-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  // The pulsing green dot for the ONLINE slot — replaces the FA icon.
+  &-pulse {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+    animation: gn-pulse 1.4s ease-in-out infinite;
+    margin-bottom: 2px;
+  }
+
+  &-chev {
+    font-size: 0.55rem;
+    transition: transform 0.18s @gn-ease;
+    opacity: 0.8;
+  }
+
+  // Button wrapper for the interactive ONLINE slot.
+  &-trigger {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
-    line-height: 1.15;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.6);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
   }
 }
 
-// ── Interactive Online stat card + popover ──────────────────────────────────
-// Same outer shape as the other stat cards — frosted bg, organic
-// radius — but wraps a button so clicking opens the online-users
-// dropdown.
+@media (max-width: 480px) {
+  .GN-scoreSlot {
+    padding: 0 8px;
+    &-value { font-size: 1.3rem; }
+    &-label { font-size: 0.55rem; letter-spacing: 0.12em; }
+  }
+}
+
+// ── Interactive Online slot wrap ────────────────────────────────────────────
+// The popover positioning anchors against the slot directly, since
+// the slot is already position:relative for its leading divider.
 .GN-onlineWrap {
-  position: relative;
-  padding: 0;                          // trigger button owns the inner padding
   cursor: pointer;
+  transition: background 0.15s @gn-ease;
 
   &:hover, &.is-open {
-    background: rgba(255, 255, 255, 0.18);
-  }
-}
-
-.GN-hero-statTrigger {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 16px 10px 10px;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  border-radius: inherit;
-
-  &:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.6);
-    outline-offset: 3px;
+    background: rgba(255, 255, 255, 0.04);
   }
 }
 
@@ -544,8 +612,9 @@ body,
 
 .GN-onlinePopover {
   position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
+  top: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
   min-width: 240px;
   max-width: 320px;
   max-height: 360px;
@@ -559,13 +628,14 @@ body,
   z-index: 50;
   text-align: left;
 
-  // Arrow pointing back up at the trigger tile, anchored to the
-  // left-hand edge since the stat row is left-aligned inside the hero.
+  // Arrow pointing back up at the slot, centered now that the
+  // popover anchors to the slot's center.
   &::before {
     content: '';
     position: absolute;
     top: -7px;
-    left: 18px;
+    left: 50%;
+    margin-left: -6px;
     width: 12px;
     height: 12px;
     background: inherit;
@@ -699,19 +769,22 @@ body,
 }
 
 .DiscussionListItem {
-  --discussion-list-item-bg-hover: var(--control-bg);
+  // Avocado's items are FLAT — no shadow, no transform, no border.
+  // The only visual change on hover is the background tint flipping
+  // from --control-bg to --control-bg-light. Margins between rows
+  // are 4px and that's all the separation the rows get.
+  --discussion-list-item-bg-hover: var(--control-bg-light, @gn-bg);
   background: var(--control-bg, @gn-card);
   border-radius: @gn-radius;
   border: 0;
-  box-shadow: @gn-soft-shadow;
+  box-shadow: none;
   padding: 0;
-  margin: 0;
-  transition: background 0.1s ease, box-shadow @gn-transition, transform @gn-transition;
+  margin: 0 0 4px;
+  transition: background 0.1s ease !important;
   overflow: visible;
 
   &:hover {
     background: var(--discussion-list-item-bg-hover);
-    transform: translateY(-1px);
   }
 
   &--unapproved {
@@ -888,43 +961,95 @@ body,
   border-radius: @gn-radius;
 }
 
-// ── Post stream — avocado-flavored cards on the discussion page ─────────────
-// Same shape language as the discussion list: organic blob radius
-// rotation, soft 2-layer shadow, frosted control-bg surface.
+// ── Post stream — football "playcard" treatment ─────────────────────────────
+// Each post is a clean horizontal block with a 4px primary-color
+// vertical accent strip on the left edge (reads as a yard-line
+// marker / team-color flag). NO heavy card border or shadow — posts
+// flow as a vertical column separated by a thin hairline divider
+// at the bottom of each one, like a play-by-play log.
+//
+// The avatar floats in its own left rail; the post body uses
+// comfortable line-height with serif-leaning numerals for readability
+// in long-form discussion threads.
 .PostStream {
-  > .PostStream-item {
-    .gn-organic-radius(~".Post-header > h3, .Avatar");
+  // The left avatar rail is shared by all posts in the stream — pulls
+  // the per-post avatars into a single vertical column.
+  > .PostStream-item .Avatar {
+    border-radius: 50%;
+    box-shadow: @gn-soft-shadow;
   }
 }
 
 .Post {
+  position: relative;
   background: var(--control-bg, @gn-card);
-  border-radius: @gn-radius;
-  box-shadow: @gn-soft-shadow;
+  border-radius: @gn-radius-sm;
   border: 0;
-  margin-bottom: 12px;
-  padding: 0;
+  box-shadow: none;
+  margin: 0 0 18px;
+  padding: 16px 18px 12px 22px;
   overflow: visible;
 
-  // Rotate post card radii too — adds visual variety down a long thread.
-  &:nth-child(2n)   { border-radius: @gn-blob-a; }
-  &:nth-child(2n+1) { border-radius: @gn-blob-b; }
-  &:nth-child(3n)   { border-radius: @gn-blob-c; }
+  // 4px yard-line accent down the left edge in primary color. Strip
+  // of the home team's color flagging the play.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: 4px;
+    width: 4px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%);
+  }
+
+  // Thin hairline divider between consecutive posts — like a
+  // box-score row separator.
+  & + .Post {
+    border-top: 1px solid var(--border-color, @gn-border);
+    margin-top: 18px;
+  }
 
   &-header {
     font-family: 'DM Sans', sans-serif;
-    padding-top: 10px;
+    padding-top: 0;
+    margin-bottom: 8px;
+
+    h3 { font-weight: 700; font-size: 0.95rem; }
   }
 
   &-body {
-    line-height: 1.55;
+    line-height: 1.6;
+    font-size: 0.95rem;
+
+    // Tabular numerals in the body text — looks at home in a
+    // football context where stats / yardage / scores get cited.
+    font-variant-numeric: tabular-nums;
   }
 
   &-footer {
     border-top: 1px solid var(--border-color, @gn-border);
-    padding-top: 8px;
-    margin-top: 12px;
+    padding-top: 10px;
+    margin-top: 14px;
+
+    // Reaction buttons / footer controls get a tighter row.
+    .Post-controls, .Button {
+      font-size: 0.82rem;
+    }
   }
+}
+
+// First post in a discussion gets a slightly heavier accent — like
+// the kickoff play in a box score. Use the discussion's primary tag
+// color when ramon/colored sets --hero-bg, otherwise primary.
+.PostStream > :first-child .Post::before {
+  width: 5px;
+  left: 3px;
+  background: linear-gradient(
+    180deg,
+    var(--hero-bg, @gn-primary) 0%,
+    @gn-primary-dark 100%
+  );
 }
 
 .PostStream-item .EventPost,
