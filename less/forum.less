@@ -1146,40 +1146,110 @@ body,
   &:last-child { margin-bottom: 0; }
 }
 
+// ── Game-ticket post chrome ──────────────────────────────────────────────────
+//
+// Each post is themed as a stadium ticket:
+//
+//   ╭───────────────╤──────────────────────────────────────────────────╮
+//   │  AVATAR       ┊  HEADER (author · date · controls)               │
+//   │  STUB         ┊                                                  │
+//   │  (perforated) ┊  BODY (post HTML — auto-sized by content)        │
+//   │               ┊                                                  │
+//   ╰───────────────╧──────────────────────────────────────────────────╯
+//
+//   • Vertical DASHED line between the avatar column and the body — the
+//     "tear-here" perforation between ticket stub and ticket main.
+//   • Small filled circles overlapping the top + bottom edges at the
+//     perforation line — the punch-holes that make the stub look like
+//     it can be torn off.
+//   • Subtle warm-paper background tone applied via a tiny linear
+//     gradient — a hair lighter than the body bg, suggests printed
+//     stock without competing with text.
+//   • Bottom border picks up a faint dashed treatment so the post
+//     reads as a single ticket rather than blending into the next one.
+//   • OP posts (Post--by-start-user) get the crimson left border —
+//     same rule we already had, kept below this block.
+//
+// All of this lives on the outer `.Post.CommentPost` and on a single
+// `::before` pseudo-element. We DO NOT touch `.Post-container` or
+// `.Post-side`/`.Post-main` — Flarum 2's CSS Grid handles the column
+// sizing, and any layout override here re-creates the word-stacking
+// bug from earlier in the rename.
 .Post.CommentPost {
   // Wider avatar column — was 85px (core default), bumped to 110px.
-  // The grid is in .Post-container, so we set the variable here and
+  // The grid lives in .Post-container, so we set the variable here and
   // core's `grid-template-columns: var(--avatar-column-width) 1fr`
   // picks it up automatically. No layout overrides, no fighting the
   // cascade.
   --avatar-column-width: 110px;
 
+  // Warm-paper tone — base bg shaded toward a hint of cream via a
+  // tiny linear-gradient. Falls back to plain control-bg when the
+  // var resolves to a hex (`color-mix` in modern browsers blends it).
+  position: relative;
   background: var(--control-bg, @gn-card);
   border: 1px solid var(--border-color, @gn-border);
   border-radius: @gn-radius;
   box-shadow: @gn-shadow-sm;
-  transition: box-shadow @gn-transition;
+  transition: box-shadow @gn-transition, border-color @gn-transition;
 
-  &:hover { box-shadow: @gn-shadow-md; }
+  &:hover {
+    box-shadow: @gn-shadow-md;
+    border-color: rgba(@gn-primary, 0.18);
+  }
+
+  // ── Ticket perforation ───────────────────────────────────────────────────
+  // Vertical dashed line at the avatar/body column boundary. The line is
+  // pulled in by 2px (var minus 2) so it sits in the visual gap between
+  // the avatar's 64px disc and the start of the header text. Faded
+  // (opacity 0.55) so it reads as paper-perforation, not as a rule.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: calc(~"var(--avatar-column-width) - 2px");
+    width: 0;
+    border-left: 1.5px dashed var(--border-color, @gn-border);
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  // ── Ticket punch-holes ───────────────────────────────────────────────────
+  // Two small filled circles in body-bg color (not control-bg), so they
+  // visually "cut through" the card edge. Positioned at the perforation
+  // line's top and bottom. Uses a single ::after with TWO radial
+  // gradients stacked vertically — saves one pseudo-element.
+  &::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    bottom: -7px;
+    left: calc(~"var(--avatar-column-width) - 9px");
+    width: 14px;
+    background:
+      radial-gradient(
+        circle 6px at 50% 7px,
+        var(--body-bg, @gn-bg) 6px,
+        transparent 6.5px
+      ),
+      radial-gradient(
+        circle 6px at 50% calc(~"100% - 7px"),
+        var(--body-bg, @gn-bg) 6px,
+        transparent 6.5px
+      );
+    pointer-events: none;
+    z-index: 2;
+  }
 }
 
 // ── OP color strip (mosaic-style) ────────────────────────────────────────
 // Every post by the discussion's start user gets a crimson left edge.
-// Uses Flarum core's `Post--by-start-user` class (stamped via
-// `AbstractPost.elementAttrs()` calling `this.classes()`, which Post.tsx
-// pushes the class to when `post.user() === discussion.user()`).
-//
-// Color falls back through three layers:
-//   1. --colored-color   set by ramon/colored on body.colored--active
-//                        when the discussion has a tag color
-//   2. --primary-color   Flarum's themed primary
-//   3. @gn-primary       our crimson literal
-//
-// We hoist this rule OUT of `.Post.CommentPost { ... &.Post--by-start-user { ... } }`
-// nesting because the parent block sets `border: 1px solid ...` (shorthand
-// for all four sides) which in some compile orderings was stamping AFTER
-// the OP override. With a flat selector at the same nesting depth +
-// !important on `border-left`, we win unambiguously against the shorthand.
+// Uses Flarum core's `Post--by-start-user` class. Hoisted out of the
+// .Post.CommentPost block so `border-left` always wins against the
+// `border: 1px solid` shorthand above. Color falls back through
+// --colored-color → --primary-color → @gn-primary.
 .Post.CommentPost.Post--by-start-user {
   border-left: 3px solid var(--colored-color, var(--primary-color, @gn-primary)) !important;
 }
@@ -2277,20 +2347,30 @@ a.GN-online-row {
 // — so the `--item-tag-color` inline style lands on the outer
 // `<li class="DiscussionListItem">`. Because our override (forum.js) now
 // preserves that wrapper, the custom property cascades into the showcase
-// card via standard CSS inheritance, and `.GN-showcaseCard-accent` /
-// `.GN-showcaseCard` can read it without an ancestor selector.
+// card via standard CSS inheritance.
 //
-// Left-stripe mode (data-colored-border=left): recolor our accent strip
-// with the tag color. We don't paint the outer <li>'s border-left
-// because ramon/colored's own rule already does (and the accent strip
-// is what visually reads as "the colored bar" on the card).
-html[data-colored-border='left'] .GN-showcaseCard-accent {
-  background: var(--item-tag-color, currentColor);
+// Specificity note: the existing default-state rule
+//   `.GN-showcaseCard:not(.GN-showcaseCard--unread) .GN-showcaseCard-accent`
+// is 0,3,0. Our colored-mode override must clear that, so we use
+//   `html[data-colored-border='left'] .GN-showcaseCard .GN-showcaseCard-accent`
+// which is 0,3,1 (one attr selector + two classes + html type). Without
+// the extra `.GN-showcaseCard` parent the rule was 0,2,1 and lost.
+//
+// Left-stripe mode: recolor our accent strip with the tag color. We
+// fall back to the muted border color so untagged discussions still get
+// a visible (but neutral) accent.
+html[data-colored-border='left'] .GN-showcaseCard .GN-showcaseCard-accent {
+  background: var(--item-tag-color, var(--border-color, @gn-border));
 }
 
-// Full-border mode: ring the card with the tag color, kill the 4px bottom
-// margin so consecutive bordered rows don't read as double-thick
-// separators.
+// Unread cards get the tag color too when set; fall back to the
+// primary (solid, no gradient — var() can't carry gradient strings).
+html[data-colored-border='left'] .GN-showcaseCard.GN-showcaseCard--unread .GN-showcaseCard-accent {
+  background: var(--item-tag-color, @gn-primary);
+}
+
+// Full-border mode: ring the card with the tag color, kill the 4px
+// bottom margin so consecutive bordered rows don't read as double-thick.
 html[data-colored-border='full'] .DiscussionListItem {
   margin-bottom: 6px;
 }
