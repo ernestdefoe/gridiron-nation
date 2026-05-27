@@ -819,13 +819,15 @@ body,
 }
 
 .DiscussionListItem {
-  // Avocado's items are FLAT — no shadow, no transform, no border.
-  // The only visual change on hover is the background tint flipping
-  // from --control-bg to --control-bg-light. Margins between rows
-  // are 4px and that's all the separation the rows get.
+  // Verbatim from ramon/avocado's DiscussionList.less.
+  //
+  // Key visual: 4px Flarum-default border-radius (NOT a 14px card
+  // radius). Avocado items are tightly-rounded list rows, not
+  // floating cards. The ONLY organic shape is on the .Avatar inside,
+  // applied via .gn-organic-radius rotation on the parent <li>.
   --discussion-list-item-bg-hover: var(--control-bg-light, @gn-bg);
   background: var(--control-bg, @gn-card);
-  border-radius: @gn-radius;
+  border-radius: 4px;
   border: 0;
   box-shadow: none;
   padding: 0;
@@ -854,13 +856,21 @@ body,
     display: block;
     float: none;
 
+    // Avatar is sized 50px and uses --body-bg as its background so it
+    // visibly "punches through" the lighter --control-bg row. Soft
+    // 2-layer shadow + 4px border-radius (overridden to a blob shape
+    // by .gn-organic-radius on the parent <li>).
     .Avatar {
       width: 50px;
       height: 50px;
       line-height: 50px;
       font-size: 1.1rem;
-      box-shadow: 0 0 0 3px var(--body-bg, @gn-bg);
-      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--body-bg, @gn-bg);
+      border-radius: 4px;
+      box-shadow: @gn-soft-shadow;
     }
   }
 
@@ -1011,95 +1021,59 @@ body,
   border-radius: @gn-radius;
 }
 
-// ── Post stream — football "playcard" treatment ─────────────────────────────
-// Each post is a clean horizontal block with a 4px primary-color
-// vertical accent strip on the left edge (reads as a yard-line
-// marker / team-color flag). NO heavy card border or shadow — posts
-// flow as a vertical column separated by a thin hairline divider
-// at the bottom of each one, like a play-by-play log.
-//
-// The avatar floats in its own left rail; the post body uses
-// comfortable line-height with serif-leaning numerals for readability
-// in long-form discussion threads.
-.PostStream {
-  // The left avatar rail is shared by all posts in the stream — pulls
-  // the per-post avatars into a single vertical column.
-  > .PostStream-item .Avatar {
-    border-radius: 50%;
-    box-shadow: @gn-soft-shadow;
-  }
+// ── Post stream — verbatim avocado Post.less pattern ────────────────────────
+// Avocado posts are minimal: 8px border-radius card on --control-bg
+// with 15px bottom margin. The avatar sits in its own left rail with
+// the organic blob radius via .gn-organic-radius. No card border.
+.PostStream > .PostStream-item {
+  .gn-organic-radius(~".Avatar");
 }
 
 .Post {
   position: relative;
+  margin: 0 0 15px;
   background: var(--control-bg, @gn-card);
-  border-radius: @gn-radius-sm;
+  border-radius: 8px;
   border: 0;
   box-shadow: none;
-  margin: 0 0 18px;
-  padding: 16px 18px 12px 22px;
   overflow: visible;
 
-  // 4px yard-line accent down the left edge in primary color. Strip
-  // of the home team's color flagging the play.
+  // Subtle left-edge primary-color "yard-line" strip on the OP
+  // (first post in the stream). Marks the kickoff visually without
+  // adding a strip to every reply down the thread.
   &::before {
     content: '';
     position: absolute;
     top: 14px;
     bottom: 14px;
-    left: 4px;
-    width: 4px;
-    border-radius: 2px;
+    left: 0;
+    width: 0;
     background: linear-gradient(180deg, @gn-primary 0%, @gn-primary-dark 100%);
-  }
-
-  // Thin hairline divider between consecutive posts — like a
-  // box-score row separator.
-  & + .Post {
-    border-top: 1px solid var(--border-color, @gn-border);
-    margin-top: 18px;
+    border-radius: 0 2px 2px 0;
+    transition: width @gn-transition;
   }
 
   &-header {
     font-family: 'DM Sans', sans-serif;
-    padding-top: 0;
-    margin-bottom: 8px;
-
-    h3 { font-weight: 700; font-size: 0.95rem; }
   }
 
   &-body {
     line-height: 1.6;
-    font-size: 0.95rem;
-
-    // Tabular numerals in the body text — looks at home in a
-    // football context where stats / yardage / scores get cited.
     font-variant-numeric: tabular-nums;
   }
 
-  &-footer {
-    border-top: 1px solid var(--border-color, @gn-border);
-    padding-top: 10px;
-    margin-top: 14px;
-
-    // Reaction buttons / footer controls get a tighter row.
-    .Post-controls, .Button {
-      font-size: 0.82rem;
-    }
+  .Avatar {
+    width: 48px;
+    height: 48px;
+    line-height: 48px;
+    background-color: var(--body-bg, @gn-bg);
+    box-shadow: @gn-soft-shadow;
   }
 }
 
-// First post in a discussion gets a slightly heavier accent — like
-// the kickoff play in a box score. Use the discussion's primary tag
-// color when ramon/colored sets --hero-bg, otherwise primary.
-.PostStream > :first-child .Post::before {
-  width: 5px;
-  left: 3px;
-  background: linear-gradient(
-    180deg,
-    var(--hero-bg, @gn-primary) 0%,
-    @gn-primary-dark 100%
-  );
+// Only the OP gets the yard-line accent — first PostStream-item only.
+.PostStream > .PostStream-item:first-child .Post::before {
+  width: 4px;
 }
 
 .PostStream-item .EventPost,
@@ -1732,39 +1706,48 @@ a.GN-online-row {
 }
 
 // ── DiscussionHero — decorative tag-icon overlay (avocado pattern) ───────────
-// Injected via extend(DiscussionHero.prototype, 'bodyItems', …) in
-// forum.js. The icons come from SECONDARY tags only (tag.parent()
-// truthy); admin can configure count (1 or 2), opacity (0-100), and
-// enable/disable via theme settings.
+// Injected via extend(DiscussionHero.prototype, 'items', ...) in forum.js.
+// listItems() wraps each entry in <li>, and our <li> is then yanked
+// out of the flow via absolute positioning so the icon overlays the
+// hero's right edge instead of sitting in the badges/title row.
 .DiscussionHero {
   position: relative;
-  overflow: hidden;
+  // NO overflow:hidden here — that was clipping the decoration.
+  // The hero is naturally bounded by its container; icons stay inside
+  // because they're absolutely positioned to right:24px, top:50%.
 }
 
-.GN-discussionHero-icons {
+// The <li> wrapper that listItems() puts around our content needs to
+// be unstyled + absolute so the icon overlays the hero. Mithril's
+// listItems() also adds an `item-<key>` className we can grab.
+.DiscussionHero-items > li:has(> .GN-discussionHero-icons),
+.DiscussionHero-items > .item-gn-hero-deco-icons {
   position: absolute;
   right: 24px;
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
   pointer-events: none;
   z-index: 1;
-  max-width: 50vw;
-  overflow: visible;
 
-  // Hide entirely on phone — the hero copy is dense and the icons
-  // would compete with the title.
   @media (max-width: 480px) {
     display: none;
   }
-
-  // On tablet (481px – 767px) the icon-2 slot is dropped by JS already
-  // (it only renders renderCount=1), but the wrapper still needs to be
-  // narrower so the title line wraps cleanly.
   @media (max-width: 767px) {
     right: 14px;
+  }
+}
+
+.GN-discussionHero-icons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 50vw;
+  overflow: visible;
+
+  @media (max-width: 767px) {
     gap: 10px;
     max-width: 35vw;
   }
@@ -1774,32 +1757,43 @@ a.GN-online-row {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(48px, 9vw, 110px);
+  font-size: clamp(56px, 10vw, 120px);
   line-height: 1;
 
   // Two opacity strategies, picked at @supports time:
-  //   1. Modern: color-mix() blends --gn-deco-color (or white if no
-  //      tag color was inlined) toward transparent at the operator
-  //      opacity. Per-tag colors keep their hue.
-  //   2. Fallback: plain rgba white with the opacity applied. Tag
-  //      color is ignored on browsers without color-mix support.
-  color: rgba(255, 255, 255, var(--gn-deco-opacity, 0.12));
+  //   1. Modern: color-mix blends --gn-deco-color (or white) toward
+  //      transparent at the operator opacity.
+  //   2. Fallback: plain rgba white at the configured alpha.
+  color: rgba(255, 255, 255, var(--gn-deco-opacity, 0.35));
 
   @supports (color: color-mix(in srgb, red, blue)) {
     color: color-mix(
       in srgb,
-      var(--gn-deco-color, #fff) calc(var(--gn-deco-opacity, 0.12) * 100%),
+      var(--gn-deco-color, #fff) calc(var(--gn-deco-opacity, 0.35) * 100%),
       transparent
     );
   }
 
   i { display: block; line-height: 1; }
+
+  // Subtle drop shadow makes the glyph readable even on light hero
+  // backgrounds — without this, white-on-light is invisible.
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
 }
 
 // Two-icon layout adjusts placement to keep both glyphs readable.
 .GN-discussionHero-icons[data-icon-count='2'] {
   gap: 22px;
-  .GN-discussionHero-icon { font-size: clamp(40px, 7vw, 84px); }
+  .GN-discussionHero-icon { font-size: clamp(44px, 7.5vw, 88px); }
+}
+
+// Make sure hero content reads ABOVE the decoration — title, badges,
+// items row all need higher z-index than the absolute decoration.
+.DiscussionHero > .container,
+.DiscussionHero-title,
+.DiscussionHero-badges {
+  position: relative;
+  z-index: 2;
 }
 
 // Ensure hero text + items stay above the decoration.

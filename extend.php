@@ -76,13 +76,13 @@ return [
         // text field; the frontend divides by 100 before applying.
         ->serializeToForum('fbsfb.hero_deco_enabled',    'ernestdefoe-fbsfb.hero_deco_enabled',    'boolval', true)
         ->serializeToForum('fbsfb.hero_deco_icon_count', 'ernestdefoe-fbsfb.hero_deco_icon_count', 'intval', 2)
-        ->serializeToForum('fbsfb.hero_deco_opacity',    'ernestdefoe-fbsfb.hero_deco_opacity',    'intval', 12)
+        ->serializeToForum('fbsfb.hero_deco_opacity',    'ernestdefoe-fbsfb.hero_deco_opacity',    'intval', 35)
         ->default('ernestdefoe-fbsfb.widget_live_scores',   '1')
         ->default('ernestdefoe-fbsfb.widget_trending',      '1')
         ->default('ernestdefoe-fbsfb.widget_top_recruits',  '1')
         ->default('ernestdefoe-fbsfb.hero_deco_enabled',    '1')
         ->default('ernestdefoe-fbsfb.hero_deco_icon_count', '2')
-        ->default('ernestdefoe-fbsfb.hero_deco_opacity',    '12'),
+        ->default('ernestdefoe-fbsfb.hero_deco_opacity',    '35'),
 
     // ── Forum payload — newest registered member ────────────────────────────
     // Exposes the most recently joined user as `app.forum.attribute('fbsfbNewestMember')`
