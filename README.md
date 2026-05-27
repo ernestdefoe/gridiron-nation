@@ -1,80 +1,111 @@
 # GridIron Nation 🏈
 
-**A Flarum 2 theme for college football fan forums.**  
-Crimson & DM Sans, Avocado-style organic radius, real-time live scores, trending discussions, top recruit tracker, and full dark mode.
+**A Flarum 2 theme for college football fan forums.**
+Crimson palette, DM Sans, stadium-scoreboard hero, showcase-card discussion
+list, live ESPN score ticker, recruit board, full dark mode.
 
----
-
-## Screenshots
-
-### Forum Index — Light Mode
-![Forum Index Light](docs/screenshots/forum-index-light.png)
-
-### Group Feed — Light Mode
-![Group Feed Light](docs/screenshots/group-feed-light.png)
-
-### Polls & Reactions
-![Polls and Reactions](docs/screenshots/group-feed-poll.png)
-
-### Group Feed — Dark Mode
-![Group Feed Dark](docs/screenshots/group-feed-dark.png)
-
-### Forum Index — Dark Mode
-![Forum Index Dark](docs/screenshots/forum-index-dark.png)
+> **Renamed from `ernestdefoe/fbsfb`.** v2.x ships as
+> `ernestdefoe/gridiron-nation` (kebab-case, matches the rest of the
+> `ernestdefoe/*` family). Upgraders: the package rename is handled by a
+> settings-table migration that copies the legacy `fbsfb.*` /
+> `ernestdefoe-fbsfb.*` rows under the new prefixes on first boot.
+> Old rows stay in place so a rollback to v1 keeps working.
 
 ---
 
 ## Features
 
-### 🎨 Design System
-- **Crimson primary** (`#B22222`) — instantly recognisable college football colour
-- **DM Sans Variable** — loaded from Google Fonts, replaces Flarum's default font throughout
-- **14 px organic border-radius** — Avocado-inspired, applied to cards, dropdowns, modals, buttons, and inputs
-- **Layered surface depth** — `#f0f1f5` page → `#fff` cards → `#f8f8fa` inset, mirrored in dark mode (`#0c0d10` → `#16171c` → `#0f1013`)
-- **CSS custom property overrides** — works alongside any other Flarum 2 theme that respects `--primary-color`, `--body-bg`, etc.
+### 🏟 Stadium Hero
+- **Scoreboard stats row** — MEMBERS, TOPICS, POSTS, ONLINE, NEWEST.
+  ONLINE opens a dropdown of who's around right now; NEWEST exposes the
+  most recently registered user.
+- **Composer trigger** — pill-shaped "Tell everyone what you're working
+  on…" that opens the New Discussion composer. Reads as the primary
+  affordance on the homepage.
+- **Pill nav row** — rendered below the hero gradient (not inside it)
+  so the chips read on the page background.
+- **Welcome hero forced visible** — the per-visitor dismiss flag is
+  honoured by Flarum core; we override it to keep the themed hero on
+  for everyone, but the admin's empty-`welcomeTitle` escape hatch still
+  hides it.
 
-### 🌙 Dark Mode
-- Full `prefers-color-scheme: dark` support
-- Surfaces shift from near-black `#0c0d10` through `#16171c` cards to `#0f1013` inset areas (inputs, poll options, comment bubbles)
-- Primary colour shifts to `#e05c5c` for legibility on dark backgrounds
-- Dark mode CSS block placed **last in the stylesheet** — correct cascade, no specificity fights
+### 🃏 Showcase Discussion List
+Standalone reimplementation built from Flarum 2 primitives — **no
+ramon/avocado dependency required**.
 
-### 📺 Live Scores Widget
-- Proxies ESPN's public college football scoreboard API — no API key required
-- Displays up to 6 games sorted: **Live → Scheduled → Final**
-- Pulsing green **LIVE** badge with quarter and clock detail
-- Winning score highlighted in crimson
-- Auto-refreshes every **60 seconds** while the page is open
-- Graceful fallback — shows "Scores unavailable" if ESPN times out
+Each row renders as a card with:
+- Author avatar + name + relative time + tag pills + Reply button
+- Bold title (highlighted on search hits)
+- Two-line excerpt pulled from the OP
+- Embedded last-reply preview chip (avatar + author + snippet)
+- "See N other replies" overflow link
+- Footer stats row (likes + replies, ICU-pluralised)
+- Crimson **yard-line accent strip** down the left edge for unread /
+  sticky rows; muted strip on read rows
+- Locked rows get a subtle treatment so they don't disappear
 
-### 🔥 Trending Widget
-- Pulls the 5 most recently active discussions straight from Flarum's own API
-- Rank numbers 1–2 shown in crimson, rest in muted grey
-- Displays reply count and relative time
-- Refreshes every **5 minutes**
+### 📝 Post Playcard
+Posts on the discussion page get card chrome with the same yard-line
+accent — crimson on the OP, muted on replies. Built **on top of Flarum
+2's native Post grid** (no layout overrides), so it survives core
+updates and plays nicely with any extension that injects controls,
+reactions, or social-groups extras into the Post body.
 
-### 👥 Online Now Widget
-- Lists members seen in the last 5 minutes (`last_seen_at`)
-- Avatar with green presence dot, falls back to initial monogram
-- Member count shown in the widget header
-- Refreshes every **2 minutes**
+### 📺 Live Scores Ticker
+- Proxies ESPN's public college-football scoreboard endpoint — no API
+  key required.
+- Renders as a **horizontal scrolling ticker** above the discussion
+  list, with up to 6 game cards sorted **Live → Scheduled → Final**.
+- Pulsing green **LIVE** badge with quarter + clock detail.
+- Winning score highlighted in crimson.
+- Server-side cache: 60 seconds (visitors don't hammer ESPN).
+- Refreshes client-side every 60 seconds.
+- Graceful fallback — shows "Scores unavailable" if ESPN times out.
 
 ### ⭐ Top Recruits Widget
-- Manual admin entry — no third-party API licence required
-- Per-recruit fields: **Name · Position · Height · Hometown · Stars (1–5) · Commit status · School · Sort order**
-- Three commit states with colour-coded pills:
-  - 🟢 **Committed** — school name shown
-  - 🟡 **Undecided**
-  - 🔴 **Decommitted**
-- Crimson position badge (QB, WR, DT …)
-- Amber star rating (★★★★☆)
-- Refreshes every **10 minutes**
+- Pulls live recruiting data from the
+  [ernestdefoe/recruiting](https://github.com/ernestdefoe/recruiting)
+  extension when installed. Without that extension, the widget hides
+  itself.
+- Headshots via On3 photo enrichment.
+- CollegeFootballData.com is the source of truth — set your API key in
+  the GridIron Nation Recruiting admin panel.
+- Crimson position badge (QB, WR, DT …), star rating, school slot.
 
-### 🛠 Admin Recruits Manager
-- Full CRUD interface registered as the extension's admin settings page
-- 2-column form grid — add or edit recruits in place
-- Sortable via `sort_order` field
-- Inline edit / delete with confirmation
+### 🔥 Trending Widget
+- Five most-recently-active discussions straight from Flarum's store
+  (no extra API round-trip).
+- Rank 1–2 in crimson, rest in muted grey.
+- Reply count + relative time per row.
+
+### 🎯 Hero Tag Decoration
+- Anchors up to two large, semi-transparent FontAwesome glyphs to the
+  right side of every tagged discussion's hero, pulled from the
+  secondary tag's icon (set per-tag in the Flarum Tags admin panel).
+- Falls back to any tag with an icon if no secondary candidates exist
+  — flat tag setups still get decoration.
+- All three knobs (enabled, icon count, opacity 0–100) are
+  admin-configurable.
+
+### 🌙 Dark Mode
+- Full `[data-theme^="dark"]` + system `prefers-color-scheme: dark`
+  support.
+- Surfaces shift from `#0c0d10` through `#16171c` cards to `#0f1013`
+  inset areas (inputs, blockquotes, code blocks).
+- Primary shifts to `#e05c5c` for legibility on dark backgrounds.
+- Cascade-correct: dark block lives last in the stylesheet, no
+  specificity fights.
+
+### 🎨 Design System
+- **Crimson primary** (`#B22222`) with `#8B0000` dark + `#d94f4f` light
+  variants.
+- **DM Sans Variable** loaded from Google Fonts, replaces Flarum's
+  default font throughout.
+- **14 px organic border-radius** on cards, dropdowns, modals,
+  buttons, and inputs.
+- **CSS custom properties** for `--primary-color`, `--body-bg`,
+  `--control-bg`, `--border-color`, etc. — overlaying themes and
+  ramon/colored compose cleanly.
 
 ---
 
@@ -94,7 +125,8 @@ php flarum cache:clear
 4. Run `php flarum cache:clear`
 5. Enable **GridIron Nation** in the Flarum admin panel
 
-> **JS is pre-compiled.** `js/dist/forum.js` and `js/dist/admin.js` are committed — no local build step needed.
+> **JS is pre-compiled.** `js/dist/forum.js` and `js/dist/admin.js` are
+> committed — no local build step needed for a vanilla install.
 
 ---
 
@@ -104,7 +136,43 @@ php flarum cache:clear
 |---|---|
 | PHP | `^8.3` |
 | Flarum | `^2.0` |
-| flarum/core | `^2.0` |
+| guzzlehttp/guzzle | `^7.0` |
+
+### Optional, but recommended
+
+| Extension | Why |
+|---|---|
+| [`ernestdefoe/recruiting`](https://github.com/ernestdefoe/recruiting) | Powers the Top Recruits widget with live CFBD data + On3 photo headshots. Without it, the widget hides. |
+| [`ramon/colored`](https://github.com/ramon-1106/colored) | Per-tag color tinting on hero + discussion-list borders. GridIron Nation wires `data-colored-border=left/full` cleanly against the showcase card and yard-line accent. |
+| [`flarum/realtime`](https://github.com/flarum/realtime) | Live discussion-list / notification / typing-indicator updates over a websocket. We hide the "N updates available" banner so the list refreshes silently. |
+
+---
+
+## Admin Settings
+
+Under **Extensions → GridIron Nation** in the Flarum admin panel:
+
+| Setting | Default | Purpose |
+|---|---|---|
+| `widget_live_scores` | `true` | Show the Live Scores ticker |
+| `widget_trending` | `true` | Show the Trending sidebar widget |
+| `widget_top_recruits` | `true` | Show the Top Recruits sidebar widget |
+| `hero_deco_enabled` | `true` | Render FontAwesome glyph decoration on discussion heroes |
+| `hero_deco_icon_count` | `2` | 1 or 2 icons (2-icon mode requires ≥ 768 px viewport) |
+| `hero_deco_opacity` | `35` | Glyph opacity, 0–100 (set to `0` to hide without disabling) |
+
+---
+
+## API Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/gn-live-scores` | ESPN scoreboard proxy (public, 60 s cache) |
+| `GET` | `/api/gn-online` | Users online in last 5 min (auth-aware, per-actor cache) |
+
+The retired `/api/gn-recruits` endpoints from v1.x have been removed —
+recruit data now comes from `ernestdefoe/recruiting`'s
+`/api/cfbd-recruits` endpoint when that extension is installed.
 
 ---
 
@@ -119,29 +187,23 @@ npm run dev     # watch mode
 
 ---
 
-## Sidebar Widgets
+## Upgrading from `ernestdefoe/fbsfb` (v1.x)
 
-All four widgets are injected into `IndexPage.prototype.sidebarItems` at priorities 80–110, so they appear above the default tag navigation. Each widget is a self-contained Mithril component that manages its own fetch lifecycle and cleanup.
+The composer rename forces Flarum to treat this as a fresh extension
+ID. To upgrade:
 
-| Widget | Priority | Refresh |
-|---|---|---|
-| Live Scores | 110 | 60 s |
-| Trending | 100 | 5 min |
-| Top Recruits | 90 | 10 min |
-| Online Now | 80 | 2 min |
+```bash
+composer remove ernestdefoe/fbsfb
+composer require ernestdefoe/gridiron-nation
+php flarum migrate           # runs the settings copy migration
+php flarum cache:clear
+php flarum extension:enable ernestdefoe-gridiron-nation
+```
 
----
-
-## API Endpoints
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/gn-live-scores` | ESPN scoreboard proxy (public) |
-| `GET` | `/api/gn-online` | Users online in last 5 min (public) |
-| `GET` | `/api/gn-recruits` | List recruits (public) |
-| `POST` | `/api/gn-recruits` | Create recruit (admin only) |
-| `PATCH` | `/api/gn-recruits/{id}` | Update recruit (admin only) |
-| `DELETE` | `/api/gn-recruits/{id}` | Delete recruit (admin only) |
+The settings migration copies every `fbsfb.*` and `ernestdefoe-fbsfb.*`
+row in your settings table to the new `gridiron-nation.*` and
+`ernestdefoe-gridiron-nation.*` prefixes. Legacy rows stay in place so
+a downgrade picks them back up cleanly.
 
 ---
 

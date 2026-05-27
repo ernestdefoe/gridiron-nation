@@ -3,3 +3,4 @@ js/dist/*.map
 vendor/
 .DS_Store
 Thumbs.db
+.claude/
