@@ -1249,21 +1249,32 @@ body,
   }
 
   // ── Ticket punch-holes ───────────────────────────────────────────────────
-  // Two filled circles at the perforation's top + bottom, overlapping
-  // the card edge so the stub looks tearable. Solid body-bg core +
-  // muted-color ring so they're unmistakable against either light or
-  // dark cards. Same `display: block` override as ::before above.
+  // Two filled circles centered on the post's LEFT and RIGHT edges, like
+  // the tear-off perforations on a real stadium ticket. Each hole sits
+  // half-inside / half-outside the card so it reads as a real cutout:
+  //   • body-bg solid core (matches the page behind the card)
+  //   • muted-color 1px ring around it (visible against either card or
+  //     body bg, so the edge is unmistakable in light AND dark mode)
+  //
+  // The ::after element is a thin 18px-tall horizontal strip that
+  // straddles the post vertically at top: 50%. Negative `left` and
+  // `right` of -9px push its endpoints 9px outside the card edges so
+  // each radial-gradient hole spans the boundary. `display: block`
+  // overrides Flarum core's `.Post:before/.Post:after` clearfix
+  // (`content: " "; display: table; clear: both`) that would otherwise
+  // collapse the pseudo to a 0-size box.
   &::after {
     content: '';
     display: block;
     position: absolute;
-    top: -9px;
-    bottom: -9px;
-    left: calc(~"var(--avatar-column-width) - 10px");
-    width: 18px;
+    top: 50%;
+    left: -9px;
+    right: -9px;
+    height: 18px;
+    transform: translateY(-50%);
     background:
       radial-gradient(
-        circle 9px at 50% 9px,
+        circle 9px at 9px 50%,
         var(--body-bg, @gn-bg) 0,
         var(--body-bg, @gn-bg) 7px,
         var(--muted-color, @gn-muted) 7.5px,
@@ -1271,7 +1282,7 @@ body,
         transparent 8.5px
       ),
       radial-gradient(
-        circle 9px at 50% calc(~"100% - 9px"),
+        circle 9px at calc(~"100% - 9px") 50%,
         var(--body-bg, @gn-bg) 0,
         var(--body-bg, @gn-bg) 7px,
         var(--muted-color, @gn-muted) 7.5px,
