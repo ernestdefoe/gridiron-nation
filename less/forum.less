@@ -1836,7 +1836,17 @@ select {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #fff;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+    // Subtle 1 px black outline (four directional offsets + a soft
+    // drop) so the white letters "pop" against the saddle-brown wash
+    // on light mode. The opacity stays low (~55%) so it reads as an
+    // outline, not stenciled lettering. Dark mode overrides this
+    // below — the amber-leather doesn't need the outline.
+    text-shadow:
+      -1px -1px 0 rgba(0, 0, 0, 0.55),
+       1px -1px 0 rgba(0, 0, 0, 0.55),
+      -1px  1px 0 rgba(0, 0, 0, 0.55),
+       1px  1px 0 rgba(0, 0, 0, 0.55),
+       0    1px 1px rgba(0, 0, 0, 0.30);
     overflow: hidden;
 
     // Deep pigskin-brown wash. Higher opacity (60→48%) so the strip
@@ -2607,6 +2617,11 @@ a.GN-online-row {
 
   .GN-widget-header {
     border-bottom-color: rgba(255, 255, 255, 0.055);
+    // Dark mode skips the four-direction black outline used on light
+    // mode — the amber-leather wash already has enough darkness for
+    // the white letters to pop. A single soft drop shadow keeps the
+    // text crisp without making it look stenciled.
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
     // Dark-mode wash: richer amber-leather. The light-mode wash uses
     // saddle-brown (#8B4513), which goes nearly black on a #16171c
     // surface. Shift toward an orange-amber tone (#c08040-ish) so the
