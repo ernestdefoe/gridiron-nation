@@ -1809,18 +1809,20 @@ select {
 
   // Header reads as real football leather:
   //   • A saturated pigskin-brown wash gives the strip a clearly-brown
-  //     base (not the previous barely-tinted tan).
+  //     base (a deep saddle leather you can read from across the room).
   //   • A pebbled-dimple SVG layered on top via ::before — small
   //     darker-brown circles scattered pseudo-randomly across a
   //     60×60 tile, mimicking the raised grain of real football
-  //     leather. NO football-shape icons (those read as decoration,
-  //     not texture). Each circle is a 1.2-1.6 px filled disc in a
-  //     darker pigskin brown at 45% opacity so the grain is clearly
-  //     visible without competing with the title text.
+  //     leather. NO football-shape icons. Each circle is a 1.1-1.5 px
+  //     filled disc at 65% opacity so the grain is clearly visible.
+  //   • Title text is WHITE (not the default muted-grey) because the
+  //     brown wash is dark enough that grey-on-brown loses contrast.
+  //     A subtle dark text-shadow keeps the letters crisp even where
+  //     dimples cluster lighter behind them.
   //
   // The ::before is `position: absolute; inset: 0` underneath the
-  // flex children, so the title text + crimson icon float above it
-  // with full contrast.
+  // flex children, so the title text + icon float above it with full
+  // contrast.
   &-header {
     position: relative;
     display: flex;
@@ -1833,19 +1835,18 @@ select {
     font-size: 0.82rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: @gn-muted;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
     overflow: hidden;
 
-    // Real pigskin-brown wash — saturated enough that you actually
-    // see "this is a brown leather band", not a barely-tinted strip.
-    // 22-30% opacity sits well over a white card bg without clobbering
-    // the title text (the text-color stays muted-grey but reads cleanly
-    // because the wash + dimples are well below 50% lightness shift).
+    // Deep pigskin-brown wash. Higher opacity (60→48%) so the strip
+    // reads as a clearly-brown leather band, not a faint tint. Slight
+    // top-to-bottom gradient keeps it from looking like a flat fill.
     background:
       linear-gradient(
         180deg,
-        rgba(139, 69, 19, 0.30) 0%,
-        rgba(139, 69, 19, 0.22) 100%
+        rgba(139, 69, 19, 0.60) 0%,
+        rgba(139, 69, 19, 0.48) 100%
       );
 
     &::before {
@@ -1853,13 +1854,12 @@ select {
       position: absolute;
       inset: 0;
       // Pebbled-leather dimple pattern. 60×60 tile with ~26 small
-      // filled circles at varied positions and radii. Stroke + fill
-      // both in dark pigskin (#5b3a1a) at 45% opacity — strong enough
-      // that the grain reads from across the room, light enough that
-      // the title text (positioned above this layer at z-index:1) is
-      // never compromised. Inline data-URI keeps it cache-friendly
-      // and free of asset-pipeline plumbing.
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%235b3a1a' fill-opacity='0.45'%3E%3Ccircle cx='5' cy='4' r='1.4'/%3E%3Ccircle cx='14' cy='9' r='1.1'/%3E%3Ccircle cx='23' cy='3' r='1.5'/%3E%3Ccircle cx='31' cy='8' r='1.2'/%3E%3Ccircle cx='40' cy='11' r='1.4'/%3E%3Ccircle cx='49' cy='5' r='1.3'/%3E%3Ccircle cx='56' cy='14' r='1.5'/%3E%3Ccircle cx='9' cy='17' r='1.3'/%3E%3Ccircle cx='19' cy='22' r='1.4'/%3E%3Ccircle cx='28' cy='18' r='1.1'/%3E%3Ccircle cx='36' cy='25' r='1.5'/%3E%3Ccircle cx='45' cy='20' r='1.3'/%3E%3Ccircle cx='53' cy='28' r='1.4'/%3E%3Ccircle cx='3' cy='30' r='1.2'/%3E%3Ccircle cx='12' cy='35' r='1.5'/%3E%3Ccircle cx='22' cy='39' r='1.3'/%3E%3Ccircle cx='31' cy='33' r='1.4'/%3E%3Ccircle cx='40' cy='37' r='1.2'/%3E%3Ccircle cx='49' cy='41' r='1.5'/%3E%3Ccircle cx='57' cy='45' r='1.3'/%3E%3Ccircle cx='6' cy='47' r='1.4'/%3E%3Ccircle cx='16' cy='52' r='1.2'/%3E%3Ccircle cx='25' cy='48' r='1.5'/%3E%3Ccircle cx='34' cy='55' r='1.3'/%3E%3Ccircle cx='43' cy='51' r='1.4'/%3E%3Ccircle cx='52' cy='57' r='1.2'/%3E%3C/g%3E%3C/svg%3E");
+      // filled circles at varied positions and radii. Dark pigskin
+      // (#3d2510) at 65% opacity — strong enough that the grain
+      // reads as a tactile leather texture, not a faint speckle.
+      // Inline data-URI keeps it cache-friendly and free of
+      // asset-pipeline plumbing.
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%233d2510' fill-opacity='0.65'%3E%3Ccircle cx='5' cy='4' r='1.4'/%3E%3Ccircle cx='14' cy='9' r='1.1'/%3E%3Ccircle cx='23' cy='3' r='1.5'/%3E%3Ccircle cx='31' cy='8' r='1.2'/%3E%3Ccircle cx='40' cy='11' r='1.4'/%3E%3Ccircle cx='49' cy='5' r='1.3'/%3E%3Ccircle cx='56' cy='14' r='1.5'/%3E%3Ccircle cx='9' cy='17' r='1.3'/%3E%3Ccircle cx='19' cy='22' r='1.4'/%3E%3Ccircle cx='28' cy='18' r='1.1'/%3E%3Ccircle cx='36' cy='25' r='1.5'/%3E%3Ccircle cx='45' cy='20' r='1.3'/%3E%3Ccircle cx='53' cy='28' r='1.4'/%3E%3Ccircle cx='3' cy='30' r='1.2'/%3E%3Ccircle cx='12' cy='35' r='1.5'/%3E%3Ccircle cx='22' cy='39' r='1.3'/%3E%3Ccircle cx='31' cy='33' r='1.4'/%3E%3Ccircle cx='40' cy='37' r='1.2'/%3E%3Ccircle cx='49' cy='41' r='1.5'/%3E%3Ccircle cx='57' cy='45' r='1.3'/%3E%3Ccircle cx='6' cy='47' r='1.4'/%3E%3Ccircle cx='16' cy='52' r='1.2'/%3E%3Ccircle cx='25' cy='48' r='1.5'/%3E%3Ccircle cx='34' cy='55' r='1.3'/%3E%3Ccircle cx='43' cy='51' r='1.4'/%3E%3Ccircle cx='52' cy='57' r='1.2'/%3E%3C/g%3E%3C/svg%3E");
       background-repeat: repeat;
       background-size: 60px 60px;
       pointer-events: none;
@@ -1870,9 +1870,13 @@ select {
     // Text + icon float above the pattern.
     > * { position: relative; z-index: 1; }
 
+    // Icon stays crimson on the brown leather — high contrast and
+    // keeps the GridIron Nation brand color visible in the widget
+    // header. White-on-brown would lose the brand accent.
     .fas {
       color: @gn-primary;
       font-size: 0.85rem;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.20);
     }
   }
 
