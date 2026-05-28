@@ -948,8 +948,20 @@ body,
 .TagLabel {
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.78rem;
-  padding: 3px 10px;
+  font-size: 0.82rem;
+  padding: 4px 12px;
+
+  /*
+   * Allow FA icons inside core TagLabel (Flarum's tag-icon support, set
+   * per-tag in the admin panel) to render at a readable size. Without
+   * this rule the icon inherits the label font-size (~13 px), which is
+   * too small to recognize a helmet / football glyph at card scale.
+   */
+  i, .icon {
+    font-size: 1rem;
+    line-height: 1;
+    margin-right: 4px;
+  }
 }
 
 .TagsLabel,
@@ -1106,9 +1118,9 @@ body,
   &-tagPill {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 9px;
-    font-size: 0.72rem;
+    gap: 6px;
+    padding: 3px 11px;
+    font-size: 0.78rem;
     font-weight: 700;
     line-height: 1.4;
     border-radius: 999px;
@@ -1124,7 +1136,13 @@ body,
       color: var(--gn-tag-color, var(--body-color));
     }
 
-    i { font-size: 0.7rem; }
+    /*
+     * Bigger FA icon — was 0.7 rem (~11 px), now 0.95 rem (~15 px) so
+     * tag glyphs (helmets, footballs, etc.) actually read at card
+     * scale. Vertical padding bumped to 3 px and `gap` to 6 px so the
+     * icon doesn't crowd the label or overflow the pill.
+     */
+    i { font-size: 0.95rem; line-height: 1; }
   }
 
   &-replyBtn {
