@@ -1836,17 +1836,23 @@ select {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #fff;
-    // Subtle 1 px black outline (four directional offsets + a soft
-    // drop) so the white letters "pop" against the saddle-brown wash
-    // on light mode. The opacity stays low (~55%) so it reads as an
-    // outline, not stenciled lettering. Dark mode overrides this
-    // below — the amber-leather doesn't need the outline.
+    // 2 px black outline (four directional offsets + softer drop) so
+    // the white letters pop hard against the saddle-brown wash on
+    // light mode. Opacity ~65% — strong enough to read as a chiseled
+    // letterform but not stenciled lettering. Eight offsets (corners
+    // + cardinals) so the outline doesn't have visible 45° gaps at
+    // 2 px stroke. Dark mode overrides this below — the amber-leather
+    // doesn't need the outline.
     text-shadow:
-      -1px -1px 0 rgba(0, 0, 0, 0.55),
-       1px -1px 0 rgba(0, 0, 0, 0.55),
-      -1px  1px 0 rgba(0, 0, 0, 0.55),
-       1px  1px 0 rgba(0, 0, 0, 0.55),
-       0    1px 1px rgba(0, 0, 0, 0.30);
+      -2px -2px 0 rgba(0, 0, 0, 0.65),
+       0   -2px 0 rgba(0, 0, 0, 0.65),
+       2px -2px 0 rgba(0, 0, 0, 0.65),
+       2px  0   0 rgba(0, 0, 0, 0.65),
+       2px  2px 0 rgba(0, 0, 0, 0.65),
+       0    2px 0 rgba(0, 0, 0, 0.65),
+      -2px  2px 0 rgba(0, 0, 0, 0.65),
+      -2px  0   0 rgba(0, 0, 0, 0.65),
+       0    2px 2px rgba(0, 0, 0, 0.30);
     overflow: hidden;
 
     // Deep pigskin-brown wash. Higher opacity (60→48%) so the strip
