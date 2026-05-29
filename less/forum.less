@@ -238,8 +238,12 @@ body,
   // and we re-color the chevron + label crimson so it reads as "this is
   // the themed nav menu, tap to switch view".
   .App-titleControl {
-    width: 260px !important;
-    margin-left: -130px !important;
+    // Wider so longer conference names ("Southeastern Conference",
+    // "Atlantic Coast Conference") don't truncate. Capped at 92vw so it
+    // never overflows narrow phones; margin-left stays half the width to
+    // keep it centered under the header.
+    width: min(340px, 92vw) !important;
+    margin-left: calc(min(340px, 92vw) / -2) !important;
     font-family: 'DM Sans', sans-serif;
     font-weight: 700;
 
@@ -313,6 +317,16 @@ body,
     text-decoration: none;
     transition: background @gn-transition, border-color @gn-transition, color @gn-transition, transform @gn-transition;
     white-space: nowrap;
+
+    // Let the wide conference glyphs size their own box and lean on the
+    // flex `gap` above instead of overlapping the pill label.
+    .Button-icon, i, .icon, .TagIcon {
+      width: auto !important;
+      min-width: 1.1em;
+      margin: 0 !important;
+      flex: 0 0 auto;
+      text-align: center;
+    }
 
     &:hover, &:focus {
       background: rgba(@gn-primary, 0.08);
@@ -952,26 +966,21 @@ body,
   // Roomier pills so the wide conference glyphs (see below) have space
   // to breathe instead of crowding the label text.
   padding: 5px 14px;
-  display: inline-flex;
+  // !important throughout this rule: flarum/tags ships its own .TagLabel /
+  // .TagIcon CSS that loads AFTER this theme's forum.less, so without it
+  // our flex layout is reset and the wide custom conference glyphs (ACC /
+  // B1G / IU …) render flush on top of the label text. flarum/tags renders
+  // the icon as <i class="TagIcon …">, so that is the element to space.
+  display: inline-flex !important;
   align-items: center;
-  gap: 7px;
+  gap: 9px !important;
 
-  /*
-   * Allow FA icons inside core TagLabel (Flarum's tag-icon support, set
-   * per-tag in the admin panel) to render at a readable size. Without
-   * this rule the icon inherits the label font-size (~13 px), which is
-   * too small to recognize a helmet / football glyph at card scale.
-   *
-   * The conference icons are custom FA glyphs with wide wordmark aspect
-   * ratios (ACC / B1G / SBC …). A fixed 1em icon box clips them into the
-   * label text, so let the box size to the glyph and rely on the flex
-   * `gap` above for separation rather than a margin on a too-narrow box.
-   */
-  i, .icon {
+  i, .icon, .TagIcon {
     font-size: 1rem;
     line-height: 1;
-    width: auto;
-    margin-right: 0;
+    width: auto !important;
+    min-width: 1.1em;
+    margin: 0 !important;
     flex: 0 0 auto;
     text-align: center;
   }
@@ -1001,14 +1010,33 @@ body,
 // menu-item icon (`.Button-icon`, or the bare `.icon` flarum/tags emits) gets
 // a narrow fixed width for vertical alignment, so "B1G"/"SBC"/etc. sit on top
 // of the label. Widen the box and add breathing room.
-.TagLinkButton .Button-icon,
-.Dropdown-menu .Button-icon,
+// Nav + dropdown tag links (sidebar list, mobile title-control bottom
+// sheet). Force the icon + label into a flex row with a real gap so the
+// wide conference glyphs don't sit on top of the text. !important because
+// core nav + flarum/tags CSS both load after this file.
+.IndexPage-nav .Button.hasIcon,
+.Dropdown-menu .Button.hasIcon,
+.App-titleControl .Dropdown-menu .Button {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+}
+
 .IndexPage-nav .Button-icon,
-.item-tags .Button-icon {
-  width: auto;
-  min-width: 1.5em;
-  margin-right: 12px;
+.Dropdown-menu .Button-icon,
+.TagLinkButton .Button-icon,
+.App-titleControl .Dropdown-menu .Button-icon {
+  position: static !important;
+  width: auto !important;
+  min-width: 1.4em;
+  margin: 0 !important;
   text-align: center;
+  flex: 0 0 auto;
+}
+
+.IndexPage-nav .Button-label,
+.Dropdown-menu .Button-label {
+  padding-left: 0 !important;
 }
 
 // ── Discussion list — GridIron Nation-native showcase cards ─────────────────
@@ -1520,22 +1548,6 @@ body,
 .DiscussionComposer,
 .DiscussionList-header .Button--primary {
   border-radius: @gn-radius;
-}
-
-// ── Post stream scrubber — more internal breathing room ─────────────────────
-// The floating scrubber (Original Post ▲ … ▼ Now) packs its label rows and the
-// timeline track tight against the panel chrome. Add internal padding so the
-// "Original Post / N of M posts / month" and "Now" rows aren't flush to the
-// edges, and separate the scrollbar track from them vertically.
-.PostStreamScrubber {
-  .Scrubber-first,
-  .Scrubber-last {
-    padding: 10px 14px;
-  }
-
-  .Scrubber-scrollbar {
-    margin: 10px 0;
-  }
 }
 
 // ── Post stream — playcard chrome (NO grid overrides) ────────────────────────
