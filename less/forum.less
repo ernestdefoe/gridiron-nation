@@ -2560,7 +2560,8 @@ a.GN-online-row {
 .DiscussionHero-items > li:has(> .GN-discussionHero-icons),
 .DiscussionHero-items > .item-gn-hero-deco-icons {
   position: absolute;
-  right: 24px;
+  // Flush to the far-right edge of the hero (was inset 24px).
+  right: 0;
   top: 50%;
   transform: translateY(-50%);
   list-style: none;
@@ -2573,7 +2574,7 @@ a.GN-online-row {
     display: none;
   }
   @media (max-width: 767px) {
-    right: 14px;
+    right: 0;
   }
 }
 
