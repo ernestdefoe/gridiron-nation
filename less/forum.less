@@ -239,11 +239,13 @@ body,
   // the themed nav menu, tap to switch view".
   .App-titleControl {
     // Wider so longer conference names ("Southeastern Conference",
-    // "Atlantic Coast Conference") don't truncate. Capped at 92vw so it
-    // never overflows narrow phones; margin-left stays half the width to
-    // keep it centered under the header.
-    width: min(340px, 92vw) !important;
-    margin-left: calc(min(340px, 92vw) / -2) !important;
+    // "Atlantic Coast Conference") don't truncate. Fixed px (not a CSS
+    // min()/vw) on purpose: less.php evaluates min() with its own function
+    // and errors on mixed px/vw units, which breaks the whole forum build.
+    // 320px stays within the narrowest phones; margin-left is half the
+    // width so it stays centered under the header.
+    width: 320px !important;
+    margin-left: -160px !important;
     font-family: 'DM Sans', sans-serif;
     font-weight: 700;
 
@@ -2408,10 +2410,11 @@ a.GN-online-row {
   gap: 1.5rem;
   // Wider content area on desktop so the showcase cards get more room
   // (cards fill .Page-content = container − sidebar − gap). Overrides
-  // core's narrower `.container` cap; capped at 95vw so it never reaches
-  // the viewport edges, and only meaningful above the column-flip
-  // breakpoint (≤900px the container is full-width single-column).
-  max-width: min(1360px, 95vw);
+  // core's narrower `.container` cap. Fixed px (not a CSS min()/vw): the
+  // theme is compiled by less.php, whose built-in min() errors on mixed
+  // px/vw units and breaks the build. max-width only caps, so narrower
+  // viewports are unaffected; `.container`'s own padding keeps side gaps.
+  max-width: 1360px;
 }
 
 .IndexPage .Page-content {
