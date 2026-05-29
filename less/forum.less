@@ -994,17 +994,19 @@ body,
 }
 
 // ── Tags page grid — keep wide conference glyphs off the tile title ─────────
-// flarum/tags renders each tile with an <i class="TagTile-icon"> right before
-// the tag name. The custom conference icons are far wider than a square FA
-// glyph, so the default fixed icon box lets the wordmark bleed into the
-// heading. Let the icon box size to its glyph and add a real gap.
-.TagTile {
-  .TagTile-icon {
-    width: auto;
-    min-width: 1.5em;
-    margin-right: 14px;
-    text-align: center;
-  }
+// flarum/tags renders each tile with an <i class="TagTile-icon"> before the
+// tag name. The custom conference icons (ACC/B1G/Pac12/SBC) are far wider than
+// a square FA glyph, so the wordmark bleeds into the heading. !important is
+// required because flarum/tags' own .TagTile-icon CSS loads after this theme
+// and otherwise wins (same load-order issue as the tag pills). Spacing only —
+// we deliberately do NOT touch float/display, so the tile layout is untouched
+// and the wide glyph just gets a generous gap before the title.
+.TagTile .TagTile-icon,
+.TagTile .TagIcon {
+  width: auto !important;
+  min-width: 1.6em;
+  margin-right: 22px !important;
+  text-align: center;
 }
 
 // ── Tag nav list / title-control bottom sheet ───────────────────────────────
