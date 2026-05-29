@@ -2537,12 +2537,12 @@ a.GN-online-row {
 .GN-discussionHero-icons {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 32px;
   max-width: 50vw;
   overflow: visible;
 
   @media (max-width: 767px) {
-    gap: 10px;
+    gap: 18px;
     max-width: 35vw;
   }
 }
@@ -2553,6 +2553,11 @@ a.GN-online-row {
   justify-content: center;
   font-size: clamp(56px, 10vw, 120px);
   line-height: 1;
+  // Reserve a column per glyph (relative to its own font-size) and center
+  // it, so a wide wordmark glyph's ink can't bleed past its box into the
+  // neighbouring decoration icon. Pairs with the larger `gap` below.
+  min-width: 1.3em;
+  flex: 0 0 auto;
 
   // Two opacity strategies, picked at @supports time:
   //   1. Modern: color-mix blends --gn-deco-color (or white) toward
@@ -2575,9 +2580,12 @@ a.GN-online-row {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
 }
 
-// Two-icon layout adjusts placement to keep both glyphs readable.
+// Two-icon layout adjusts placement to keep both glyphs readable. Wider gap
+// here than the single-icon case: two big wordmark glyphs side by side need
+// real separation so their ink doesn't visually overlap (the min-width column
+// on .GN-discussionHero-icon above does the rest).
 .GN-discussionHero-icons[data-icon-count='2'] {
-  gap: 22px;
+  gap: 44px;
   .GN-discussionHero-icon { font-size: clamp(44px, 7.5vw, 88px); }
 }
 
