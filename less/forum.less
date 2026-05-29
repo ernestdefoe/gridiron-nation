@@ -2440,13 +2440,16 @@ a.GN-online-row {
     flex-basis: 320px;
   }
 
-  .Page:not(.IndexPage) .Page-sidebar .Button.hasIcon {
+  // Exclude the primary "Start a Discussion" button (.Button--primary):
+  // these flex/icon/wrap tweaks are for the nav LINKS only. Without the
+  // exclusion the primary button's label wrapped to two lines.
+  .Page:not(.IndexPage) .Page-sidebar .Button.hasIcon:not(.Button--primary) {
     display: flex !important;
     align-items: center;
     gap: 12px;
   }
 
-  .Page:not(.IndexPage) .Page-sidebar .Button-icon {
+  .Page:not(.IndexPage) .Page-sidebar .Button:not(.Button--primary) .Button-icon {
     width: 2.6em !important;
     min-width: 2.6em;
     margin: 0 !important;
@@ -2454,7 +2457,7 @@ a.GN-online-row {
     flex: 0 0 auto;
   }
 
-  .Page:not(.IndexPage) .Page-sidebar .Button-label {
+  .Page:not(.IndexPage) .Page-sidebar .Button:not(.Button--primary) .Button-label {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
