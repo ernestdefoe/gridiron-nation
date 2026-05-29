@@ -1552,20 +1552,16 @@ body,
   border-radius: @gn-radius;
 }
 
-// ── Discussion right column (controls + scrubber) — wider (requested) ───────
-// The Reply/Follow/Share controls and the post-stream scrubber share the
-// DiscussionPage-nav column and are aligned, so widening the COLUMN keeps
-// them lined up while giving the scrubber more room. Width only — never pad
-// the scrubber's inner rows/track: its slider handle is positioned by JS from
-// the track HEIGHT, so internal padding pushes it out of bounds (the
-// regression we reverted). Desktop only.
+// ── Discussion scrubber — centered in its column ────────────────────────────
+// Earlier experiment widened the whole DiscussionPage-nav column to 340px,
+// which looked unbalanced (reverted). Instead leave the column at its default
+// width and just center the scrubber horizontally inside it. Never pad the
+// scrubber's inner rows/track — its slider handle is positioned by JS from the
+// track HEIGHT, so internal padding pushes it out of bounds. Desktop only.
 @media (min-width: 768px) {
-  .DiscussionPage-nav {
-    width: 340px;
-    flex-shrink: 0;
-  }
   .DiscussionPage-nav .PostStreamScrubber {
-    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
