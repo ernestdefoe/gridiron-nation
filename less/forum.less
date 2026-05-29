@@ -948,25 +948,67 @@ body,
 .TagLabel {
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.82rem;
-  padding: 4px 12px;
+  font-size: 0.85rem;
+  // Roomier pills so the wide conference glyphs (see below) have space
+  // to breathe instead of crowding the label text.
+  padding: 5px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 
   /*
    * Allow FA icons inside core TagLabel (Flarum's tag-icon support, set
    * per-tag in the admin panel) to render at a readable size. Without
    * this rule the icon inherits the label font-size (~13 px), which is
    * too small to recognize a helmet / football glyph at card scale.
+   *
+   * The conference icons are custom FA glyphs with wide wordmark aspect
+   * ratios (ACC / B1G / SBC …). A fixed 1em icon box clips them into the
+   * label text, so let the box size to the glyph and rely on the flex
+   * `gap` above for separation rather than a margin on a too-narrow box.
    */
   i, .icon {
     font-size: 1rem;
     line-height: 1;
-    margin-right: 4px;
+    width: auto;
+    margin-right: 0;
+    flex: 0 0 auto;
+    text-align: center;
   }
 }
 
 .TagsLabel,
 .DiscussionListItem-tags .TagLabel {
   border-radius: 999px;
+}
+
+// ── Tags page grid — keep wide conference glyphs off the tile title ─────────
+// flarum/tags renders each tile with an <i class="TagTile-icon"> right before
+// the tag name. The custom conference icons are far wider than a square FA
+// glyph, so the default fixed icon box lets the wordmark bleed into the
+// heading. Let the icon box size to its glyph and add a real gap.
+.TagTile {
+  .TagTile-icon {
+    width: auto;
+    min-width: 1.5em;
+    margin-right: 14px;
+    text-align: center;
+  }
+}
+
+// ── Tag nav list / title-control bottom sheet ───────────────────────────────
+// Same wide-glyph problem in the SelectDropdown + sidebar tag links: the
+// menu-item icon (`.Button-icon`, or the bare `.icon` flarum/tags emits) gets
+// a narrow fixed width for vertical alignment, so "B1G"/"SBC"/etc. sit on top
+// of the label. Widen the box and add breathing room.
+.TagLinkButton .Button-icon,
+.Dropdown-menu .Button-icon,
+.IndexPage-nav .Button-icon,
+.item-tags .Button-icon {
+  width: auto;
+  min-width: 1.5em;
+  margin-right: 12px;
+  text-align: center;
 }
 
 // ── Discussion list — GridIron Nation-native showcase cards ─────────────────
@@ -1478,6 +1520,22 @@ body,
 .DiscussionComposer,
 .DiscussionList-header .Button--primary {
   border-radius: @gn-radius;
+}
+
+// ── Post stream scrubber — more internal breathing room ─────────────────────
+// The floating scrubber (Original Post ▲ … ▼ Now) packs its label rows and the
+// timeline track tight against the panel chrome. Add internal padding so the
+// "Original Post / N of M posts / month" and "Now" rows aren't flush to the
+// edges, and separate the scrollbar track from them vertically.
+.PostStreamScrubber {
+  .Scrubber-first,
+  .Scrubber-last {
+    padding: 10px 14px;
+  }
+
+  .Scrubber-scrollbar {
+    margin: 10px 0;
+  }
 }
 
 // ── Post stream — playcard chrome (NO grid overrides) ────────────────────────

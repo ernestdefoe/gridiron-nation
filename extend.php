@@ -34,7 +34,9 @@ use Flarum\Api\Resource\ForumResource;
 use Flarum\Api\Schema;
 use Flarum\Discussion\Discussion;
 use Flarum\Extend;
+use Flarum\Post\Post;
 use Flarum\User\User;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
 $extenders = [
     // ── Frontend ──────────────────────────────────────────────────────────────
@@ -102,6 +104,37 @@ $extenders = [
     // username / avatarUrl — so we don't bloat the bootstrap payload
     // with full user resources. Falls back to null on a forum with no
     // users yet (fresh install during onboarding).
+    // ── Forum payload — scoreboard counts (members / topics / posts) ─────────
+    // The hero scoreboard (GridIronHero.js) reads these three counts from
+    // `app.forum.attribute(...)`. They are NOT core forum attributes, so
+    // without this extender the scoreboard renders zeros. Cached for five
+    // minutes and memoized per request so a full page load resolves all
+    // three from one COUNT trio rather than re-counting per field.
+    (new Extend\ApiResource(ForumResource::class))
+        ->fields(function () {
+            $counts = function (): array {
+                static $memo = null;
+                if ($memo !== null) {
+                    return $memo;
+                }
+                return $memo = resolve(CacheRepository::class)->remember(
+                    'gridiron-nation.scoreboard_counts',
+                    300,
+                    fn () => [
+                        'users'       => (int) User::query()->count(),
+                        'discussions' => (int) Discussion::query()->count(),
+                        'posts'       => (int) Post::query()->count(),
+                    ]
+                );
+            };
+
+            return [
+                Schema\Integer::make('userCount')->get(fn () => $counts()['users']),
+                Schema\Integer::make('discussionCount')->get(fn () => $counts()['discussions']),
+                Schema\Integer::make('postCount')->get(fn () => $counts()['posts']),
+            ];
+        }),
+
     (new Extend\ApiResource(ForumResource::class))
         ->fields(fn () => [
             Schema\Arr::make('gridironNewestMember')
