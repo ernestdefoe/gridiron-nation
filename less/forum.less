@@ -2649,6 +2649,46 @@ a.GN-online-row {
   z-index: 2;
 }
 
+// ── Discussion hero layout: title above the pills, left-aligned, prominent ──
+// Core renders the `badges` item (priority 10) before the <h1 .DiscussionHero-
+// title>, and Hero centers its content. Stack the items as a left-aligned
+// column, pull the title to the top via `order`, and enlarge it. The deco <li>
+// is absolutely positioned (right:10px) so it's out of this flow.
+.DiscussionHero-items {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 12px;
+}
+
+.DiscussionHero-items > .item-title {
+  order: -1;
+  margin: 0;
+  width: 100%;
+}
+
+.DiscussionHero-title {
+  // flarum/tags sets this to `display: inline` (so the title sits inline with
+  // the badges in its default layout). We stack them, so force block — our
+  // rule loads after flarum/tags, no !important needed.
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(1.9rem, 3.5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.DiscussionHero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+  margin: 0;
+}
+
 // ── TopRecruitsWidget — round the photo into the same circle as the
 //    position-badge fallback so a CFBD payload with photos looks
 //    identical in shape to one without. 38×38 keeps it inline with the
