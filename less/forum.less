@@ -2435,7 +2435,13 @@ a.GN-online-row {
 // ever cut off. Excludes the IndexPage, whose .Page-sidebar is the 280px
 // widget stack handled above.
 @media (min-width: 768px) {
-  .Page:not(.IndexPage) .Page-sidebar {
+  // Scope strictly to the IndexSidebar nav-list (.IndexPage-nav). A bare
+  // `.Page:not(.IndexPage) .Page-sidebar` also matches the DISCUSSION page's
+  // right column (Reply/Follow/Share + scrubber), which broke those controls.
+  // `:has(.IndexPage-nav)` widens only the sidebar that actually holds the
+  // nav list, and the button tweaks below live under .IndexPage-nav so the
+  // discussion controls (.DiscussionPage-nav) are never touched.
+  .Page:not(.IndexPage) .Page-sidebar:has(.IndexPage-nav) {
     width: 320px;
     flex-basis: 320px;
   }
@@ -2443,13 +2449,13 @@ a.GN-online-row {
   // Exclude the primary "Start a Discussion" button (.Button--primary):
   // these flex/icon/wrap tweaks are for the nav LINKS only. Without the
   // exclusion the primary button's label wrapped to two lines.
-  .Page:not(.IndexPage) .Page-sidebar .Button.hasIcon:not(.Button--primary) {
+  .Page:not(.IndexPage) .IndexPage-nav .Button.hasIcon:not(.Button--primary) {
     display: flex !important;
     align-items: center;
     gap: 12px;
   }
 
-  .Page:not(.IndexPage) .Page-sidebar .Button:not(.Button--primary) .Button-icon {
+  .Page:not(.IndexPage) .IndexPage-nav .Button:not(.Button--primary) .Button-icon {
     width: 2.6em !important;
     min-width: 2.6em;
     margin: 0 !important;
@@ -2457,7 +2463,7 @@ a.GN-online-row {
     flex: 0 0 auto;
   }
 
-  .Page:not(.IndexPage) .Page-sidebar .Button:not(.Button--primary) .Button-label {
+  .Page:not(.IndexPage) .IndexPage-nav .Button:not(.Button--primary) .Button-label {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
