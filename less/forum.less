@@ -2560,8 +2560,9 @@ a.GN-online-row {
 .DiscussionHero-items > li:has(> .GN-discussionHero-icons),
 .DiscussionHero-items > .item-gn-hero-deco-icons {
   position: absolute;
-  // Small 10px inset from the hero's right edge.
-  right: 10px;
+  // Shifted further right (was a 10px inset) so the watermark sits hard
+  // against / slightly past the hero's right edge.
+  right: -24px;
   top: 50%;
   transform: translateY(-50%);
   list-style: none;
@@ -2574,7 +2575,7 @@ a.GN-online-row {
     display: none;
   }
   @media (max-width: 767px) {
-    right: 10px;
+    right: 0;
   }
 }
 
