@@ -2389,6 +2389,12 @@ a.GN-online-row {
   flex-direction: row-reverse;
   align-items: flex-start;
   gap: 1.5rem;
+  // Wider content area on desktop so the showcase cards get more room
+  // (cards fill .Page-content = container − sidebar − gap). Overrides
+  // core's narrower `.container` cap; capped at 95vw so it never reaches
+  // the viewport edges, and only meaningful above the column-flip
+  // breakpoint (≤900px the container is full-width single-column).
+  max-width: min(1360px, 95vw);
 }
 
 .IndexPage .Page-content {
