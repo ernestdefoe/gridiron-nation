@@ -2427,6 +2427,40 @@ a.GN-online-row {
   top: 1rem;
 }
 
+// ── Desktop left nav sidebar (Members / Tags / etc.) ────────────────────────
+// On non-index pages the IndexSidebar shows as a left nav at the core default
+// width, which truncates long conference names ("Southeastern Conference").
+// Widen it, give every row a fixed-width icon column so the labels line up
+// regardless of glyph width, and let labels wrap as a safety net so nothing is
+// ever cut off. Excludes the IndexPage, whose .Page-sidebar is the 280px
+// widget stack handled above.
+@media (min-width: 768px) {
+  .Page:not(.IndexPage) .Page-sidebar {
+    width: 320px;
+    flex-basis: 320px;
+  }
+
+  .Page:not(.IndexPage) .Page-sidebar .Button.hasIcon {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .Page:not(.IndexPage) .Page-sidebar .Button-icon {
+    width: 2.6em !important;
+    min-width: 2.6em;
+    margin: 0 !important;
+    text-align: center;
+    flex: 0 0 auto;
+  }
+
+  .Page:not(.IndexPage) .Page-sidebar .Button-label {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
+
 // Hide IndexSidebar's visible chrome — keep it mounted so GNHeroNav can
 // still read from its navItems(). The newDiscussion button inside it is
 // also what GNComposerTrigger delegates clicks to (see open() in the
