@@ -2668,10 +2668,12 @@ a.GN-online-row {
   width: 100%;
 }
 
-.DiscussionHero-title {
-  // flarum/tags sets this to `display: inline` (so the title sits inline with
-  // the badges in its default layout). We stack them, so force block — our
-  // rule loads after flarum/tags, no !important needed.
+// Selector is intentionally specific (.DiscussionHero h1.DiscussionHero-title,
+// 0-2-1): core ships `.Hero h1 { font-weight: normal; font-size: 22px }` at
+// 0-1-1, which beats a plain `.DiscussionHero-title` (0-1-0) regardless of
+// source order — so font-size/font-weight here were silently losing. flarum/
+// tags also sets `display: inline`; this wins over both.
+.DiscussionHero h1.DiscussionHero-title {
   display: block;
   font-family: 'DM Sans', sans-serif;
   font-size: clamp(2.4rem, 5vw, 3.75rem);
