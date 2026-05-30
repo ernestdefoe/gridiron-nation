@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@ernestdefoe/gridiron-nation",
-  "version": "1.0.0",
+  "version": "2.2.1",
   "scripts": {
     "dev": "webpack --mode development --watch",
     "build": "webpack --mode production"
