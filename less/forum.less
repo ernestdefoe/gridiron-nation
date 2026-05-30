@@ -2513,9 +2513,15 @@ a.GN-online-row {
 // ── flarum/messages page nav ────────────────────────────────────────────────
 // flarum/messages renders its nav (the "Send a Message" button + the
 // IndexSidebar destinations: All Discussions / Messages / Groups / Picks /
-// Tags / …) as `.MessagesPage-nav` (NOT `.IndexPage-nav`). By default its items
-// wrap into a multi-column grid that reads as "bunched up". Force a single,
-// full-width vertical column so every destination is its own row.
+// Tags / …) as `.MessagesPage-nav` (carries BOTH `.IndexPage-nav` and
+// `.MessagesPage-nav`). The destination links don't sit directly in the nav's
+// `> ul > li` — they live inside a nested SelectDropdown (`.App-titleControl
+// .Dropdown--select`) whose toggle button core hides and whose `.Dropdown-menu`
+// is shown inline. That menu inherits core's escaped-title-control sizing
+// (fixed 200px width + absolute/column flow), so the 7 items read as a bunched
+// multi-column block. Below we (1) neutralize the SelectDropdown's title-control
+// chrome on this page and (2) force its inline menu into a single full-width
+// vertical column so every destination is its own row.
 .MessagesPage-nav,
 .MessagesPage-nav > ul {
   display: block !important;
@@ -2535,13 +2541,65 @@ a.GN-online-row {
   margin: 0 0 6px;
 }
 
-.MessagesPage-nav .Button {
-  display: flex;
-  width: 100%;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
+// The nested SelectDropdown that holds every destination. Strip the
+// title-control's fixed width / centering / floating-menu positioning so it
+// behaves as a plain inline list container that fills the sidebar.
+.MessagesPage-nav .App-titleControl,
+.MessagesPage-nav .Dropdown--select {
+  position: static !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  left: auto !important;
+}
+
+// Hide the dropdown's toggle button — every destination is already laid out as
+// a vertical list below, so the "current view" toggle is redundant here.
+.MessagesPage-nav .App-titleControl > .Dropdown-toggle,
+.MessagesPage-nav .Dropdown--select > .Dropdown-toggle {
+  display: none !important;
+}
+
+// The inline menu that actually contains the destination items. Force it static
+// and full-width, and kill any column / multi-column / flex flow so the items
+// stack vertically instead of bunching.
+.MessagesPage-nav .Dropdown-menu,
+.MessagesPage-nav .App-titleControl .Dropdown-menu,
+.MessagesPage-nav .Dropdown--select .Dropdown-menu {
+  display: block !important;
+  position: static !important;
+  float: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  column-count: 1 !important;
+  columns: auto !important;
+  flex-wrap: nowrap !important;
+}
+
+.MessagesPage-nav .Dropdown-menu > li {
+  display: block !important;
+  float: none !important;
+  width: 100% !important;
+  margin: 0 0 6px !important;
+}
+
+.MessagesPage-nav .Button,
+.MessagesPage-nav .Dropdown-menu > li > .Button,
+.MessagesPage-nav .Dropdown-menu > li > a {
+  display: flex !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 10px !important;
+  text-align: left !important;
 }
 
 // On narrow viewports — widgets stack BELOW the discussion list.
