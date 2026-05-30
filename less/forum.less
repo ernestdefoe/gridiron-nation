@@ -595,7 +595,11 @@ body,
   align-items: stretch;
   justify-content: space-around;
   gap: 0;
-  max-width: 580px;
+  // Headroom so the NEWEST slot can grow to fit a longer display name
+  // (see .GN-newestWrap flex + the name max-width below) instead of
+  // truncating it. The panel is content-sized and stays centred in the
+  // hero, so it only widens toward this cap when a name actually needs it.
+  max-width: 720px;
   padding: 16px 8px;
   background:
     linear-gradient(180deg, rgba(8, 10, 18, 0.92) 0%, rgba(4, 6, 12, 0.96) 100%);
@@ -768,7 +772,10 @@ body,
     font-weight: 700;
     text-shadow: none;
     letter-spacing: 0;
-    max-width: 120px;
+    // Responsive cap: roomy on desktop so most real display names fit
+    // without truncating, narrowing on small screens so the scoreboard row
+    // doesn't overflow. Ellipsis still catches the rare extreme-length name.
+    max-width: clamp(120px, 18vw, 200px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -809,6 +816,9 @@ body,
     &-value { font-size: 1.3rem; }
     &-label { font-size: 0.55rem; letter-spacing: 0.12em; }
   }
+  // Equal slot share on phones — the desktop name-slot growth would crowd
+  // the numeric slots in the narrow row.
+  .GN-newestWrap { flex: 1 1 0; }
 }
 
 // ── Interactive Online slot wrap ────────────────────────────────────────────
@@ -830,6 +840,10 @@ body,
   text-decoration: none;
   color: inherit;
   transition: background 0.15s @gn-ease;
+  // Names need more room than the 2–3 digit numeric slots, so let this slot
+  // grow wider than its siblings. Reset to an equal share on small screens
+  // (see the 480px media query) so the mobile row stays balanced.
+  flex: 1.6 1 0;
 
   &:hover, &:focus {
     background: rgba(255, 255, 255, 0.04);
