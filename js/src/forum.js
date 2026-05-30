@@ -18,6 +18,45 @@ import GNComposerTrigger from './forum/components/GNComposerTrigger';
 import GNDiscussionCard  from './forum/components/GNDiscussionCard';
 
 /**
+ * Measure the rightmost hero-decoration glyph's real ink overflow and expose
+ * it as the `--gn-deco-inset` custom property on the icons container, so the
+ * CSS can pull the glyph in by exactly the amount it bleeds past its box.
+ *
+ * Why this is needed: fa-kit team glyphs render at wildly different widths —
+ * a wordmark like `fa-lsu` is ~3x its constrained icon box, while a compact
+ * logo like `fa-alabama-athletics-logo-svg` is smaller than the box. The
+ * glyph is centred in its box, so it overflows `(naturalWidth - boxWidth)/2`
+ * on each side. Insetting the rightmost glyph by its right overflow keeps
+ * wide wordmarks fully on-screen AND lets compact logos sit near the edge —
+ * a single fixed margin can't do both.
+ *
+ * The natural width is read by cloning the <i> into an unconstrained
+ * inline-block (its box collapses to the glyph's true advance). Fonts must be
+ * loaded first, or the glyph measures at its fallback width.
+ */
+function gnMeasureDecoInset(container) {
+  if (!container || !container.querySelectorAll) return;
+  const icons = container.querySelectorAll('.GN-discussionHero-icon');
+  if (!icons.length) return;
+  const glyph = icons[icons.length - 1].querySelector('i');
+  if (!glyph) return;
+
+  const clone = glyph.cloneNode(true);
+  Object.assign(clone.style, {
+    position: 'absolute', left: '-9999px', top: '0', display: 'inline-block',
+    width: 'auto', minWidth: '0', maxWidth: 'none', margin: '0', padding: '0',
+    lineHeight: '1', fontSize: getComputedStyle(glyph).fontSize,
+  });
+  document.body.appendChild(clone);
+  const naturalW = clone.getBoundingClientRect().width;
+  clone.remove();
+
+  const boxW = glyph.getBoundingClientRect().width;
+  const inset = Math.max(0, (naturalW - boxW) / 2);
+  container.style.setProperty('--gn-deco-inset', inset.toFixed(1) + 'px');
+}
+
+/**
  * Forum-frontend wiring.
  *
  * Layout (PageStructure-rendered, top to bottom):
@@ -182,6 +221,26 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
           'aria-hidden': 'true',
           'data-icon-count': picked.length,
           style: { '--gn-deco-opacity': (opacity / 100).toFixed(2) },
+          oncreate(vnode) {
+            const run = () => gnMeasureDecoInset(vnode.dom);
+            // Glyph has its real width only once the kit font is loaded.
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
+            else run();
+            // Font-size is viewport-clamped, so the overflow scales — recompute
+            // on resize. Debounced; listener removed in onremove.
+            vnode.state.gnResize = () => {
+              clearTimeout(vnode.state.gnTimer);
+              vnode.state.gnTimer = setTimeout(run, 120);
+            };
+            window.addEventListener('resize', vnode.state.gnResize);
+          },
+          // Re-measure when the hero re-renders for a different discussion
+          // (Mithril reuses this DOM node, so oncreate won't fire again).
+          onupdate(vnode) { gnMeasureDecoInset(vnode.dom); },
+          onremove(vnode) {
+            if (vnode.state.gnResize) window.removeEventListener('resize', vnode.state.gnResize);
+            clearTimeout(vnode.state.gnTimer);
+          },
         },
         picked.map((tag, i) =>
           m('span.GN-discussionHero-icon', {

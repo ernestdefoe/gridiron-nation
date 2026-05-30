@@ -2702,11 +2702,12 @@ a.GN-online-row {
   min-width: 1.3em;
   flex: 0 0 auto;
 
-  // Wide wordmark glyphs (fa-kit team logos) draw ink past their FA advance
-  // box. Inset the rightmost glyph by an em-scaled margin so that overflow
-  // stays inside the hero instead of bleeding off-screen. Only the last icon
-  // is inset, keeping inter-icon spacing intact in the 2-icon layout.
-  &:last-child { margin-inline-end: 1.1em; }
+  // Inset the rightmost glyph by exactly its measured right-side ink overflow
+  // (set per-glyph as --gn-deco-inset by gnMeasureDecoInset in forum.js), so
+  // wide wordmark glyphs stay fully on-screen while compact logo glyphs sit
+  // near the edge. Falls back to 0 before the script runs / if it can't
+  // measure. Only the last icon is inset — inter-icon spacing stays intact.
+  &:last-child { margin-inline-end: var(--gn-deco-inset, 0px); }
 
   // Two opacity strategies, picked at @supports time:
   //   1. Modern: color-mix blends --gn-deco-color (or white) toward
