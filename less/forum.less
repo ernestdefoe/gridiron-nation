@@ -2665,21 +2665,33 @@ a.GN-online-row {
 
 // Keep the stacked layout (nav on top, then the conversation list + thread row
 // below), but collapse the dead space so the content rides as high as possible
-// under the nav. Core's Page--vertical adds a 30px gap + top margins; trim them.
+// under the nav. NOTE: our own `.Page-container` rule hardcodes `gap: 1.5rem`
+// (a direct value, not `var(--gap)`), so overriding the variable does nothing —
+// we have to override the `gap` PROPERTY directly here.
 @media (min-width: 768px) {
-  .MessagesPage.Page--vertical {
-    .Page-container {
-      --gap: 12px;
-    }
-
-    .Page-content {
-      margin-top: 0 !important;
-    }
+  .MessagesPage.Page--vertical .Page-container {
+    gap: 10px !important;
   }
 
-  // Drop the bottom gap under the nav so the content sits right beneath it.
+  .MessagesPage.Page--vertical .Page-content {
+    margin-top: 0 !important;
+  }
+
+  // Kill residual space under the nav: its own margin, and any bottom padding
+  // the inline SelectDropdown menu / last item carries.
   .MessagesPage-nav {
     margin-bottom: 0 !important;
+  }
+  .MessagesPage-nav .Dropdown-menu,
+  .MessagesPage-nav .Dropdown-menu > li:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  // The conversation-list toolbar ("Latest" + refresh) sometimes carries a top
+  // margin that re-opens the gap; zero it so the list rides up too.
+  .MessagesPage-content .IndexPage-toolbar {
+    margin-top: 0 !important;
   }
 }
 
