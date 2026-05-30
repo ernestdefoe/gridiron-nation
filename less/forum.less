@@ -2641,8 +2641,11 @@ a.GN-online-row {
 .DiscussionHero-items > li:has(> .GN-discussionHero-icons),
 .DiscussionHero-items > .item-gn-hero-deco-icons {
   position: absolute;
-  // Shifted right so the watermark sits past the hero's right edge.
-  right: -44px;
+  // Anchored just inside the hero's right edge and right-aligned (see
+  // justify-content on .GN-discussionHero-icons), so wide wordmark glyphs
+  // (fa-kit team logos like fa-lsu) stay fully visible instead of bleeding
+  // off the right of the viewport and getting cut mid-letter.
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
   list-style: none;
@@ -2655,13 +2658,14 @@ a.GN-online-row {
     display: none;
   }
   @media (max-width: 767px) {
-    right: -8px;
+    right: 8px;
   }
 }
 
 .GN-discussionHero-icons {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 32px;
   max-width: 50vw;
   overflow: visible;
@@ -2683,6 +2687,12 @@ a.GN-online-row {
   // neighbouring decoration icon. Pairs with the larger `gap` below.
   min-width: 1.3em;
   flex: 0 0 auto;
+
+  // Wide wordmark glyphs (fa-kit team logos) draw ink past their FA advance
+  // box. Inset the rightmost glyph by an em-scaled margin so that overflow
+  // stays inside the hero instead of bleeding off-screen. Only the last icon
+  // is inset, keeping inter-icon spacing intact in the 2-icon layout.
+  &:last-child { margin-inline-end: 1.1em; }
 
   // Two opacity strategies, picked at @supports time:
   //   1. Modern: color-mix blends --gn-deco-color (or white) toward
