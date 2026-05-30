@@ -2566,6 +2566,17 @@ a.GN-online-row {
   display: none !important;
 }
 
+// Squeeze the last vertical space: drop the content's 15px top margin and trim
+// the horizontal nav strip's 15px top/bottom padding so the list + thread sit
+// as high as possible right under the nav.
+.MessagesPage .Page-content {
+  margin-top: 0 !important;
+}
+.MessagesPage-nav {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+
 // The stadium-ticket message bubbles are themed in the post-chrome block above
 // (shared via `.MessageStream .Post.Message`); nothing else here touches the
 // list/thread layout — it stays as Flarum's default.
