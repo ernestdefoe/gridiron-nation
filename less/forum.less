@@ -2558,6 +2558,14 @@ a.GN-online-row {
   border-radius: 0 !important;
 }
 
+// Collapse the MessagesPageHero (~134px). In this dark theme it renders as an
+// empty band above the nav and just shoves the whole conversation down. With
+// the nav now a short horizontal strip, hiding the hero lets the nav + list +
+// thread ride up to the top of the page.
+.MessagesPage .Page-hero {
+  display: none !important;
+}
+
 // The stadium-ticket message bubbles are themed in the post-chrome block above
 // (shared via `.MessageStream .Post.Message`); nothing else here touches the
 // list/thread layout — it stays as Flarum's default.
