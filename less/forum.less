@@ -476,7 +476,12 @@ body,
   padding: 2.5rem 0 1.5rem;
   border-radius: 0;
   position: relative;
-  overflow: hidden;
+  // overflow stays VISIBLE so the Online popover (.GN-onlinePopover), which is
+  // absolutely positioned and opens downward past the hero's bottom edge, isn't
+  // clipped when more than ~2 members are online. The decorative ::before
+  // (inset:0) and ::after (bottom 6px band) sit within the box and don't spill,
+  // so dropping the clip has no visual cost here.
+  overflow: visible;
 
   // ── Football pattern overlay ─────────────────────────────────────────
   // Three stylized footballs (oval + laces) tile across the hero at
@@ -855,7 +860,9 @@ body,
   border-radius: @gn-radius-md;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 4px 8px rgba(0, 0, 0, 0.10);
   padding: 6px;
-  z-index: 50;
+  // High enough to sit above the pill nav row + page content the popover now
+  // overlaps once it extends past the (no-longer-clipping) hero bottom edge.
+  z-index: 200;
   text-align: left;
 
   // Arrow pointing back up at the slot, centered now that the
