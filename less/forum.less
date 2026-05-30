@@ -2577,7 +2577,10 @@ a.GN-online-row {
   display: block !important;
 }
 .MessagesPage.Page--vertical .Page-sidebar {
-  margin-top: 0 !important;
+  // Small top margin so the nav (and its "Send a Message" button) clears the
+  // fixed ~58px header instead of tucking under it — but far less than the 30px
+  // Page--cols adds.
+  margin-top: 16px !important;
   margin-bottom: 0 !important;
 }
 
