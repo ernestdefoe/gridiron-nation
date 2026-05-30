@@ -1763,30 +1763,13 @@ body,
   box-shadow: @gn-shadow-md;
 }
 
-// ── Messages: ticket chrome tweaks + pull the thread up ──────────────────────
+// ── Messages: ticket chrome spacing ──────────────────────────────────────────
 // The ticket chrome itself is shared via the selector in the post block above.
-// These are the message-only adjustments on top of it.
+// The only message-only tweak we keep is breathing room between consecutive
+// ticket-messages (posts get this from core's stream gap; the DM stream
+// doesn't). Layout/positioning is left to Flarum's default.
 .MessageStream .Post.Message {
-  // Breathing room between consecutive ticket-messages (posts get this from
-  // core's stream gap; the DM stream doesn't, so add it here).
   margin-bottom: 12px;
-}
-
-// The conversation header ("tester" + avatar) sits too low with core's 16px
-// margin/padding stack. Trim it so the username + first message ride up
-// closer to the top of the dialog pane.
-.DialogSection-header {
-  margin-bottom: 12px !important;
-  padding-bottom: 12px !important;
-}
-
-// Top-align the stream so a short conversation sits just under the header
-// instead of floating against the bottom of the tall scroll area. Drop the
-// leading transparent slice of core's fade mask so there's no dead gap above
-// the first message.
-.MessageStream {
-  justify-content: flex-start;
-  margin-top: 0;
 }
 
 // Composer
@@ -2550,159 +2533,12 @@ a.GN-online-row {
 }
 
 // ── flarum/messages page nav ────────────────────────────────────────────────
-// flarum/messages renders its nav (the "Send a Message" button + the
-// IndexSidebar destinations: All Discussions / Messages / Groups / Picks /
-// Tags / …) as `.MessagesPage-nav` (carries BOTH `.IndexPage-nav` and
-// `.MessagesPage-nav`). The destination links don't sit directly in the nav's
-// `> ul > li` — they live inside a nested SelectDropdown (`.App-titleControl
-// .Dropdown--select`) whose toggle button core hides and whose `.Dropdown-menu`
-// is shown inline. That menu inherits core's escaped-title-control sizing
-// (fixed 200px width + absolute/column flow), so the 7 items read as a bunched
-// multi-column block. Below we (1) neutralize the SelectDropdown's title-control
-// chrome on this page and (2) force its inline menu into a single full-width
-// vertical column so every destination is its own row.
-.MessagesPage-nav,
-.MessagesPage-nav > ul {
-  display: block !important;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: visible;
-  white-space: normal;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.MessagesPage-nav > ul > li {
-  display: block !important;
-  float: none !important;
-  width: 100% !important;
-  margin: 0 0 2px;
-}
-
-// The nested SelectDropdown that holds every destination. Strip the
-// title-control's fixed width / centering / floating-menu positioning so it
-// behaves as a plain inline list container that fills the sidebar.
-.MessagesPage-nav .App-titleControl,
-.MessagesPage-nav .Dropdown--select {
-  position: static !important;
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  left: auto !important;
-}
-
-// Hide the dropdown's toggle button — every destination is already laid out as
-// a vertical list below, so the "current view" toggle is redundant here.
-.MessagesPage-nav .App-titleControl > .Dropdown-toggle,
-.MessagesPage-nav .Dropdown--select > .Dropdown-toggle {
-  display: none !important;
-}
-
-// The inline menu that actually contains the destination items. Force it static
-// and full-width, and kill any column / multi-column / flex flow so the items
-// stack vertically instead of bunching. Also drop core's solid dropdown
-// background so it reads as a plain sidebar nav, not a heavy floating panel.
-.MessagesPage-nav .Dropdown-menu,
-.MessagesPage-nav .App-titleControl .Dropdown-menu,
-.MessagesPage-nav .Dropdown--select .Dropdown-menu {
-  display: block !important;
-  position: static !important;
-  float: none !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: visible !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  column-count: 1 !important;
-  columns: auto !important;
-  flex-wrap: nowrap !important;
-}
-
-.MessagesPage-nav .Dropdown-menu > li {
-  display: block !important;
-  float: none !important;
-  width: 100% !important;
-  margin: 0 0 2px !important;
-}
-
-// Destination items (All Discussions / Messages / Groups / Picks / …): full-
-// width, left-aligned rows that highlight on hover like a normal sidebar nav.
-.MessagesPage-nav .Dropdown-menu > li > .Button,
-.MessagesPage-nav .Dropdown-menu > li > a {
-  display: flex !important;
-  width: 100% !important;
-  justify-content: flex-start !important;
-  align-items: center !important;
-  gap: 10px !important;
-  text-align: left !important;
-  padding: 5px 12px !important;
-  border-radius: @gn-radius-sm !important;
-
-  &:hover,
-  &:focus,
-  &.active {
-    background: rgba(@gn-primary, 0.08) !important;
-  }
-}
-
-// "Send a Message" primary button: keep it a compact, self-sized button at the
-// top of the nav — NOT a full-width banner. (The earlier blanket width:100% on
-// every .Button in this nav is what ballooned it.)
-.MessagesPage-nav .MessagesPage-newMessage,
-.MessagesPage-nav .item-newMessage > .Button {
-  display: inline-flex !important;
-  width: auto !important;
-  align-self: flex-start;
-  margin: 0 0 6px !important;
-}
-
-// The MessagesPageHero is a ~134px crimson banner that sits above the nav and
-// shoves the whole conversation down the page. It's redundant on a DM screen —
-// the nav already highlights "Messages" and the open thread shows the dialog
-// title — so collapse it to reclaim that vertical space and let the nav +
-// messages ride up near the top.
-.MessagesPage .Page-hero {
-  display: none !important;
-}
-
-// Keep the stacked layout (nav on top, then the conversation list + thread row
-// below), but collapse the dead space so the content rides as high as possible
-// under the nav. NOTE: our own `.Page-container` rule hardcodes `gap: 1.5rem`
-// (a direct value, not `var(--gap)`), so overriding the variable does nothing —
-// we have to override the `gap` PROPERTY directly here.
-@media (min-width: 768px) {
-  .MessagesPage.Page--vertical .Page-container {
-    gap: 10px !important;
-  }
-
-  .MessagesPage.Page--vertical .Page-content {
-    margin-top: 0 !important;
-  }
-
-  // Kill residual space under the nav: its own margin, and any bottom padding
-  // the inline SelectDropdown menu / last item carries.
-  .MessagesPage-nav {
-    margin-bottom: 0 !important;
-  }
-  .MessagesPage-nav .Dropdown-menu,
-  .MessagesPage-nav .Dropdown-menu > li:last-child {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
-  }
-
-  // The conversation-list toolbar ("Latest" + refresh) sometimes carries a top
-  // margin that re-opens the gap; zero it so the list rides up too.
-  .MessagesPage-content .IndexPage-toolbar {
-    margin-top: 0 !important;
-  }
-}
+// We intentionally DON'T restyle the messages nav. flarum/messages renders the
+// page with Flarum's default `Page--vertical` layout — a horizontal nav strip
+// (Send a Message + destinations) above the "Messages" hero and the list/thread
+// row. That default is the desired look, so we leave it untouched here and only
+// theme the message bubbles themselves (the stadium-ticket chrome lives in the
+// post-chrome block above, shared via `.MessageStream .Post.Message`).
 
 // On narrow viewports — widgets stack BELOW the discussion list.
 //
