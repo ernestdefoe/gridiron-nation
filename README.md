@@ -236,6 +236,13 @@ a downgrade picks them back up cleanly.
 
 ---
 
+## Support
+
+Questions, bug reports, and feature requests:
+
+- **Support forum:** https://ernestdefoe.online
+- **Issues:** https://github.com/ernestdefoe/gridiron-nation/issues
+
 ## License
 
 MIT © [ernestdefoe](https://github.com/ernestdefoe)
