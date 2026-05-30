@@ -2566,9 +2566,24 @@ a.GN-online-row {
   display: none !important;
 }
 
-// Squeeze the last vertical space: drop the content's 15px top margin and trim
-// the horizontal nav strip's 15px top/bottom padding so the list + thread sit
-// as high as possible right under the nav.
+// The big gap only appears at WIDE (desktop) widths: there Flarum switches
+// `.Page-container` to a flex COLUMN (via Page--cols + Page--vertical), and that
+// column layout opens a large gap between the nav and the content. At narrow
+// widths the container is plain `display:block` and stacks tightly (verified by
+// measurement). Force that block stacking at every width so desktop behaves the
+// same — nav strip on top, content immediately below — and zero the margins
+// Page--cols adds to the sidebar/content.
+.MessagesPage.Page--vertical .Page-container {
+  display: block !important;
+}
+.MessagesPage.Page--vertical .Page-sidebar {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+// Squeeze the last vertical space: drop the content's top margin and trim the
+// horizontal nav strip's 15px top/bottom padding so the list + thread sit as
+// high as possible right under the nav.
 .MessagesPage .Page-content {
   margin-top: 0 !important;
 }
