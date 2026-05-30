@@ -2663,6 +2663,15 @@ a.GN-online-row {
   margin: 0 0 10px !important;
 }
 
+// The MessagesPageHero is a ~134px crimson banner that sits above the nav and
+// shoves the whole conversation down the page. It's redundant on a DM screen —
+// the nav already highlights "Messages" and the open thread shows the dialog
+// title — so collapse it to reclaim that vertical space and let the nav +
+// messages ride up near the top.
+.MessagesPage .Page-hero {
+  display: none !important;
+}
+
 // Keep the stacked layout (nav on top, then the conversation list + thread row
 // below), but collapse the dead space so the content rides as high as possible
 // under the nav. NOTE: our own `.Page-container` rule hardcodes `gap: 1.5rem`
