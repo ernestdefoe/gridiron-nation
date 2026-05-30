@@ -1623,7 +1623,13 @@ body,
 // `.Post-side`/`.Post-main` — Flarum 2's CSS Grid handles the column
 // sizing, and any layout override here re-creates the word-stacking
 // bug from earlier in the rename.
-.Post.CommentPost {
+//
+// flarum/messages renders each message as `.Post.Message` (it extends the
+// same base Post component, so it shares the `.Post-side`/`.Post-main` grid).
+// We add it to this selector so DM messages get the EXACT same stadium-ticket
+// chrome — perforation, punch-throughs, stub tint — as forum posts.
+.Post.CommentPost,
+.MessageStream .Post.Message {
   // Wider avatar column — was 85px (core default), bumped to 110px.
   // Flarum's `.Post-container` grid uses
   // `grid-template-columns: var(--avatar-column-width) 1fr`,
@@ -1755,6 +1761,32 @@ body,
 .PostStream-item--first .Post.CommentPost,
 .PostStream-item:first-child .Post.CommentPost {
   box-shadow: @gn-shadow-md;
+}
+
+// ── Messages: ticket chrome tweaks + pull the thread up ──────────────────────
+// The ticket chrome itself is shared via the selector in the post block above.
+// These are the message-only adjustments on top of it.
+.MessageStream .Post.Message {
+  // Breathing room between consecutive ticket-messages (posts get this from
+  // core's stream gap; the DM stream doesn't, so add it here).
+  margin-bottom: 12px;
+}
+
+// The conversation header ("tester" + avatar) sits too low with core's 16px
+// margin/padding stack. Trim it so the username + first message ride up
+// closer to the top of the dialog pane.
+.DialogSection-header {
+  margin-bottom: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+// Top-align the stream so a short conversation sits just under the header
+// instead of floating against the bottom of the tall scroll area. Drop the
+// leading transparent slice of core's fade mask so there's no dead gap above
+// the first message.
+.MessageStream {
+  justify-content: flex-start;
+  margin-top: 0;
 }
 
 // Composer
