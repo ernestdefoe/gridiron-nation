@@ -1,5 +1,11 @@
 # GridIron Nation 🏈
 
+[![Floxum](https://floxum.com/extension/ernestdefoe/gridiron-nation/badge/name)](https://floxum.com/extension/ernestdefoe/gridiron-nation)
+[![Version](https://floxum.com/extension/ernestdefoe/gridiron-nation/badge/highest-version)](https://floxum.com/extension/ernestdefoe/gridiron-nation)
+[![Downloads](https://floxum.com/extension/ernestdefoe/gridiron-nation/badge/downloads)](https://floxum.com/extension/ernestdefoe/gridiron-nation)
+[![Review](https://floxum.com/extension/ernestdefoe/gridiron-nation/badge/review)](https://floxum.com/extension/ernestdefoe/gridiron-nation)
+[![License](https://floxum.com/extension/ernestdefoe/gridiron-nation/badge/license)](https://floxum.com/extension/ernestdefoe/gridiron-nation)
+
 **A Flarum 2 theme for college football fan forums.**
 Crimson palette, DM Sans, stadium-scoreboard hero, showcase-card discussion
 list with clickable likes, ticket-stub post layout, live ESPN score
