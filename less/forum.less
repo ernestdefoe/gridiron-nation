@@ -2533,12 +2533,34 @@ a.GN-online-row {
 }
 
 // ── flarum/messages page nav ────────────────────────────────────────────────
-// We intentionally DON'T restyle the messages nav. flarum/messages renders the
-// page with Flarum's default `Page--vertical` layout — a horizontal nav strip
-// (Send a Message + destinations) above the "Messages" hero and the list/thread
-// row. That default is the desired look, so we leave it untouched here and only
-// theme the message bubbles themselves (the stadium-ticket chrome lives in the
-// post-chrome block above, shared via `.MessageStream .Post.Message`).
+// We keep Flarum's DEFAULT messages layout — a horizontal nav strip (Send a
+// Message + destinations) above the "Messages" hero and the list/thread row —
+// and only fix two ways the GridIron base theme breaks that strip:
+//
+//   1. Something in the cascade caps `.Page-sidebar` to ~320px, so the nav's
+//      inline SelectDropdown (its real width ~700px) gets clipped to a tiny
+//      scrolling box. Force the sidebar + nav to the full content width.
+//   2. The global `.Dropdown-menu { overflow:hidden; border; box-shadow }`
+//      styling clips/boxes the expanded inline nav menu. Neutralize it here so
+//      the destinations read as a flat horizontal strip like the default theme.
+.MessagesPage .Page-sidebar,
+.MessagesPage-nav {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.MessagesPage-nav .Dropdown-menu,
+.MessagesPage-nav .App-titleControl .Dropdown-menu {
+  overflow: visible !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+// The stadium-ticket message bubbles are themed in the post-chrome block above
+// (shared via `.MessageStream .Post.Message`); nothing else here touches the
+// list/thread layout — it stays as Flarum's default.
 
 // On narrow viewports — widgets stack BELOW the discussion list.
 //
