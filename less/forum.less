@@ -2710,9 +2710,13 @@ a.GN-online-row {
 
   i { display: block; line-height: 1; }
 
-  // Subtle drop shadow makes the glyph readable even on light hero
-  // backgrounds — without this, white-on-light is invisible.
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
+  // Drop shadow lifts the watermark off the hero for depth, and keeps the
+  // glyph readable on light hero backgrounds. Layered (a tight contact
+  // shadow + a softer spread) because the glyph renders semi-transparent —
+  // the filter's alpha is multiplied down by the glyph's own opacity, so a
+  // single faint shadow would be invisible.
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55))
+          drop-shadow(0 8px 22px rgba(0, 0, 0, 0.6));
 }
 
 // Two-icon layout adjusts placement to keep both glyphs readable. Wider gap
