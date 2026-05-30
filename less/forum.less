@@ -2511,15 +2511,14 @@ a.GN-online-row {
 }
 
 // ── flarum/messages page nav ────────────────────────────────────────────────
-// The Messages page renders its nav (the "Send a Message" button + "All
-// Discussions" + the IndexSidebar items) as `.IndexPage-nav` inside a
-// `.MessagesPage` root that does NOT carry the bare `.Page` class — so every
-// theme rule scoped to `.Page:not(.IndexPage)` skipped it and the nav fell back
-// to an overflowing horizontal strip with a scrollbar. Style it explicitly as a
-// clean vertical stack with no horizontal overflow.
-.MessagesPage .IndexPage-nav,
-.MessagesPage .IndexPage-nav > ul {
-  display: block;
+// flarum/messages renders its nav (the "Send a Message" button + the
+// IndexSidebar destinations: All Discussions / Messages / Groups / Picks /
+// Tags / …) as `.MessagesPage-nav` (NOT `.IndexPage-nav`). By default its items
+// wrap into a multi-column grid that reads as "bunched up". Force a single,
+// full-width vertical column so every destination is its own row.
+.MessagesPage-nav,
+.MessagesPage-nav > ul {
+  display: block !important;
   width: 100%;
   max-width: 100%;
   overflow-x: visible;
@@ -2529,13 +2528,14 @@ a.GN-online-row {
   padding: 0;
 }
 
-.MessagesPage .IndexPage-nav > ul > li {
-  display: block;
-  width: 100%;
+.MessagesPage-nav > ul > li {
+  display: block !important;
+  float: none !important;
+  width: 100% !important;
   margin: 0 0 6px;
 }
 
-.MessagesPage .IndexPage-nav .Button {
+.MessagesPage-nav .Button {
   display: flex;
   width: 100%;
   justify-content: flex-start;
