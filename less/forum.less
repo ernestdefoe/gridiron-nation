@@ -2510,6 +2510,40 @@ a.GN-online-row {
   }
 }
 
+// ── flarum/messages page nav ────────────────────────────────────────────────
+// The Messages page renders its nav (the "Send a Message" button + "All
+// Discussions" + the IndexSidebar items) as `.IndexPage-nav` inside a
+// `.MessagesPage` root that does NOT carry the bare `.Page` class — so every
+// theme rule scoped to `.Page:not(.IndexPage)` skipped it and the nav fell back
+// to an overflowing horizontal strip with a scrollbar. Style it explicitly as a
+// clean vertical stack with no horizontal overflow.
+.MessagesPage .IndexPage-nav,
+.MessagesPage .IndexPage-nav > ul {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: visible;
+  white-space: normal;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.MessagesPage .IndexPage-nav > ul > li {
+  display: block;
+  width: 100%;
+  margin: 0 0 6px;
+}
+
+.MessagesPage .IndexPage-nav .Button {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
 // On narrow viewports — widgets stack BELOW the discussion list.
 //
 // `.Page-container` has `flex-direction: row-reverse` + `align-items: flex-start`
