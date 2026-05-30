@@ -47,8 +47,6 @@ ernestdefoe-gridiron-nation:
         posts: POSTS
         online: ONLINE
         newest: NEWEST
-      chips:
-        all: All
 
     widgets:
       live_scores: Live Scores
@@ -64,7 +62,6 @@ ernestdefoe-gridiron-nation:
       recruits_unconfigured: "Add a CollegeFootballData.com API key in the GridIron Nation Recruiting admin panel."
       recruits_unavailable: Recruits unavailable
 
-      online_now: Online Now
       online_empty: No one online right now
 
     recruits:

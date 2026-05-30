@@ -32,6 +32,7 @@ class LiveScoresController implements RequestHandlerInterface
     public function __construct(
         private readonly CacheRepository $cache,
         private readonly LoggerInterface $log,
+        private readonly Client $http,
     ) {}
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -59,8 +60,12 @@ class LiveScoresController implements RequestHandlerInterface
     private function fetchAndNormalize(): array
     {
         try {
-            $client   = new Client(['timeout' => 6, 'connect_timeout' => 4]);
-            $response = $client->get(self::ESPN_URL, [
+            // The injected Client is shared/auto-resolved from the container;
+            // per-request timeouts are passed as request options here so the
+            // controller stays testable (the Client can be swapped/mocked).
+            $response = $this->http->get(self::ESPN_URL, [
+                'timeout'         => 6,
+                'connect_timeout' => 4,
                 'headers' => [
                     'User-Agent' => 'Mozilla/5.0 (compatible; GridIronNation/1.0)',
                     'Accept'     => 'application/json',

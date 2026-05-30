@@ -1,30 +1,13 @@
 <?php
 
-// Bump PHP's memory_limit to a level that survives compiling our
-// themed forum.less alongside three other ernestdefoe extensions. The
-// upstream wikimedia/less.php parser holds the full AST + every nested
-// rule + every inline data URI in heap, and the 128M PHP default tips
-// over while compiling our hero block (football SVG + [data-theme]
-// override matrix + glassmorphic popover styles). 256M matches Flarum's
-// own recommendation for theme-heavy installs.
-//
-// @ini_set returns false when the operator has disabled runtime
-// memory_limit changes — silently no-ops in that case, and we fall
-// back to whatever the host configured. This is *additive only*: we
-// never lower a higher operator-set value.
-if (function_exists('ini_get')) {
-    $current = trim((string) ini_get('memory_limit'));
-    $needed  = 256 * 1024 * 1024;
-    $parsed  = $current === '-1' ? PHP_INT_MAX : (int) $current * match (strtoupper(substr($current, -1))) {
-        'G'     => 1024 * 1024 * 1024,
-        'M'     => 1024 * 1024,
-        'K'     => 1024,
-        default => 1,
-    };
-    if ($parsed < $needed) {
-        @ini_set('memory_limit', '256M');
-    }
-}
+// NOTE on LESS compilation memory: compiling this theme's forum.less can
+// exceed PHP's 128M default in the wikimedia/less.php parser. That is a
+// BUILD concern, not a per-request one, so it must NOT be set here (this
+// file runs on every web request and would silently override an operator's
+// intentionally lower memory_limit). If a CLI compile (`php flarum
+// assets:publish` / cache:clear) runs short, raise memory_limit for the
+// CLI SAPI only — e.g. `php -d memory_limit=256M flarum cache:clear`, or a
+// memory_limit directive in the cli php.ini.
 
 use Ernestdefoe\GridironNation\Api\Controller\LiveScoresController;
 use Ernestdefoe\GridironNation\Api\Controller\OnlineNowController;
@@ -132,29 +115,35 @@ $extenders = [
                 Schema\Integer::make('userCount')->get(fn () => $counts()['users']),
                 Schema\Integer::make('discussionCount')->get(fn () => $counts()['discussions']),
                 Schema\Integer::make('postCount')->get(fn () => $counts()['posts']),
+
+                // Newest registered member, for the hero scoreboard's "NEWEST"
+                // slot. Cached for five minutes like the counts above so it
+                // doesn't add a DB round-trip to every bootstrap payload.
+                // Tiny shape (id / displayName / username / avatarUrl) to keep
+                // the payload small; null on a fresh install with no users.
+                Schema\Arr::make('gridironNewestMember')
+                    ->get(fn () => resolve(CacheRepository::class)->remember(
+                        'gridiron-nation.newest_member',
+                        300,
+                        function () {
+                            $user = User::query()
+                                ->orderByDesc('joined_at')
+                                ->first(['id', 'username', 'avatar_url', 'joined_at']);
+
+                            if (! $user) {
+                                return null;
+                            }
+
+                            return [
+                                'id'          => (int) $user->id,
+                                'username'    => $user->username,
+                                'displayName' => $user->display_name ?: $user->username,
+                                'avatarUrl'   => $user->avatar_url,
+                            ];
+                        }
+                    )),
             ];
         }),
-
-    (new Extend\ApiResource(ForumResource::class))
-        ->fields(fn () => [
-            Schema\Arr::make('gridironNewestMember')
-                ->get(function () {
-                    $user = User::query()
-                        ->orderByDesc('joined_at')
-                        ->first(['id', 'username', 'avatar_url', 'joined_at']);
-
-                    if (! $user) {
-                        return null;
-                    }
-
-                    return [
-                        'id'          => (int) $user->id,
-                        'username'    => $user->username,
-                        'displayName' => $user->display_name ?: $user->username,
-                        'avatarUrl'   => $user->avatar_url,
-                    ];
-                }),
-        ]),
 
     // ── Discussion `likesCount` field ───────────────────────────────────────
     // Surface the running total of post-likes per discussion (maintained
@@ -178,17 +167,16 @@ $extenders = [
 // the migration still adds the column (it stays at 0) and the field is
 // still exposed (it returns 0), the listener just doesn't register.
 //
-// Closures (not `[Class, 'method']` arrays) because `Extend\Event::listen`
-// strictly types its second argument as `callable|string` and rejects
-// arrays at runtime even though they ARE callable per PHP semantics.
+// Registered as `Class@method` listener strings: Laravel's dispatcher
+// resolves SyncDiscussionLikesCount from the container and calls the named
+// method, so there's no manual `resolve()` per event. (A `[Class, 'method']`
+// array can't be used — an instance method pair isn't a valid PHP `callable`
+// without an instance, so `Extend\Event::listen`'s `callable|string` type
+// rejects it; the `Class@method` string form is the idiomatic alternative.)
 if (class_exists(\Flarum\Likes\Event\PostWasLiked::class)) {
     $extenders[] = (new Extend\Event())
-        ->listen(\Flarum\Likes\Event\PostWasLiked::class, function ($event) {
-            resolve(SyncDiscussionLikesCount::class)->whenPostLiked($event);
-        })
-        ->listen(\Flarum\Likes\Event\PostWasUnliked::class, function ($event) {
-            resolve(SyncDiscussionLikesCount::class)->whenPostUnliked($event);
-        });
+        ->listen(\Flarum\Likes\Event\PostWasLiked::class, SyncDiscussionLikesCount::class . '@whenPostLiked')
+        ->listen(\Flarum\Likes\Event\PostWasUnliked::class, SyncDiscussionLikesCount::class . '@whenPostUnliked');
 }
 
 return $extenders;

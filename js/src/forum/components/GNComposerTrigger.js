@@ -12,14 +12,10 @@ import Avatar from 'flarum/common/components/Avatar';
  * opens the stock DiscussionComposer for logged-in users, or the
  * LogInModal for guests.
  *
- * Implementation: programmatically clicks the hidden
- * `.IndexPage-newDiscussion` button that IndexSidebar renders on every
- * index page. CSS hides the sidebar nav block, but the button itself
- * remains in the DOM and Flarum's own handler covers the async chunk
- * import for DiscussionComposer, the guest → LogInModal branch, and
- * focus management. No prototype reach-arounds, so a future Flarum
- * release rewiring the action keeps the click target working — it's
- * just a DOM event.
+ * open() replicates core IndexSidebar.newDiscussionAction() directly —
+ * loading the (lazy) DiscussionComposer / LogInModal core chunks through
+ * the export registry — rather than reaching for a core DOM node by class
+ * name, so a core markup refactor can't silently break the trigger.
  */
 export default class GNComposerTrigger extends Component {
   view() {
@@ -68,13 +64,16 @@ export default class GNComposerTrigger extends Component {
   }
 
   open() {
-    // IndexSidebar renders .IndexPage-newDiscussion as part of its
-    // items list; CSS hides the surrounding nav block on desktop but
-    // the button is still in the DOM. Click it to reuse Flarum's
-    // own composer-open flow.
-    const btn = document.querySelector('.IndexPage-newDiscussion');
-    if (btn instanceof HTMLElement) {
-      btn.click();
+    // Mirror core IndexSidebar.newDiscussionAction(): logged-in users get
+    // the DiscussionComposer, guests get the LogInModal. Both are lazy core
+    // chunks, loaded via the export registry's async importer (core
+    // namespace → core's own webpack runtime), so no hard-coded DOM target.
+    if (app.session.user) {
+      app.composer
+        .load(() => flarum.reg.asyncModuleImport('flarum/forum/components/DiscussionComposer'), { user: app.session.user })
+        .then(() => app.composer.show());
+    } else {
+      app.modal.show(() => flarum.reg.asyncModuleImport('flarum/forum/components/LogInModal'));
     }
   }
 }
