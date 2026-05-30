@@ -2668,6 +2668,42 @@ a.GN-online-row {
   margin-bottom: 8px !important;
 }
 
+// ── Two-column messages layout (move the thread UP) ──────────────────────────
+// flarum/messages renders the page with `Page--vertical`, which on desktop
+// sets `--sidebar-width: 100%` + `.Page-container { flex-direction: column }`,
+// stacking the nav full-width ABOVE the content. Combined with our vertical
+// nav, that pushes the conversation list + thread far down the page. Override
+// it back to a row so the nav is a narrow LEFT column and the content fills the
+// space to its right — both starting at the same top edge. The selector carries
+// both root classes (.MessagesPage.Page--vertical) so it outranks core's
+// `.Page--vertical .Page-container` rule.
+@media (min-width: 768px) {
+  .MessagesPage.Page--vertical {
+    .Page-container {
+      flex-direction: row !important;
+      align-items: flex-start !important;
+    }
+
+    .Page-sidebar {
+      width: 240px !important;
+      flex-shrink: 0;
+      margin-top: 0 !important;
+    }
+
+    .Page-content {
+      flex: 1 1 auto;
+      width: auto !important;
+      min-width: 0;
+      margin-top: 0 !important;
+    }
+  }
+
+  // Drop the now-pointless bottom gap under the nav (it's a side column now).
+  .MessagesPage-nav {
+    margin-bottom: 0 !important;
+  }
+}
+
 // On narrow viewports — widgets stack BELOW the discussion list.
 //
 // `.Page-container` has `flex-direction: row-reverse` + `align-items: flex-start`
