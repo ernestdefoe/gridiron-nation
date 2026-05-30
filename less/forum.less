@@ -2563,7 +2563,8 @@ a.GN-online-row {
 
 // The inline menu that actually contains the destination items. Force it static
 // and full-width, and kill any column / multi-column / flex flow so the items
-// stack vertically instead of bunching.
+// stack vertically instead of bunching. Also drop core's solid dropdown
+// background so it reads as a plain sidebar nav, not a heavy floating panel.
 .MessagesPage-nav .Dropdown-menu,
 .MessagesPage-nav .App-titleControl .Dropdown-menu,
 .MessagesPage-nav .Dropdown--select .Dropdown-menu {
@@ -2576,6 +2577,7 @@ a.GN-online-row {
   margin: 0 !important;
   padding: 0 !important;
   overflow: visible !important;
+  background: transparent !important;
   box-shadow: none !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -2588,10 +2590,11 @@ a.GN-online-row {
   display: block !important;
   float: none !important;
   width: 100% !important;
-  margin: 0 0 6px !important;
+  margin: 0 0 2px !important;
 }
 
-.MessagesPage-nav .Button,
+// Destination items (All Discussions / Messages / Groups / Picks / …): full-
+// width, left-aligned rows that highlight on hover like a normal sidebar nav.
 .MessagesPage-nav .Dropdown-menu > li > .Button,
 .MessagesPage-nav .Dropdown-menu > li > a {
   display: flex !important;
@@ -2600,6 +2603,30 @@ a.GN-online-row {
   align-items: center !important;
   gap: 10px !important;
   text-align: left !important;
+  padding: 8px 12px !important;
+  border-radius: @gn-radius-sm !important;
+
+  &:hover,
+  &:focus,
+  &.active {
+    background: rgba(@gn-primary, 0.08) !important;
+  }
+}
+
+// "Send a Message" primary button: keep it a compact, self-sized button at the
+// top of the nav — NOT a full-width banner. (The earlier blanket width:100% on
+// every .Button in this nav is what ballooned it.)
+.MessagesPage-nav .MessagesPage-newMessage,
+.MessagesPage-nav .item-newMessage > .Button {
+  display: inline-flex !important;
+  width: auto !important;
+  align-self: flex-start;
+  margin: 0 0 10px !important;
+}
+
+// Tighten the gap below the nav so the conversation list + thread sit higher.
+.MessagesPage-nav {
+  margin-bottom: 8px !important;
 }
 
 // On narrow viewports — widgets stack BELOW the discussion list.
