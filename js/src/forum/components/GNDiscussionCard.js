@@ -7,6 +7,7 @@ import humanTime from 'flarum/common/helpers/humanTime';
 import highlight from 'flarum/common/helpers/highlight';
 import classList from 'flarum/common/utils/classList';
 import abbreviateNumber from 'flarum/common/utils/abbreviateNumber';
+import extractText from 'flarum/common/utils/extractText';
 import DiscussionControls from 'flarum/forum/utils/DiscussionControls';
 
 /**
@@ -47,43 +48,7 @@ export default class GNDiscussionCard extends Component {
 
   view() {
     const d = this.attrs.discussion;
-    const author = d.user();
-    const firstPost = d.firstPost && d.firstPost();
-    const lastPost = d.lastPost && d.lastPost();
-    const replyUser = d.lastPostedUser && d.lastPostedUser();
-    const tags = (d.tags && d.tags()) || [];
-    const jumpTo = this.attrs.jumpTo || d.lastPostNumber() || 0;
-    const replyHref = app.route.discussion(d, jumpTo);
-    const isUnread = d.isUnread && d.isUnread();
-    const isSticky = d.isSticky && d.isSticky();
-    const isLocked = d.isLocked && d.isLocked();
-    const replyCount = Math.max(0, (d.commentCount && d.commentCount() || 1) - 1);
-
-    // Total likes across every post in the discussion. Maintained by
-    // the SyncDiscussionLikesCount PHP listener — read here via the
-    // Schema field exposed in extend.php. Falls back to 0 if the
-    // attribute isn't loaded (older API responses or flarum/likes
-    // disabled).
-    const likesCount = (d.likesCount && d.likesCount()) || 0;
-
-    // Whether the OP (first post) is currently liked by the actor.
-    // flarum/likes extends the Post model with a `likes()` hasMany
-    // relationship and a `canLike()` attribute — but NO `isLiked()`
-    // getter (it's only writable through `save({ isLiked })`). So we
-    // derive the state by checking whether the current user appears
-    // in the post's likes array. Mirrors flarum/likes' own
-    // addLikeAction.js logic:
-    //   const likes = post.likes();
-    //   isLiked = app.session.user && likes && likes.some(u => u === app.session.user)
-    const isOpLiked = this.computeIsOpLiked(firstPost);
-    const canLikeOp = !!(firstPost && firstPost.canLike && firstPost.canLike()) && !!app.session.user;
-
-    // Build the moderation 3-dot dropdown from DiscussionControls. Returns
-    // an ItemList of <Button>s (Reply, Edit, Move, Delete, Restore,
-    // Pin/Unpin, Lock/Unlock, Hide, etc.) gated by the actor's permissions.
-    // Empty for guests / users without any controls — in that case we just
-    // skip rendering the Dropdown entirely.
-    const controls = DiscussionControls.controls(d, this).toArray();
+    const s = this.cardState(d);
 
     // No need to forward style/onclick here — the outer
     // `<li class="DiscussionListItem">` wrapper rendered by forum.js
@@ -96,125 +61,174 @@ export default class GNDiscussionCard extends Component {
       'article.GN-showcaseCard',
       {
         className: classList({
-          'GN-showcaseCard--unread': isUnread,
-          'GN-showcaseCard--sticky': isSticky,
-          'GN-showcaseCard--locked': isLocked,
+          'GN-showcaseCard--unread': s.isUnread,
+          'GN-showcaseCard--sticky': s.isSticky,
+          'GN-showcaseCard--locked': s.isLocked,
         }),
       },
       [
-        // ── Accent strip down the left edge — primary color for
-        //    unread/sticky rows, muted for the default read state.
+        // Accent strip down the left edge — primary color for unread/sticky
+        // rows, muted for the default read state.
         m('.GN-showcaseCard-accent', { 'aria-hidden': 'true' }),
-
-        m('.GN-showcaseCard-body', [
-          // ── Header: avatar, author, date, tag pills, reply button, 3-dot
-          m('.GN-showcaseCard-header', [
-            author
-              ? m(Link, { className: 'GN-showcaseCard-avatar', href: app.route.user(author) },
-                  m(Avatar, { user: author }))
-              : m('span.GN-showcaseCard-avatar', m(Avatar, { user: null })),
-
-            m('.GN-showcaseCard-meta', [
-              m('span.GN-showcaseCard-author', author ? author.displayName() : '—'),
-              m('span.GN-showcaseCard-dot', '·'),
-              m('span.GN-showcaseCard-time', humanTime(d.createdAt())),
-              tags.length
-                ? m('span.GN-showcaseCard-tags', tags.map((t) => this.tagPill(t)))
-                : null,
-            ]),
-
-            m(Link, {
-              className: 'Button GN-showcaseCard-replyBtn',
-              href: replyHref,
-            }, [
-              m('i.fas.fa-reply', { 'aria-hidden': 'true' }),
-              ' ',
-              app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.reply'),
-            ]),
-
-            controls.length
-              ? m(Dropdown, {
-                  icon: 'fas fa-ellipsis-v',
-                  className: 'GN-showcaseCard-controls',
-                  buttonClassName: 'Button Button--icon Button--flat',
-                  accessibleToggleLabel: app.translator.trans(
-                    'core.forum.discussion_controls.toggle_dropdown_accessible_label'
-                  ),
-                }, controls)
-              : null,
-          ]),
-
-          // ── Title (links to the discussion)
-          m(Link, {
-            className: 'GN-showcaseCard-titleLink',
-            href: app.route.discussion(d),
-          }, m('h2.GN-showcaseCard-title',
-            highlight(d.title(), this.attrs.highlightRegExp)
-          )),
-
-          // ── Body excerpt (first ~180 chars of the OP, plain text)
-          this.viewExcerpt(d),
-
-          // ── Best/last reply preview
-          replyUser && replyCount > 0
-            ? this.viewReplyPreview(replyUser, lastPost, replyHref)
-            : null,
-
-          // ── "See other N replies" overflow link
-          replyCount > 1
-            ? m(Link, {
-                className: 'GN-showcaseCard-more',
-                href: replyHref,
-              }, app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.see_other_replies', {
-                count: replyCount - 1,
-              }))
-            : null,
-
-          // ── Footer: like count + reply count
-          // The likes stat is a real button — clicking it toggles a
-          // like on the OP (first post). The count refreshes both
-          // optimistically and after the API responds, since the
-          // SyncDiscussionLikesCount listener bumps the discussion-
-          // level total in lockstep.
-          m('.GN-showcaseCard-footer', [
-            m('button.GN-showcaseCard-stat.GN-showcaseCard-stat--likes', {
-              type: 'button',
-              className: classList({
-                'GN-showcaseCard-stat--liked':    isOpLiked,
-                'GN-showcaseCard-stat--disabled': !canLikeOp,
-              }),
-              disabled: !canLikeOp || this.likeBusy,
-              title: canLikeOp
-                ? null
-                : (app.session.user
-                    ? null
-                    : 'Sign in to like'),
-              onclick: (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleOpLike();
-              },
-            }, [
-              m('i', {
-                className: classList(isOpLiked ? 'fas fa-thumbs-up' : 'far fa-thumbs-up'),
-                'aria-hidden': 'true',
-              }),
-              ' ',
-              abbreviateNumber(likesCount),
-              ' ',
-              app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.likes', { count: likesCount }),
-            ]),
-            m('span.GN-showcaseCard-stat', [
-              m('i.far.fa-comment', { 'aria-hidden': 'true' }),
-              ' ',
-              abbreviateNumber(replyCount),
-              ' ',
-              app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.replies', { count: replyCount }),
-            ]),
-          ]),
-        ]),
+        this.viewBody(d, s),
       ]
     );
+  }
+
+  /**
+   * Resolve every value the card render needs in one place, so view()
+   * stays a thin layout shell. Returns a plain bag of relations + derived
+   * flags; all reads are null-safe for partially-loaded discussions.
+   */
+  cardState(d) {
+    const firstPost = d.firstPost && d.firstPost();
+
+    return {
+      author: d.user(),
+      firstPost,
+      lastPost: d.lastPost && d.lastPost(),
+      replyUser: d.lastPostedUser && d.lastPostedUser(),
+      tags: (d.tags && d.tags()) || [],
+      replyHref: app.route.discussion(d, this.attrs.jumpTo || d.lastPostNumber() || 0),
+      isUnread: d.isUnread && d.isUnread(),
+      isSticky: d.isSticky && d.isSticky(),
+      isLocked: d.isLocked && d.isLocked(),
+      replyCount: Math.max(0, (d.commentCount && d.commentCount() || 1) - 1),
+
+      // Total likes across every post in the discussion. Maintained by the
+      // SyncDiscussionLikesCount PHP listener and read via the Schema field
+      // in extend.php. Falls back to 0 when not loaded / flarum/likes off.
+      likesCount: (d.likesCount && d.likesCount()) || 0,
+
+      // Whether the OP is liked by the actor. flarum/likes exposes no
+      // read-only isLiked() — only save({ isLiked }) — so we derive it from
+      // the likes hasMany (mirrors flarum/likes' own addLikeAction.js).
+      isOpLiked: this.computeIsOpLiked(firstPost),
+      canLikeOp: !!(firstPost && firstPost.canLike && firstPost.canLike()) && !!app.session.user,
+
+      // Moderation 3-dot dropdown items (Reply/Edit/Move/Delete/Pin/…),
+      // gated by the actor's permissions; empty for guests.
+      controls: DiscussionControls.controls(d, this).toArray(),
+    };
+  }
+
+  /**
+   * The card body: header, title, excerpt, reply preview, overflow link
+   * and the stats footer.
+   */
+  viewBody(d, s) {
+    return m('.GN-showcaseCard-body', [
+      this.viewHeader(d, s),
+
+      // Title (links to the discussion)
+      m(Link, {
+        className: 'GN-showcaseCard-titleLink',
+        href: app.route.discussion(d),
+      }, m('h2.GN-showcaseCard-title',
+        highlight(d.title(), this.attrs.highlightRegExp)
+      )),
+
+      // Body excerpt (first ~220 chars of the OP, plain text)
+      this.viewExcerpt(d),
+
+      // Best/last reply preview
+      s.replyUser && s.replyCount > 0
+        ? this.viewReplyPreview(s.replyUser, s.lastPost, s.replyHref)
+        : null,
+
+      // "See other N replies" overflow link
+      s.replyCount > 1
+        ? m(Link, {
+            className: 'GN-showcaseCard-more',
+            href: s.replyHref,
+          }, app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.see_other_replies', {
+            count: s.replyCount - 1,
+          }))
+        : null,
+
+      this.viewFooter(d, s),
+    ]);
+  }
+
+  /** Header row: avatar, author, date, tag pills, reply button, 3-dot. */
+  viewHeader(d, s) {
+    return m('.GN-showcaseCard-header', [
+      s.author
+        ? m(Link, { className: 'GN-showcaseCard-avatar', href: app.route.user(s.author) },
+            m(Avatar, { user: s.author }))
+        : m('span.GN-showcaseCard-avatar', m(Avatar, { user: null })),
+
+      m('.GN-showcaseCard-meta', [
+        m('span.GN-showcaseCard-author', s.author ? s.author.displayName() : '—'),
+        m('span.GN-showcaseCard-dot', '·'),
+        m('span.GN-showcaseCard-time', humanTime(d.createdAt())),
+        s.tags.length
+          ? m('span.GN-showcaseCard-tags', s.tags.map((t) => this.tagPill(t)))
+          : null,
+      ]),
+
+      m(Link, {
+        className: 'Button GN-showcaseCard-replyBtn',
+        href: s.replyHref,
+      }, [
+        m('i.fas.fa-reply', { 'aria-hidden': 'true' }),
+        ' ',
+        app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.reply'),
+      ]),
+
+      s.controls.length
+        ? m(Dropdown, {
+            icon: 'fas fa-ellipsis-v',
+            className: 'GN-showcaseCard-controls',
+            buttonClassName: 'Button Button--icon Button--flat',
+            accessibleToggleLabel: app.translator.trans(
+              'core.forum.discussion_controls.toggle_dropdown_accessible_label'
+            ),
+          }, s.controls)
+        : null,
+    ]);
+  }
+
+  /**
+   * Footer: a like-toggle button (clicking toggles a like on the OP — the
+   * count updates optimistically, then the SyncDiscussionLikesCount
+   * listener bumps the discussion total in lockstep) and a reply count.
+   */
+  viewFooter(d, s) {
+    return m('.GN-showcaseCard-footer', [
+      m('button.GN-showcaseCard-stat.GN-showcaseCard-stat--likes', {
+        type: 'button',
+        className: classList({
+          'GN-showcaseCard-stat--liked':    s.isOpLiked,
+          'GN-showcaseCard-stat--disabled': !s.canLikeOp,
+        }),
+        disabled: !s.canLikeOp || this.likeBusy,
+        title: s.canLikeOp || app.session.user
+          ? null
+          : extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.sign_in_to_like')),
+        onclick: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.toggleOpLike();
+        },
+      }, [
+        m('i', {
+          className: classList(s.isOpLiked ? 'fas fa-thumbs-up' : 'far fa-thumbs-up'),
+          'aria-hidden': 'true',
+        }),
+        ' ',
+        abbreviateNumber(s.likesCount),
+        ' ',
+        app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.likes', { count: s.likesCount }),
+      ]),
+      m('span.GN-showcaseCard-stat', [
+        m('i.far.fa-comment', { 'aria-hidden': 'true' }),
+        ' ',
+        abbreviateNumber(s.replyCount),
+        ' ',
+        app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.replies', { count: s.replyCount }),
+      ]),
+    ]);
   }
 
   /**
@@ -281,7 +295,7 @@ export default class GNDiscussionCard extends Component {
       app.alerts.show(
         { type: 'error' },
         (err && err.response && err.response.errors && err.response.errors[0] && err.response.errors[0].detail)
-        || 'Could not save like'
+        || extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.like_failed'))
       );
     } finally {
       this.likeBusy = false;

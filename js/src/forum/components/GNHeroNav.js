@@ -1,5 +1,6 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
+import extractText from 'flarum/common/utils/extractText';
 import IndexSidebar from 'flarum/forum/components/IndexSidebar';
 
 /**
@@ -18,18 +19,17 @@ import IndexSidebar from 'flarum/forum/components/IndexSidebar';
  */
 export default class GNHeroNav extends Component {
   view() {
-    // Instantiate a real IndexSidebar to collect its navItems list.
-    // navItems() today doesn't touch `this`, but `new IndexSidebar()`
-    // + explicit `.attrs = {}` gives any future Flarum implementation
-    // a valid component instance to read from. Wrapped in try/catch
-    // so a constructor side-effect or a breaking change in
-    // navItems()'s signature yields a hidden nav rather than a broken
-    // hero render.
+    // Collect IndexSidebar's navItems ItemList WITHOUT constructing the
+    // component (which would run Component's constructor + lifecycle hooks
+    // outside Mithril's control). Core's navItems() — and every extension
+    // extender chained onto its prototype (flarum/tags, subscriptions, …) —
+    // reads `app` globals rather than `this`, so invoking the prototype
+    // method against a minimal `{ attrs: {} }` context yields the same
+    // ItemList safely. try/catch keeps a breaking upstream change from
+    // taking down the whole hero render — we just hide the nav instead.
     let itemList;
     try {
-      const sidebar = new IndexSidebar();
-      sidebar.attrs = {};
-      itemList = sidebar.navItems();
+      itemList = IndexSidebar.prototype.navItems.call({ attrs: {} });
     } catch (e) {
       return null;
     }
@@ -62,6 +62,8 @@ export default class GNHeroNav extends Component {
 
     if (!items.length) return null;
 
-    return m('nav.GN-heroNav', { 'aria-label': 'Sections' }, items);
+    return m('nav.GN-heroNav', {
+      'aria-label': extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.nav.sections_label')),
+    }, items);
   }
 }

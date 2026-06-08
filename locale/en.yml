@@ -31,10 +31,16 @@ ernestdefoe-gridiron-nation:
       # in core 2.x — we own the string here so the button has a label
       # regardless of which core version ships it.
       reply: Reply
+      # Tooltip on the like button when a guest can't like the OP, and the
+      # fallback error alert when persisting a like fails.
+      sign_in_to_like: Sign in to like
+      like_failed: Could not save like
 
     nav:
       discussions: Discussions
       start_discussion: Start a Discussion
+      # Accessible label for the hero pill-row nav (screen readers only).
+      sections_label: Sections
 
     composer:
       prompt: "Tell everyone what you're working on…"

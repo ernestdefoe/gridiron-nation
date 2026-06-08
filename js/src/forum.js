@@ -57,6 +57,85 @@ function gnMeasureDecoInset(container) {
 }
 
 /**
+ * Decide which tag icons (if any) decorate a discussion hero, and at what
+ * opacity. Returns `{ picked, opacity }` or null when decoration is disabled,
+ * the discussion has no icon-bearing tags, or opacity is dialed to 0.
+ *
+ * Prefers SECONDARY tags (those with a parent), falling back to ANY tag with
+ * an icon so flat tag setups still get decoration. Renders up to 2 icons
+ * (hero_deco_icon_count), but only on viewports ≥ 768px — phone/tablet get 1.
+ */
+function gnPickDecoTags(discussion) {
+  if (app.forum.attribute('gridiron-nation.hero_deco_enabled') === false) return null;
+  if (!discussion) return null;
+
+  const tags = (discussion.tags && discussion.tags()) || [];
+  const withIcon = tags.filter((t) => t && typeof t.icon === 'function' && t.icon());
+  if (!withIcon.length) return null;
+
+  const secondary = withIcon.filter((t) => typeof t.parent === 'function' && !!t.parent());
+  const candidates = secondary.length ? secondary : withIcon;
+
+  const wideEnoughForTwo = typeof window !== 'undefined' && window.innerWidth > 767;
+  const requestedCount = Math.min(2, Math.max(1,
+    parseInt(app.forum.attribute('gridiron-nation.hero_deco_icon_count'), 10) || 2
+  ));
+  const picked = candidates.slice(0, wideEnoughForTwo ? requestedCount : 1);
+  if (!picked.length) return null;
+
+  // Default opacity 35% — the original 12% was so faint on a real install
+  // operators thought the feature wasn't firing. 0 hides the decoration.
+  const opacityRaw = parseInt(app.forum.attribute('gridiron-nation.hero_deco_opacity'), 10);
+  const opacity = isNaN(opacityRaw) ? 35 : Math.min(100, Math.max(0, opacityRaw));
+  if (opacity === 0) return null;
+
+  return { picked, opacity };
+}
+
+/**
+ * Build the absolute-positioned decoration vnode for the picked tag icons.
+ * The lifecycle hooks (re)measure the glyph overflow inset whenever fonts
+ * load, the viewport resizes, or the hero re-renders for another discussion.
+ */
+function gnDecoVnode(picked, opacity) {
+  return m('.GN-discussionHero-icons',
+    {
+      'aria-hidden': 'true',
+      'data-icon-count': picked.length,
+      style: { '--gn-deco-opacity': (opacity / 100).toFixed(2) },
+      oncreate(vnode) {
+        const run = () => gnMeasureDecoInset(vnode.dom);
+        // Glyph has its real width only once the kit font is loaded.
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
+        else run();
+        // Font-size is viewport-clamped, so the overflow scales — recompute
+        // on resize. Debounced; listener removed in onremove.
+        vnode.state.gnResize = () => {
+          clearTimeout(vnode.state.gnTimer);
+          vnode.state.gnTimer = setTimeout(run, 120);
+        };
+        window.addEventListener('resize', vnode.state.gnResize);
+      },
+      // Re-measure when the hero re-renders for a different discussion
+      // (Mithril reuses this DOM node, so oncreate won't fire again).
+      onupdate(vnode) { gnMeasureDecoInset(vnode.dom); },
+      onremove(vnode) {
+        if (vnode.state.gnResize) window.removeEventListener('resize', vnode.state.gnResize);
+        clearTimeout(vnode.state.gnTimer);
+      },
+    },
+    picked.map((tag, i) =>
+      m('span.GN-discussionHero-icon', {
+        key: tag.id ? tag.id() : i,
+        style: tag.color && tag.color() ? { '--gn-deco-color': tag.color() } : null,
+      },
+        m('i', { className: tag.icon() })
+      )
+    )
+  );
+}
+
+/**
  * Forum-frontend wiring.
  *
  * Layout (PageStructure-rendered, top to bottom):
@@ -178,81 +257,12 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   // mutating the returned vdom in place — Mithril's diff sees the
   // ItemList output the moment the hero re-renders.
   extend(DiscussionHero.prototype, 'items', function (items) {
-    if (app.forum.attribute('gridiron-nation.hero_deco_enabled') === false) return;
+    const deco = gnPickDecoTags(this.attrs.discussion);
+    if (!deco) return;
 
-    const discussion = this.attrs.discussion;
-    if (!discussion) return;
-
-    const tags = (discussion.tags && discussion.tags()) || [];
-    if (!tags.length) return;
-
-    const withIcon = tags.filter((t) => t && typeof t.icon === 'function' && t.icon());
-    if (!withIcon.length) return;
-
-    // Prefer secondary tags (those with a parent). Fall back to ANY
-    // tag with an icon so flat tag setups still get decoration.
-    const secondary = withIcon.filter((t) => {
-      if (typeof t.parent !== 'function') return false;
-      const p = t.parent();
-      return !!p;
-    });
-    const candidates = secondary.length ? secondary : withIcon;
-
-    const wideEnoughForTwo = typeof window !== 'undefined' && window.innerWidth > 767;
-    const requestedCount   = Math.min(2, Math.max(1,
-      parseInt(app.forum.attribute('gridiron-nation.hero_deco_icon_count'), 10) || 2
-    ));
-    const renderCount = wideEnoughForTwo ? requestedCount : 1;
-
-    const picked = candidates.slice(0, renderCount);
-    if (!picked.length) return;
-
-    // Default opacity bumped to 35% — the original 12% was so faint on
-    // a real install that operators thought the feature wasn't firing.
-    // Admin can dial it down via the hero_deco_opacity setting.
-    const opacityRaw = parseInt(app.forum.attribute('gridiron-nation.hero_deco_opacity'), 10);
-    const opacity = isNaN(opacityRaw) ? 35 : Math.min(100, Math.max(0, opacityRaw));
-    if (opacity === 0) return;
-
-    items.add(
-      'gn-hero-deco-icons',
-      m('.GN-discussionHero-icons',
-        {
-          'aria-hidden': 'true',
-          'data-icon-count': picked.length,
-          style: { '--gn-deco-opacity': (opacity / 100).toFixed(2) },
-          oncreate(vnode) {
-            const run = () => gnMeasureDecoInset(vnode.dom);
-            // Glyph has its real width only once the kit font is loaded.
-            if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
-            else run();
-            // Font-size is viewport-clamped, so the overflow scales — recompute
-            // on resize. Debounced; listener removed in onremove.
-            vnode.state.gnResize = () => {
-              clearTimeout(vnode.state.gnTimer);
-              vnode.state.gnTimer = setTimeout(run, 120);
-            };
-            window.addEventListener('resize', vnode.state.gnResize);
-          },
-          // Re-measure when the hero re-renders for a different discussion
-          // (Mithril reuses this DOM node, so oncreate won't fire again).
-          onupdate(vnode) { gnMeasureDecoInset(vnode.dom); },
-          onremove(vnode) {
-            if (vnode.state.gnResize) window.removeEventListener('resize', vnode.state.gnResize);
-            clearTimeout(vnode.state.gnTimer);
-          },
-        },
-        picked.map((tag, i) =>
-          m('span.GN-discussionHero-icon', {
-            key: tag.id ? tag.id() : i,
-            style: tag.color && tag.color() ? { '--gn-deco-color': tag.color() } : null,
-          },
-            m('i', { className: tag.icon() })
-          )
-        )
-      ),
-      -100   // negative priority pushes it after every other item — it's decoration, not content
-    );
+    // Negative priority pushes it after every other item — it's
+    // decoration, not content.
+    items.add('gn-hero-deco-icons', gnDecoVnode(deco.picked, deco.opacity), -100);
   });
 
   // ── 5. Discussion list rows → GNDiscussionCard showcase layout ───────────
