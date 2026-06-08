@@ -1,6 +1,6 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
-import humanTime from 'flarum/common/utils/humanTime';
+import humanTime from 'flarum/common/helpers/humanTime';
 
 /**
  * TrendingWidget — Phase 3

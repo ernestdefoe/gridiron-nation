@@ -14,7 +14,10 @@ return [
             $table->string('height', 20)->nullable();
             $table->string('hometown', 255)->nullable();
             $table->tinyInteger('stars')->default(3);
-            $table->enum('status', ['committed', 'undecided', 'decommitted'])->default('undecided');
+            // String, not enum — enum DDL isn't portable (migrate:reset can fail on
+            // PostgreSQL/SQLite with older Laravel). The committed/undecided/
+            // decommitted allowlist is enforced at the application layer.
+            $table->string('status', 20)->default('undecided');
             $table->string('school', 255)->nullable();
             $table->integer('sort_order')->default(0);
             $table->timestamps();

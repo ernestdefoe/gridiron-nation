@@ -95,12 +95,16 @@ $extenders = [
     // three from one COUNT trio rather than re-counting per field.
     (new Extend\ApiResource(ForumResource::class))
         ->fields(function () {
-            $counts = function (): array {
+            // Resolve the cache repository ONCE for this field set rather than
+            // calling resolve() inside each per-request getter.
+            $cache = resolve(CacheRepository::class);
+
+            $counts = function () use ($cache): array {
                 static $memo = null;
                 if ($memo !== null) {
                     return $memo;
                 }
-                return $memo = resolve(CacheRepository::class)->remember(
+                return $memo = $cache->remember(
                     'gridiron-nation.scoreboard_counts',
                     300,
                     fn () => [
@@ -122,7 +126,7 @@ $extenders = [
                 // Tiny shape (id / displayName / username / avatarUrl) to keep
                 // the payload small; null on a fresh install with no users.
                 Schema\Arr::make('gridironNewestMember')
-                    ->get(fn () => resolve(CacheRepository::class)->remember(
+                    ->get(fn () => $cache->remember(
                         'gridiron-nation.newest_member',
                         300,
                         function () {
