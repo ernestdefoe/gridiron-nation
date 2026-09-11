@@ -34,13 +34,22 @@ return [
         if ($schema->hasTable('post_likes')) {
             // Backfill from existing likes. Subquery sum keeps it to one
             // statement instead of N+1.
+            /*
+             * 🚨 statement() is raw SQL — the schema builder above prefixes its
+             * own table names, this does not. Left unprefixed the migration
+             * aborted on "Table 'discussions' doesn't exist" on any forum with a
+             * table prefix, which means the extension could not be installed
+             * there at all. getTablePrefix() is '' when no prefix is set.
+             */
+            $p = $db->getTablePrefix();
+
             $db->statement(
-                'UPDATE discussions d
+                "UPDATE {$p}discussions d
                  SET likes_count = (
-                     SELECT COUNT(*) FROM post_likes pl
-                     INNER JOIN posts p ON p.id = pl.post_id
+                     SELECT COUNT(*) FROM {$p}post_likes pl
+                     INNER JOIN {$p}posts p ON p.id = pl.post_id
                      WHERE p.discussion_id = d.id
-                 )'
+                 )"
             );
         }
     },
