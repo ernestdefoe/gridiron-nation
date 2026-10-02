@@ -2477,7 +2477,13 @@ a.GN-online-row {
   // `:has(.IndexPage-nav)` widens only the sidebar that actually holds the
   // nav list, and the button tweaks below live under .IndexPage-nav so the
   // discussion controls (.DiscussionPage-nav) are never touched.
-  .Page:not(.IndexPage) .Page-sidebar:has(.IndexPage-nav) {
+  //
+  // 🚨 `:not(.Page--vertical)` — on a vertical page (the tags page) the
+  // "sidebar" is NOT a left column, it is a full-width strip across the top.
+  // Capping it at 320px squeezed whatever lived there into a 320px box: with
+  // Bespoke's tile nav that was a two-by-two grid of tiles instead of a row,
+  // on the tags page only, and only with both themes enabled.
+  .Page:not(.IndexPage):not(.Page--vertical) .Page-sidebar:has(.IndexPage-nav) {
     width: 320px;
     flex-basis: 320px;
   }
@@ -2485,13 +2491,13 @@ a.GN-online-row {
   // Exclude the primary "Start a Discussion" button (.Button--primary):
   // these flex/icon/wrap tweaks are for the nav LINKS only. Without the
   // exclusion the primary button's label wrapped to two lines.
-  .Page:not(.IndexPage) .IndexPage-nav .Button.hasIcon:not(.Button--primary) {
+  .Page:not(.IndexPage):not(.Page--vertical) .IndexPage-nav .Button.hasIcon:not(.Button--primary) {
     display: flex !important;
     align-items: center;
     gap: 12px;
   }
 
-  .Page:not(.IndexPage) .IndexPage-nav .Button:not(.Button--primary) .Button-icon {
+  .Page:not(.IndexPage):not(.Page--vertical) .IndexPage-nav .Button:not(.Button--primary) .Button-icon {
     width: 2.6em !important;
     min-width: 2.6em;
     margin: 0 !important;
@@ -2499,7 +2505,7 @@ a.GN-online-row {
     flex: 0 0 auto;
   }
 
-  .Page:not(.IndexPage) .IndexPage-nav .Button:not(.Button--primary) .Button-label {
+  .Page:not(.IndexPage):not(.Page--vertical) .IndexPage-nav .Button:not(.Button--primary) .Button-label {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
