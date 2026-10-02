@@ -346,6 +346,15 @@ body,
   }
 }
 
+// 🚨 Bespoke draws its own nav row on the index (.BespokeHeaderNav — pills or
+// tiles, the forum's choice), built from the same navItems as this one. With
+// both themes enabled the index showed two navs stacked, every link twice.
+// Bespoke's is the one the forum configured, so this row steps aside — and
+// only when Bespoke's is actually on the page, so GridIron alone keeps it.
+body:has(.BespokeHeaderNav) .GN-heroNav {
+  display: none;
+}
+
 // "Tell everyone what you're working on…" composer trigger.
 // Rendered inside .Hero.WelcomeHero (last hero contentItem), mirrors
 // MosaicComposerTrigger's pill shape exactly:
