@@ -167,9 +167,14 @@ export default class GNDiscussionCard extends Component {
           : null,
       ]),
 
+      // A real link (open-in-new-tab still works), but a plain click
+      // REPLIES: it opens the thread and the reply composer together, the
+      // way core's own Reply control does. As a bare Link it only ever
+      // navigated, so "Reply" on the list never produced a reply box.
       m(Link, {
         className: 'Button GN-showcaseCard-replyBtn',
         href: s.replyHref,
+        onclick: (e) => this.reply(e, d, s.replyHref),
       }, [
         m('i.fas.fa-reply', { 'aria-hidden': 'true' }),
         ' ',
@@ -187,6 +192,27 @@ export default class GNDiscussionCard extends Component {
           }, s.controls)
         : null,
     ]);
+  }
+
+  /**
+   * The card's Reply button. A modified click (new tab/window) and a member
+   * who may not reply (locked thread, no permission) keep the plain link
+   * behaviour — they get the thread. Everyone else gets what the button says:
+   * the thread opens at its latest post with the reply composer up, via
+   * core's DiscussionControls.replyAction (a guest gets the log-in modal).
+   */
+  reply(e, d, href) {
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+
+    const user = app.session.user;
+    if (user && !(d.canReply && d.canReply())) return;
+
+    e.preventDefault();
+    e.redraw = false;
+
+    if (user) m.route.set(href);
+
+    DiscussionControls.replyAction.call(d, true, false).catch(() => {});
   }
 
   /**
