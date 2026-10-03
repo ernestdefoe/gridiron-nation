@@ -11,6 +11,7 @@
 
 use Ernestdefoe\GridironNation\Api\Controller\LiveScoresController;
 use Ernestdefoe\GridironNation\Api\Controller\OnlineNowController;
+use Ernestdefoe\GridironNation\Content\HeroAlignment;
 use Ernestdefoe\GridironNation\Listener\SyncDiscussionLikesCount;
 use Flarum\Api\Resource\DiscussionResource;
 use Flarum\Api\Resource\ForumResource;
@@ -25,7 +26,9 @@ $extenders = [
     // ── Frontend ──────────────────────────────────────────────────────────────
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
-        ->css(__DIR__ . '/less/forum.less'),
+        ->css(__DIR__ . '/less/forum.less')
+        // data-gn-hero-align on <html>: the discussion hero's alignment setting.
+        ->content(HeroAlignment::class),
 
     (new Extend\Frontend('admin'))
         ->js(__DIR__ . '/js/dist/admin.js')
@@ -77,7 +80,8 @@ $extenders = [
         ->default('ernestdefoe-gridiron-nation.widget_top_recruits',  '1')
         ->default('ernestdefoe-gridiron-nation.hero_deco_enabled',    '1')
         ->default('ernestdefoe-gridiron-nation.hero_deco_icon_count', '2')
-        ->default('ernestdefoe-gridiron-nation.hero_deco_opacity',    '35'),
+        ->default('ernestdefoe-gridiron-nation.hero_deco_opacity',    '35')
+        ->default('ernestdefoe-gridiron-nation.hero_align',           'left'),
 
     // ── Forum payload — newest registered member ────────────────────────────
     // Exposes the most recently joined user as

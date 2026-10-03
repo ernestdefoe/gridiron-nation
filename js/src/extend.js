@@ -1,3 +1,4 @@
+import app from 'flarum/admin/app';
 import Admin from 'flarum/common/extenders/Admin';
 
 /**
@@ -61,5 +62,18 @@ export default [
       max:         100,
       step:        1,
       placeholder: '12',
+    }))
+
+    // ── DiscussionHero layout ───────────────────────────────────────────────
+    .setting(() => ({
+      setting:  'ernestdefoe-gridiron-nation.hero_align',
+      label:    app.translator.trans('ernestdefoe-gridiron-nation.admin.settings.hero_align'),
+      help:     app.translator.trans('ernestdefoe-gridiron-nation.admin.settings.hero_align_help'),
+      type:     'select',
+      options:  {
+        left:   app.translator.trans('ernestdefoe-gridiron-nation.admin.settings.hero_align_left'),
+        center: app.translator.trans('ernestdefoe-gridiron-nation.admin.settings.hero_align_center'),
+      },
+      default:  'left',
     })),
 ];

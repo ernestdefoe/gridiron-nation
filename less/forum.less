@@ -2830,6 +2830,27 @@ a.GN-online-row {
   margin: 0;
 }
 
+// ── Centred discussion hero (admin: "Discussion hero alignment") ─────────────
+// The column above is left-aligned; centred, every row — title, badges, tag
+// pills — sits on the hero's centre line, and a long tag list wraps outward
+// from the middle instead of hanging off the left of the container.
+// data-gn-hero-align is written on <html> server-side (Content\HeroAlignment).
+[data-gn-hero-align='center'] {
+  .DiscussionHero-items {
+    align-items: center;
+    text-align: center;
+  }
+
+  .DiscussionHero h1.DiscussionHero-title {
+    text-align: center;
+  }
+
+  .DiscussionHero-badges {
+    justify-content: center;
+  }
+
+}
+
 // ── TopRecruitsWidget — round the photo into the same circle as the
 //    position-badge fallback so a CFBD payload with photos looks
 //    identical in shape to one without. 38×38 keeps it inline with the

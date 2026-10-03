@@ -17,6 +17,11 @@ ernestdefoe-gridiron-nation:
       hero_deco_opacity: "Decoration icon opacity (0–100)"
       hero_deco_opacity_help: "Percentage opacity for the glyph against the hero background. Default 12. Set to 0 to hide without disabling the feature."
 
+      hero_align: "Discussion hero alignment"
+      hero_align_help: "Where the title and its tags sit in the discussion hero. Centre lines the tags up under a centred title and lets them spread out from the middle."
+      hero_align_left: "Left"
+      hero_align_center: "Centre"
+
   forum:
     discussion:
       # GNDiscussionCard footer stats + overflow link.
