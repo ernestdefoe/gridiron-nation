@@ -1692,6 +1692,19 @@ body:has(.BespokeHeaderNav) .GN-heroNav {
     radial-gradient(circle 24px at 100% 50%, transparent 22.5px, #000 23px);
   -webkit-mask-composite: source-in;
 
+  // 🚨 A mask clips EVERYTHING outside the element's own box, not just its
+  // background. The post's "…" controls menu, and the mention/reply
+  // previews, are absolutely positioned children that open below the
+  // card — so the mask sliced them off at the card's bottom edge and the
+  // menu items could not be seen or clicked (the last post on a page lost
+  // its whole menu). While one of those popups is open the card drops its
+  // mask; the punch-holes come back the moment it closes.
+  &:has(.Dropdown.open),
+  &:has(.Dropdown-menu.in) {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
   // Push the header + body text away from the perforation line. The
   // perforation `::before` sits at left: (avatar-column-width - 2px)
   // = 108px, and the .Post-main grid track starts at 110px — leaving
