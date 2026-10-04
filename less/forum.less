@@ -1797,6 +1797,16 @@ body:has(.BespokeHeaderNav) .GN-heroNav {
     &::before {
       content: none;
     }
+
+    // The holes shrink with the card's padding. At 23px they reach further
+    // into the card than a phone's padding does, and the left one bit the
+    // first letter off lines of text level with it.
+    mask-image:
+      radial-gradient(circle 12px at 0 50%, transparent 10.5px, #000 11px),
+      radial-gradient(circle 12px at 100% 50%, transparent 10.5px, #000 11px);
+    -webkit-mask-image:
+      radial-gradient(circle 12px at 0 50%, transparent 10.5px, #000 11px),
+      radial-gradient(circle 12px at 100% 50%, transparent 10.5px, #000 11px);
   }
 
   // The ::after is reserved for the clearfix that Flarum core ships on
