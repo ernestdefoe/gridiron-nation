@@ -210,6 +210,17 @@ body,
     // padded content area below clears it.
   }
 
+  // 🚨 The page must start exactly under the 46px floating bar. On a phone
+  // the desktop `.App-header` is folded into the closed drawer, so the only
+  // chrome at the top is #app-navigation — but a forum that makes its
+  // DESKTOP header taller (custom CSS such as `.App { padding-top: 120px
+  // !important }` for a big logo) used to carry that padding onto phones
+  // too, leaving a 74px empty band between the floating bar and the hero.
+  // `body .App` out-ranks a bare `.App … !important`, so the phone always
+  // gets the phone header height whatever the desktop height is.
+  body .App {
+    padding-top: var(--header-height-phone) !important;
+  }
 
   // --- Burger (left) — opens the slide-in drawer with search, notifications,
   // theme toggle, login/signup. NOT the nav menu — that's the title control.
