@@ -210,6 +210,7 @@ body,
     // padded content area below clears it.
   }
 
+
   // --- Burger (left) — opens the slide-in drawer with search, notifications,
   // theme toggle, login/signup. NOT the nav menu — that's the title control.
   #app-navigation .Navigation-drawer,
@@ -1771,6 +1772,20 @@ body:has(.BespokeHeaderNav) .GN-heroNav {
     pointer-events: none;
     z-index: 1;
     clear: none;          // also override the clearfix `clear: both` on :after
+  }
+
+  // 🚨 Phones have no stub column. Core's phone layout hides `.Post-side`'s
+  // avatar and puts a small one inline in the header, so the post body runs
+  // the full card width — but the perforation stayed pinned at 108px and
+  // drew a dashed line straight down through the middle of the text, and
+  // the stub tint shaded a strip of the body. Both go on phones; the card,
+  // its punch-holes and the OP edge stay.
+  @media (max-width: 767.98px) {
+    background-image: none;
+
+    &::before {
+      content: none;
+    }
   }
 
   // The ::after is reserved for the clearfix that Flarum core ships on
