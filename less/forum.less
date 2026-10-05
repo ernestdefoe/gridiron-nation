@@ -146,23 +146,6 @@ body,
   }
 }
 
-// ── GN Header Navigation (injected via HeaderPrimary.items()) ─────────────────
-.GN-headerNav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin: 0 8px;
-
-  // Phone: hide the inline header nav — Flarum's mobile drawer
-  // (triggered by `.Navigation-drawer` in App-backControl) is the
-  // primary navigation surface on phones. Leaving the inline links
-  // visible competes with the hamburger for tap targets and crowds
-  // the 58px-tall header bar.
-  @media (max-width: 767.98px) {
-    display: none;
-  }
-}
-
 // ── Mobile hamburger nav (Flarum core) ───────────────────────────────────────
 //
 // Flarum 2 renders `<button class="Navigation-drawer">` inside
@@ -873,13 +856,6 @@ body:has(.BespokeHeaderNav) .GN-heroNav {
   }
 }
 
-.GN-hero-statChev {
-  font-size: 0.6rem;
-  margin-left: 4px;
-  opacity: 0.75;
-  transition: transform 0.18s @gn-ease;
-}
-
 .GN-onlinePopover {
   position: absolute;
   top: calc(100% + 14px);
@@ -972,29 +948,6 @@ body:has(.BespokeHeaderNav) .GN-heroNav {
   border-radius: 50%;
   background: #4ade80;
   box-shadow: 0 0 0 2px var(--control-bg, #fff);
-}
-
-.GN-hero-statNum {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
-}
-
-.GN-hero-statLabel {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.65);
-  letter-spacing: 0.08em;
-  margin-top: 2px;
-}
-
-.GN-hero-statDivider {
-  width: 1px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.25);
-  margin: 0 0 0 1.25rem;   // gap on the LEFT of the divider
 }
 
 // Hero tag chips removed — tag navigation lives in the pill row below
@@ -2365,62 +2318,6 @@ select {
   }
 }
 
-// ── Online Now widget ─────────────────────────────────────────────────────────
-.GN-online {
-  &-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    transition: background @gn-transition;
-
-    &:hover { background: @gn-surface; }
-  }
-
-  &-avatar {
-    position: relative;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    overflow: hidden;
-    background: @gn-primary;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    img { width: 100%; height: 100%; object-fit: cover; }
-  }
-
-  &-dot {
-    position: absolute;
-    bottom: 1px;
-    right: 1px;
-    width: 9px;
-    height: 9px;
-    background: @gn-online;
-    border-radius: 50%;
-    border: 2px solid @gn-card;
-  }
-
-  &-name {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.83rem;
-    font-weight: 600;
-    color: var(--body-color);
-    flex: 1;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &-status {
-    font-size: 0.72rem;
-    color: @gn-muted;
-  }
-}
-
 // ── Widget shared utility classes ─────────────────────────────────────────────
 
 .GN-widget-loading {
@@ -2453,33 +2350,6 @@ a.GN-trending-item {
     text-decoration: none;
     color: inherit;
   }
-}
-
-// ── Online Now refinements ────────────────────────────────────────────────────
-
-.GN-online-count {
-  font-weight: 400;
-  color: @gn-muted;
-}
-
-.GN-online-initial {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #fff;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: @gn-primary;
-}
-
-a.GN-online-row {
-  text-decoration: none;
-  color: inherit;
-
-  &:hover { text-decoration: none; color: inherit; }
 }
 
 // ── Page layout: widgets to the RIGHT of the discussion list ─────────────────
@@ -2921,15 +2791,13 @@ a.GN-online-row {
 // ============================================================
 // DARK MODE — MUST remain at the very end of this file.
 //
-// Applied in TWO ways:
-//   1. @media (prefers-color-scheme: dark) — system dark mode
-//   2. body.App--dark-mode                 — Flarum admin dark toggle
+// Applied from [data-theme^='dark'] on <html> — see the cascade below.
 //
 // CSS custom properties are set on body so they cascade to all
 // children (same effect as :root, sufficient for our use-case).
 // ============================================================
 
-// Shared dark-mode mixin (called twice below)
+// Dark-mode body styles, applied by the dark family below
 .gn-dark-theme() {
   --primary-color:       #e05c5c;
   --primary-color-dark:  #c03030;
@@ -3051,13 +2919,8 @@ a.GN-online-row {
 
   .GN-scorecard:hover,
   .GN-trending-item:hover,
-  .GN-recruit:hover,
-  .GN-online-row:hover {
+  .GN-recruit:hover {
     background: rgba(255, 255, 255, 0.025);
-  }
-
-  .GN-online-dot {
-    border-color: #16171c;
   }
 
   .Alert--success { background: rgba(78, 196, 106, 0.10); }
@@ -3093,43 +2956,19 @@ a.GN-online-row {
 // Flarum's core CSS painted the chrome dark from its own
 // [data-theme^=dark] rules, producing a half-light/half-dark surface.
 //
+// 🚨 No `@media (prefers-color-scheme)` branch. Core resolves "auto" to
+// light or dark with an inline script in <head>, before this stylesheet
+// loads, so <html> always carries one of the values below; a branch for
+// "no data-theme" never matched and only doubled the dark rules.
+//
 // Cascade order (this block MUST stay last in the file):
-//   1. @media (prefers-color-scheme: dark) — only when <html> has no
-//      data-theme yet (anonymous + Flarum's default = "auto").
-//   2. [data-theme^="light"]   → light family (light, light-hc)
-//   3. [data-theme="light-hc"] → light high-contrast tweaks
-//   4. [data-theme^="dark"]    → dark family (dark, dark-hc, dark-*)
-//   5. [data-theme="dark-hc"]  → dark high-contrast tweaks
+//   1. [data-theme^="light"]   → light family (light, light-hc)
+//   2. [data-theme="light-hc"] → light high-contrast tweaks
+//   3. [data-theme^="dark"]    → dark family (dark, dark-hc, dark-*)
+//   4. [data-theme="dark-hc"]  → dark high-contrast tweaks
 // ============================================================
 
-// ── 1. System dark fallback (only when <html> has no data-theme) ─────────────
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]),
-  :root[data-theme=''] {
-    --primary-color:       #e05c5c;
-    --primary-color-dark:  #c03030;
-    --primary-color-light: #f08080;
-    --body-bg:       #0c0d10;
-    --control-bg:    #111318;
-    --border-color:  rgba(255, 255, 255, 0.055);
-    --body-color:    #dddee8;
-    --muted-color:   #9495a8;
-    --heading-color: #dddee8;
-    --link-color:    #e05c5c;
-    --link-hover-color: #f08080;
-    --text-color:      var(--body-color);
-    --text-secondary:  #7e7f92;
-  }
-
-  :root:not([data-theme]) body,
-  :root:not([data-theme]) .App,
-  :root[data-theme=''] body,
-  :root[data-theme=''] .App {
-    .gn-dark-theme();
-  }
-}
-
-// ── 2. Light family ──────────────────────────────────────────────────────────
+// ── 1. Light family ──────────────────────────────────────────────────────────
 [data-theme^='light'] {
   --primary-color:       @gn-primary;
   --primary-color-dark:  @gn-primary-dark;
@@ -3175,7 +3014,7 @@ a.GN-online-row {
   }
 }
 
-// ── 3. Light high-contrast ───────────────────────────────────────────────────
+// ── 2. Light high-contrast ───────────────────────────────────────────────────
 [data-theme='light-hc'] {
   --border-color: #000;
   --body-color:   #000;
@@ -3198,7 +3037,7 @@ a.GN-online-row {
   }
 }
 
-// ── 4. Dark family ───────────────────────────────────────────────────────────
+// ── 3. Dark family ───────────────────────────────────────────────────────────
 [data-theme^='dark'] {
   --primary-color:       #e05c5c;
   --primary-color-dark:  #c03030;
@@ -3217,7 +3056,7 @@ a.GN-online-row {
   body, .App { .gn-dark-theme(); }
 }
 
-// ── 5. Dark high-contrast ────────────────────────────────────────────────────
+// ── 4. Dark high-contrast ────────────────────────────────────────────────────
 [data-theme='dark-hc'] {
   --border-color: rgba(255, 255, 255, 0.32);
   --body-color:   #fff;
