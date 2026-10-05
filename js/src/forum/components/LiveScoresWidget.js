@@ -1,5 +1,6 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
+import feed from '../feed';
 
 /**
  * LiveScoresWidget — Phase 2
@@ -12,44 +13,39 @@ import Component from 'flarum/common/Component';
  * specific score.
  *
  * Data source: /api/gn-live-scores (our ESPN proxy, 60s server-side
- * cache). We poll every 60s while the widget is mounted, which lines
- * up with the cache TTL and avoids hammering ESPN.
+ * cache). The data lives in a page-level feed (see ../feed.js): one
+ * request shared by every mount, refreshed every 60s while the tab is
+ * visible, which lines up with the cache TTL and avoids hammering ESPN.
  */
-export default class LiveScoresWidget extends Component {
-  oninit(vnode) {
-    super.oninit(vnode);
-    this.games   = [];
-    this.loading = true;
-    this.error   = false;
-    this._timer  = null;
-  }
+const scores = feed(() => {
+  const base = app.forum.attribute('apiUrl') || '/api';
+  return fetch(`${base}/gn-live-scores`, { credentials: 'same-origin' })
+    .then((r) => r.json())
+    .then((data) => ({ value: { games: Array.isArray(data.games) ? data.games : [], error: false } }))
+    .catch(() => ({ value: { games: [], error: true } }));
+}, 60_000);
 
+export default class LiveScoresWidget extends Component {
   oncreate(vnode) {
     super.oncreate(vnode);
-    this.fetch();
-    this._timer = setInterval(() => this.fetch(), 60_000);
+    scores.attach();
   }
 
   onremove(vnode) {
     super.onremove(vnode);
-    clearInterval(this._timer);
+    scores.detach();
   }
 
-  fetch() {
-    const base = app.forum.attribute('apiUrl') || '/api';
-    fetch(`${base}/gn-live-scores`, { credentials: 'same-origin' })
-      .then((r) => r.json())
-      .then((data) => {
-        this.games   = Array.isArray(data.games) ? data.games : [];
-        this.loading = false;
-        this.error   = false;
-        m.redraw();
-      })
-      .catch(() => {
-        this.loading = false;
-        this.error   = true;
-        m.redraw();
-      });
+  get loading() {
+    return !scores.loaded();
+  }
+
+  get error() {
+    return !!scores.get()?.error;
+  }
+
+  get games() {
+    return scores.get()?.games || [];
   }
 
   view() {

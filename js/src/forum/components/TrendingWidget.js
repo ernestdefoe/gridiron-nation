@@ -1,54 +1,51 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
+import feed from '../feed';
 import humanTime from 'flarum/common/helpers/humanTime';
 
 /**
  * TrendingWidget — Phase 3
  *
  * Shows the 5 most recently active discussions from the Flarum API.
- * Refreshes every 5 minutes.
+ * Refreshes every 5 minutes while the tab is visible, through a
+ * page-level feed shared by every mount (see ../feed.js).
  */
-export default class TrendingWidget extends Component {
-  oninit(vnode) {
-    super.oninit(vnode);
-    this.discussions = [];
-    this.loading     = true;
-    this._timer      = null;
-  }
-
-  oncreate(vnode) {
-    super.oncreate(vnode);
-    this.fetch();
-    this._timer = setInterval(() => this.fetch(), 5 * 60_000);
-  }
-
-  onremove(vnode) {
-    super.onremove(vnode);
-    clearInterval(this._timer);
-  }
-
-  fetch() {
-    // Use the canonical store API instead of a raw fetch+JSON:API unpack.
-    // The store handles model deserialization, relationship hydration,
-    // and the client-side cache for us; we just read attributes off the
-    // returned Discussion models below.
+// The store API handles model deserialization; we keep a plain snapshot
+// of the attributes the widget renders.
+const trending = feed(
+  () =>
     app.store
       .find('discussions', { sort: '-lastPostedAt', 'page[limit]': 5 })
-      .then((discussions) => {
-        this.discussions = (discussions || []).map((d) => ({
+      .then((discussions) => ({
+        value: (discussions || []).map((d) => ({
           id:           d.id(),
           title:        d.title() || '',
           commentCount: d.commentCount() || 0,
           lastPostedAt: d.lastPostedAt(),
           slug:         d.slug(),
-        }));
-        this.loading = false;
-        m.redraw();
-      })
-      .catch(() => {
-        this.loading = false;
-        m.redraw();
-      });
+        })),
+      }))
+      .catch(() => ({ value: [] })),
+  5 * 60_000
+);
+
+export default class TrendingWidget extends Component {
+  oncreate(vnode) {
+    super.oncreate(vnode);
+    trending.attach();
+  }
+
+  onremove(vnode) {
+    super.onremove(vnode);
+    trending.detach();
+  }
+
+  get loading() {
+    return !trending.loaded();
+  }
+
+  get discussions() {
+    return trending.get() || [];
   }
 
   view() {

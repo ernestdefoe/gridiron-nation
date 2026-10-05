@@ -1,5 +1,6 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
+import feed from '../feed';
 
 /**
  * TopRecruitsWidget — Phase 5
@@ -21,74 +22,68 @@ import Component from 'flarum/common/Component';
  *                            Surface a friendly "not configured" line
  *                            so the operator notices.
  *
- * The widget refreshes every 10 minutes — recruiting data moves
+ * The widget refreshes every 10 minutes while the tab is visible,
+ * through a page-level feed shared by every mount (../feed.js) — recruiting data moves
  * roughly weekly, so a 10-minute frontend poll plus the extension's
  * 6-hour cache TTL gives near-instant updates after the admin reloads
  * data without hammering the backend.
  */
-export default class TopRecruitsWidget extends Component {
-  oninit(vnode) {
-    super.oninit(vnode);
-    this.recruits = [];
-    this.year     = null;
-    this.loading  = true;
-    this.error    = null;          // 'unauthenticated' | 'not_installed' | 'api_key_missing' | 'fetch_failed'
-    this._timer   = null;
-  }
+// 401 / 404 are answers that will not change while the page is open, so
+// they end the feed (`final`) instead of being asked again every visit.
+const recruitsFeed = feed(() => {
+  const base = app.forum.attribute('apiUrl') || '/api';
+  return fetch(`${base}/cfbd-recruits`, { credentials: 'same-origin' })
+    .then((r) => {
+      if (r.status === 401) return { value: { recruits: [], year: null, error: 'unauthenticated' }, final: true };
+      if (r.status === 404) return { value: { recruits: [], year: null, error: 'not_installed' }, final: true };
 
+      return r.json().then((data) => ({
+        value: {
+          recruits: Array.isArray(data.data) ? data.data : [],
+          year:     data.year || null,
+          // The extension surfaces "API key missing" as 200 + error
+          // field so the operator's admin UI can render config guidance.
+          // Mirror that shape here.
+          error:    data.error === 'api_key_missing' ? 'api_key_missing' : null,
+        },
+      }));
+    })
+    .catch(() => ({ value: { recruits: [], year: null, error: 'fetch_failed' } }));
+}, 10 * 60_000);
+
+export default class TopRecruitsWidget extends Component {
   oncreate(vnode) {
     super.oncreate(vnode);
 
     // Guests can't reach /api/cfbd-recruits — recruiting requires
     // authentication. Skip the fetch so we don't ping the endpoint
-    // for every anonymous page-view + render the locked-state empty
-    // tile faster.
-    if (!app.session.user) {
-      this.loading = false;
-      this.error   = 'unauthenticated';
-      m.redraw();
-      return;
-    }
+    // for every anonymous page-view.
+    if (!app.session.user) return;
 
-    this.fetch();
-    this._timer = setInterval(() => this.fetch(), 10 * 60_000);
+    this.attached = true;
+    recruitsFeed.attach();
   }
 
   onremove(vnode) {
     super.onremove(vnode);
-    clearInterval(this._timer);
+    if (this.attached) recruitsFeed.detach();
   }
 
-  fetch() {
-    const base = app.forum.attribute('apiUrl') || '/api';
-    fetch(`${base}/cfbd-recruits`, { credentials: 'same-origin' })
-      .then((r) => {
-        if (r.status === 401) { this.error = 'unauthenticated'; return null; }
-        if (r.status === 404) { this.error = 'not_installed';   return null; }
-        return r.json();
-      })
-      .then((data) => {
-        if (!data) { this.loading = false; m.redraw(); return; }
+  get loading() {
+    return !!app.session.user && !recruitsFeed.loaded();
+  }
 
-        // The extension surfaces "API key missing" as 200 + error
-        // field so the operator's admin UI can render config guidance.
-        // Mirror that shape here.
-        if (data.error === 'api_key_missing') {
-          this.error = 'api_key_missing';
-        } else {
-          this.error = null;
-        }
+  get error() {
+    if (!app.session.user) return 'unauthenticated';
+    return recruitsFeed.get()?.error || null;
+  }
 
-        this.recruits = Array.isArray(data.data) ? data.data : [];
-        this.year     = data.year || null;
-        this.loading  = false;
-        m.redraw();
-      })
-      .catch(() => {
-        this.error   = 'fetch_failed';
-        this.loading = false;
-        m.redraw();
-      });
+  get recruits() {
+    return recruitsFeed.get()?.recruits || [];
+  }
+
+  get year() {
+    return recruitsFeed.get()?.year || null;
   }
 
   // Hide the whole widget for guests + when the recruiting extension
