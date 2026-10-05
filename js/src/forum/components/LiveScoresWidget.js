@@ -1,6 +1,7 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
 import feed from '../feed';
+import crestUrl from '../crest';
 
 /**
  * LiveScoresWidget — Phase 2
@@ -106,12 +107,12 @@ export default class LiveScoresWidget extends Component {
     }, [
       m('.GN-scorecard-teams', [
         m('.GN-scorecard-team', { class: g.awayWins ? 'is-winning' : '' }, [
-          g.away.logo ? m('img.GN-scorecard-logo', { src: g.away.logo, alt: '' }) : null,
+          g.away.logo ? m('img.GN-scorecard-logo', { src: crestUrl(g.away.logo, 26), alt: '', decoding: 'async' }) : null,
           m('span.GN-scorecard-name', g.away.abbr),
           m('span.GN-scorecard-score', g.away.score),
         ]),
         m('.GN-scorecard-team', { class: g.homeWins ? 'is-winning' : '' }, [
-          g.home.logo ? m('img.GN-scorecard-logo', { src: g.home.logo, alt: '' }) : null,
+          g.home.logo ? m('img.GN-scorecard-logo', { src: crestUrl(g.home.logo, 26), alt: '', decoding: 'async' }) : null,
           m('span.GN-scorecard-name', g.home.abbr),
           m('span.GN-scorecard-score', g.home.score),
         ]),
