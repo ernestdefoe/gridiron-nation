@@ -238,10 +238,8 @@ a downgrade picks them back up cleanly.
 
 ## Support
 
-Questions, bug reports, and feature requests:
-
-- **Support forum:** https://ernestdefoe.online
-- **Issues:** https://github.com/ernestdefoe/gridiron-nation/issues
+- **Support forum:** [GridIron Nation on ernestdefoe.online](https://ernestdefoe.online/d/15)
+- **Bug reports:** [GitHub issues](https://github.com/ernestdefoe/gridiron-nation/issues)
 
 ## License
 
