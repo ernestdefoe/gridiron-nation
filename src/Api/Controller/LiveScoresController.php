@@ -12,7 +12,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * GET /api/gn-live-scores
+ * GET /api/gn-live-scores.
  *
  * Proxy + normalizer for ESPN's college-football scoreboard endpoint.
  * The response is cached for 60 seconds — ESPN itself updates scores
@@ -33,7 +33,8 @@ class LiveScoresController implements RequestHandlerInterface
         private readonly CacheRepository $cache,
         private readonly LoggerInterface $log,
         private readonly Client $http,
-    ) {}
+    ) {
+    }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -64,11 +65,11 @@ class LiveScoresController implements RequestHandlerInterface
             // per-request timeouts are passed as request options here so the
             // controller stays testable (the Client can be swapped/mocked).
             $response = $this->http->get(self::ESPN_URL, [
-                'timeout'         => 6,
+                'timeout' => 6,
                 'connect_timeout' => 4,
                 'headers' => [
                     'User-Agent' => 'Mozilla/5.0 (compatible; GridIronNation/1.0)',
-                    'Accept'     => 'application/json',
+                    'Accept' => 'application/json',
                 ],
                 'http_errors' => false,
             ]);
@@ -88,8 +89,7 @@ class LiveScoresController implements RequestHandlerInterface
 
             // Live games first, then scheduled, then finals (so the
             // widget's "above the fold" rows are the most actionable).
-            usort($games, fn ($a, $b) =>
-                ($b['isLive'] ? 2 : ($b['isFinal'] ? 0 : 1)) <=>
+            usort($games, fn ($a, $b) => ($b['isLive'] ? 2 : ($b['isFinal'] ? 0 : 1)) <=>
                 ($a['isLive'] ? 2 : ($a['isFinal'] ? 0 : 1))
             );
 
@@ -99,10 +99,12 @@ class LiveScoresController implements RequestHandlerInterface
             // distinguishes "no games" from "ESPN unavailable" via the
             // shape of the response, but for caching purposes we treat
             // both as `games=[]`.
-            $this->log->info('[gridiron-nation] ESPN unreachable: ' . $e->getMessage());
+            $this->log->info('[gridiron-nation] ESPN unreachable: '.$e->getMessage());
+
             return [];
         } catch (\Throwable $e) {
-            $this->log->error('[gridiron-nation] LiveScoresController: ' . $e->getMessage());
+            $this->log->error('[gridiron-nation] LiveScoresController: '.$e->getMessage());
+
             return [];
         }
     }
@@ -124,18 +126,22 @@ class LiveScoresController implements RequestHandlerInterface
 
         $home = $away = null;
         foreach ($competition['competitors'] ?? [] as $c) {
-            if (($c['homeAway'] ?? '') === 'home') $home = $c;
-            if (($c['homeAway'] ?? '') === 'away') $away = $c;
+            if (($c['homeAway'] ?? '') === 'home') {
+                $home = $c;
+            }
+            if (($c['homeAway'] ?? '') === 'away') {
+                $away = $c;
+            }
         }
         if (! $home || ! $away) {
             return null;
         }
 
-        $statusType   = $event['status']['type'] ?? [];
-        $statusName   = $statusType['name'] ?? '';
+        $statusType = $event['status']['type'] ?? [];
+        $statusName = $statusType['name'] ?? '';
         $statusDetail = $statusType['shortDetail'] ?? $statusType['description'] ?? '';
 
-        $isLive  = in_array($statusName, [
+        $isLive = in_array($statusName, [
             'STATUS_IN_PROGRESS',
             'STATUS_HALFTIME',
             'STATUS_END_PERIOD',
@@ -146,22 +152,22 @@ class LiveScoresController implements RequestHandlerInterface
         $awayScore = (int) ($away['score'] ?? 0);
 
         return [
-            'id'       => $event['id'] ?? null,
-            'home'     => [
-                'abbr'  => $home['team']['abbreviation'] ?? '???',
-                'name'  => $home['team']['displayName']  ?? '',
+            'id' => $event['id'] ?? null,
+            'home' => [
+                'abbr' => $home['team']['abbreviation'] ?? '???',
+                'name' => $home['team']['displayName'] ?? '',
                 'score' => $homeScore,
-                'logo'  => $home['team']['logo']         ?? null,
+                'logo' => $home['team']['logo'] ?? null,
             ],
-            'away'     => [
-                'abbr'  => $away['team']['abbreviation'] ?? '???',
-                'name'  => $away['team']['displayName']  ?? '',
+            'away' => [
+                'abbr' => $away['team']['abbreviation'] ?? '???',
+                'name' => $away['team']['displayName'] ?? '',
                 'score' => $awayScore,
-                'logo'  => $away['team']['logo']         ?? null,
+                'logo' => $away['team']['logo'] ?? null,
             ],
-            'status'   => $statusDetail,
-            'isLive'   => $isLive,
-            'isFinal'  => $isFinal,
+            'status' => $statusDetail,
+            'isLive' => $isLive,
+            'isFinal' => $isFinal,
             'homeWins' => $homeScore > $awayScore,
             'awayWins' => $awayScore > $homeScore,
         ];

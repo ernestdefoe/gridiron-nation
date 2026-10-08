@@ -13,7 +13,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * GET /api/gn-online
+ * GET /api/gn-online.
  *
  * Registered-users-only listing of the 12 most-recently-active users in
  * the last 5 minutes, plus the count. Three layers of access control:
@@ -37,7 +37,8 @@ class OnlineNowController implements RequestHandlerInterface
     public function __construct(
         private readonly CacheRepository $cache,
         private readonly LoggerInterface $log,
-    ) {}
+    ) {
+    }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -53,7 +54,8 @@ class OnlineNowController implements RequestHandlerInterface
 
             return new JsonResponse($payload);
         } catch (\Throwable $e) {
-            $this->log->error('[gridiron-nation] OnlineNowController: ' . $e->getMessage());
+            $this->log->error('[gridiron-nation] OnlineNowController: '.$e->getMessage());
+
             return new JsonResponse(['count' => 0, 'users' => []], 200);
         }
     }
@@ -97,10 +99,10 @@ class OnlineNowController implements RequestHandlerInterface
         return [
             'count' => $visible->count(),
             'users' => $visible->map(fn (User $u) => [
-                'id'          => (int) $u->id,
+                'id' => (int) $u->id,
                 'displayName' => $u->display_name ?: $u->username,
-                'avatarUrl'   => $u->avatar_url,
-                'slug'        => $u->username,
+                'avatarUrl' => $u->avatar_url,
+                'slug' => $u->username,
             ])->all(),
         ];
     }

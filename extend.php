@@ -25,16 +25,16 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 $extenders = [
     // ── Frontend ──────────────────────────────────────────────────────────────
     (new Extend\Frontend('forum'))
-        ->js(__DIR__ . '/js/dist/forum.js')
-        ->css(__DIR__ . '/less/forum.less')
+        ->js(__DIR__.'/js/dist/forum.js')
+        ->css(__DIR__.'/less/forum.less')
         // data-gn-hero-align on <html>: the discussion hero's alignment setting.
         ->content(HeroAlignment::class),
 
     (new Extend\Frontend('admin'))
-        ->js(__DIR__ . '/js/dist/admin.js')
-        ->css(__DIR__ . '/less/admin.less'),
+        ->js(__DIR__.'/js/dist/admin.js')
+        ->css(__DIR__.'/less/admin.less'),
 
-    new Extend\Locales(__DIR__ . '/locale'),
+    new Extend\Locales(__DIR__.'/locale'),
 
     // ── API routes ───────────────────────────────────────────────────────────
     // Recruits used to live here under /api/gn-recruits with a small
@@ -48,7 +48,7 @@ $extenders = [
         // Phase 2 — Live Scores (ESPN proxy, CORS-safe, public)
         ->get('/gn-live-scores', 'gn.live-scores', LiveScoresController::class)
         // Phase 4 — Online Now
-        ->get('/gn-online',      'gn.online',      OnlineNowController::class),
+        ->get('/gn-online', 'gn.online', OnlineNowController::class),
 
     // ── Settings ─────────────────────────────────────────────────────────────
     // Per-widget visibility toggles exposed to the forum frontend so the
@@ -65,23 +65,23 @@ $extenders = [
     // legacy fbsfb.* / ernestdefoe-fbsfb.* rows into these new keys on
     // first boot so upgraders don't lose their widget toggles.
     (new Extend\Settings())
-        ->serializeToForum('gridiron-nation.widget_live_scores',  'ernestdefoe-gridiron-nation.widget_live_scores',  'boolval')
-        ->serializeToForum('gridiron-nation.widget_trending',     'ernestdefoe-gridiron-nation.widget_trending',     'boolval')
+        ->serializeToForum('gridiron-nation.widget_live_scores', 'ernestdefoe-gridiron-nation.widget_live_scores', 'boolval')
+        ->serializeToForum('gridiron-nation.widget_trending', 'ernestdefoe-gridiron-nation.widget_trending', 'boolval')
         ->serializeToForum('gridiron-nation.widget_top_recruits', 'ernestdefoe-gridiron-nation.widget_top_recruits', 'boolval')
         // DiscussionHero secondary-tag icon decoration. Child tags only,
         // up to 2 icons on desktop, configurable opacity. Opacity is
         // stored as a 0-100 integer so the admin UI is a plain text
         // field; the frontend divides by 100 before applying.
-        ->serializeToForum('gridiron-nation.hero_deco_enabled',    'ernestdefoe-gridiron-nation.hero_deco_enabled',    'boolval')
+        ->serializeToForum('gridiron-nation.hero_deco_enabled', 'ernestdefoe-gridiron-nation.hero_deco_enabled', 'boolval')
         ->serializeToForum('gridiron-nation.hero_deco_icon_count', 'ernestdefoe-gridiron-nation.hero_deco_icon_count', 'intval')
-        ->serializeToForum('gridiron-nation.hero_deco_opacity',    'ernestdefoe-gridiron-nation.hero_deco_opacity',    'intval')
-        ->default('ernestdefoe-gridiron-nation.widget_live_scores',   '1')
-        ->default('ernestdefoe-gridiron-nation.widget_trending',      '1')
-        ->default('ernestdefoe-gridiron-nation.widget_top_recruits',  '1')
-        ->default('ernestdefoe-gridiron-nation.hero_deco_enabled',    '1')
+        ->serializeToForum('gridiron-nation.hero_deco_opacity', 'ernestdefoe-gridiron-nation.hero_deco_opacity', 'intval')
+        ->default('ernestdefoe-gridiron-nation.widget_live_scores', '1')
+        ->default('ernestdefoe-gridiron-nation.widget_trending', '1')
+        ->default('ernestdefoe-gridiron-nation.widget_top_recruits', '1')
+        ->default('ernestdefoe-gridiron-nation.hero_deco_enabled', '1')
         ->default('ernestdefoe-gridiron-nation.hero_deco_icon_count', '2')
-        ->default('ernestdefoe-gridiron-nation.hero_deco_opacity',    '35')
-        ->default('ernestdefoe-gridiron-nation.hero_align',           'left'),
+        ->default('ernestdefoe-gridiron-nation.hero_deco_opacity', '35')
+        ->default('ernestdefoe-gridiron-nation.hero_align', 'left'),
 
     // ── Forum payload — newest registered member ────────────────────────────
     // Exposes the most recently joined user as
@@ -108,13 +108,14 @@ $extenders = [
                 if ($memo !== null) {
                     return $memo;
                 }
+
                 return $memo = $cache->remember(
                     'gridiron-nation.scoreboard_counts',
                     300,
                     fn () => [
-                        'users'       => (int) User::query()->count(),
+                        'users' => (int) User::query()->count(),
                         'discussions' => (int) Discussion::query()->count(),
-                        'posts'       => (int) Post::query()->count(),
+                        'posts' => (int) Post::query()->count(),
                     ]
                 );
             };
@@ -143,10 +144,10 @@ $extenders = [
                             }
 
                             return [
-                                'id'          => (int) $user->id,
-                                'username'    => $user->username,
+                                'id' => (int) $user->id,
+                                'username' => $user->username,
                                 'displayName' => $user->display_name ?: $user->username,
-                                'avatarUrl'   => $user->avatar_url,
+                                'avatarUrl' => $user->avatar_url,
                             ];
                         }
                     )),
@@ -183,8 +184,8 @@ $extenders = [
 // rejects it; the `Class@method` string form is the idiomatic alternative.)
 if (class_exists(\Flarum\Likes\Event\PostWasLiked::class)) {
     $extenders[] = (new Extend\Event())
-        ->listen(\Flarum\Likes\Event\PostWasLiked::class, SyncDiscussionLikesCount::class . '@whenPostLiked')
-        ->listen(\Flarum\Likes\Event\PostWasUnliked::class, SyncDiscussionLikesCount::class . '@whenPostUnliked');
+        ->listen(\Flarum\Likes\Event\PostWasLiked::class, SyncDiscussionLikesCount::class.'@whenPostLiked')
+        ->listen(\Flarum\Likes\Event\PostWasUnliked::class, SyncDiscussionLikesCount::class.'@whenPostUnliked');
 }
 
 return $extenders;

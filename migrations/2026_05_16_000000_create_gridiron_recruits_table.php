@@ -5,7 +5,9 @@ use Illuminate\Database\Schema\Builder;
 
 return [
     'up' => function (Builder $schema) {
-        if ($schema->hasTable('gridiron_recruits')) return;
+        if ($schema->hasTable('gridiron_recruits')) {
+            return;
+        }
 
         $schema->create('gridiron_recruits', function (Blueprint $table) {
             $table->bigIncrements('id');

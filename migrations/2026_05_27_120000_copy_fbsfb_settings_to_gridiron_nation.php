@@ -37,17 +37,17 @@ return [
         // forum-payload key (fbsfb.*) in the same settings table when
         // serializeToForum() was used.
         $prefixMap = [
-            'fbsfb.'             => 'gridiron-nation.',
+            'fbsfb.' => 'gridiron-nation.',
             'ernestdefoe-fbsfb.' => 'ernestdefoe-gridiron-nation.',
         ];
 
         foreach ($prefixMap as $oldPrefix => $newPrefix) {
             $rows = $db->table('settings')
-                ->where('key', 'like', $oldPrefix . '%')
+                ->where('key', 'like', $oldPrefix.'%')
                 ->get(['key', 'value']);
 
             foreach ($rows as $row) {
-                $newKey = $newPrefix . substr($row->key, strlen($oldPrefix));
+                $newKey = $newPrefix.substr($row->key, strlen($oldPrefix));
 
                 $db->table('settings')->updateOrInsert(
                     ['key' => $newKey],
