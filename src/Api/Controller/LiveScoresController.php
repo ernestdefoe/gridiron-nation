@@ -89,7 +89,9 @@ class LiveScoresController implements RequestHandlerInterface
 
             // Live games first, then scheduled, then finals (so the
             // widget's "above the fold" rows are the most actionable).
-            usort($games, fn ($a, $b) => ($b['isLive'] ? 2 : ($b['isFinal'] ? 0 : 1)) <=>
+            usort(
+                $games,
+                fn ($a, $b) => ($b['isLive'] ? 2 : ($b['isFinal'] ? 0 : 1)) <=>
                 ($a['isLive'] ? 2 : ($a['isFinal'] ? 0 : 1))
             );
 
