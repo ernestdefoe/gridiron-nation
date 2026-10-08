@@ -65,16 +65,16 @@ $extenders = [
     // legacy fbsfb.* / ernestdefoe-fbsfb.* rows into these new keys on
     // first boot so upgraders don't lose their widget toggles.
     (new Extend\Settings())
-        ->serializeToForum('gridiron-nation.widget_live_scores',  'ernestdefoe-gridiron-nation.widget_live_scores',  'boolval', true)
-        ->serializeToForum('gridiron-nation.widget_trending',     'ernestdefoe-gridiron-nation.widget_trending',     'boolval', true)
-        ->serializeToForum('gridiron-nation.widget_top_recruits', 'ernestdefoe-gridiron-nation.widget_top_recruits', 'boolval', true)
+        ->serializeToForum('gridiron-nation.widget_live_scores',  'ernestdefoe-gridiron-nation.widget_live_scores',  'boolval')
+        ->serializeToForum('gridiron-nation.widget_trending',     'ernestdefoe-gridiron-nation.widget_trending',     'boolval')
+        ->serializeToForum('gridiron-nation.widget_top_recruits', 'ernestdefoe-gridiron-nation.widget_top_recruits', 'boolval')
         // DiscussionHero secondary-tag icon decoration. Child tags only,
         // up to 2 icons on desktop, configurable opacity. Opacity is
         // stored as a 0-100 integer so the admin UI is a plain text
         // field; the frontend divides by 100 before applying.
-        ->serializeToForum('gridiron-nation.hero_deco_enabled',    'ernestdefoe-gridiron-nation.hero_deco_enabled',    'boolval', true)
-        ->serializeToForum('gridiron-nation.hero_deco_icon_count', 'ernestdefoe-gridiron-nation.hero_deco_icon_count', 'intval', 2)
-        ->serializeToForum('gridiron-nation.hero_deco_opacity',    'ernestdefoe-gridiron-nation.hero_deco_opacity',    'intval', 35)
+        ->serializeToForum('gridiron-nation.hero_deco_enabled',    'ernestdefoe-gridiron-nation.hero_deco_enabled',    'boolval')
+        ->serializeToForum('gridiron-nation.hero_deco_icon_count', 'ernestdefoe-gridiron-nation.hero_deco_icon_count', 'intval')
+        ->serializeToForum('gridiron-nation.hero_deco_opacity',    'ernestdefoe-gridiron-nation.hero_deco_opacity',    'intval')
         ->default('ernestdefoe-gridiron-nation.widget_live_scores',   '1')
         ->default('ernestdefoe-gridiron-nation.widget_trending',      '1')
         ->default('ernestdefoe-gridiron-nation.widget_top_recruits',  '1')
