@@ -18,11 +18,11 @@ const trending = feed(
       .find('discussions', { sort: '-lastPostedAt', 'page[limit]': 5 })
       .then((discussions) => ({
         value: (discussions || []).map((d) => ({
-          id:           d.id(),
-          title:        d.title() || '',
+          id: d.id(),
+          title: d.title() || '',
           commentCount: d.commentCount() || 0,
           lastPostedAt: d.lastPostedAt(),
-          slug:         d.slug(),
+          slug: d.slug(),
         })),
       }))
       .catch(() => ({ value: [] })),
@@ -52,39 +52,35 @@ export default class TrendingWidget extends Component {
     const t = (key) => app.translator.trans(`ernestdefoe-gridiron-nation.forum.widgets.${key}`);
 
     return m('.GN-widget.GN-trendingWidget', [
-      m('.GN-widget-header', [
-        m('i.fas.fa-fire'),
-        ' ',
-        t('trending'),
-      ]),
+      m('.GN-widget-header', [m('i.fas.fa-fire'), ' ', t('trending')]),
       m('.GN-widget-body', [
         this.loading
           ? m('.GN-widget-loading', m('i.fas.fa-spinner.fa-spin'))
           : !this.discussions.length
-          ? m('.GN-widget-empty', t('trending_empty'))
-          : this.discussions.map((d, i) => this.viewItem(d, i + 1)),
+            ? m('.GN-widget-empty', t('trending_empty'))
+            : this.discussions.map((d, i) => this.viewItem(d, i + 1)),
       ]),
     ]);
   }
 
   viewItem(d, rank) {
-    return m('a.GN-trending-item', {
-      key:  d.id,
-      href: app.route('discussion', { id: d.slug || d.id }),
-      onclick: (e) => { e.preventDefault(); m.route.set(app.route('discussion', { id: d.slug || d.id })); },
-    }, [
-      m('span.GN-trending-rank', { class: rank <= 2 ? 'is-top' : '' }, rank),
-      m('.GN-trending-info', [
-        m('.GN-trending-title', d.title),
-        m('.GN-trending-meta', [
-          m('i.fas.fa-comment-alt'),
-          ' ',
-          d.commentCount,
-          d.lastPostedAt
-            ? [' · ', humanTime(d.lastPostedAt)]
-            : null,
+    return m(
+      'a.GN-trending-item',
+      {
+        key: d.id,
+        href: app.route('discussion', { id: d.slug || d.id }),
+        onclick: (e) => {
+          e.preventDefault();
+          m.route.set(app.route('discussion', { id: d.slug || d.id }));
+        },
+      },
+      [
+        m('span.GN-trending-rank', { class: rank <= 2 ? 'is-top' : '' }, rank),
+        m('.GN-trending-info', [
+          m('.GN-trending-title', d.title),
+          m('.GN-trending-meta', [m('i.fas.fa-comment-alt'), ' ', d.commentCount, d.lastPostedAt ? [' · ', humanTime(d.lastPostedAt)] : null]),
         ]),
-      ]),
-    ]);
+      ]
+    );
   }
 }

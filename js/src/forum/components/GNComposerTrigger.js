@@ -54,10 +54,7 @@ export default class GNComposerTrigger extends Component {
               this.open();
             },
           },
-          [
-            m('i.fas.fa-plus', { 'aria-hidden': 'true' }),
-            m('span.GN-composerTrigger-newBtn-label', ctaLabel),
-          ]
+          [m('i.fas.fa-plus', { 'aria-hidden': 'true' }), m('span.GN-composerTrigger-newBtn-label', ctaLabel)]
         ),
       ])
     );

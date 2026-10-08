@@ -46,9 +46,7 @@ export default class GNHeroNav extends Component {
     // Per-tag rows ARE still stripped via the .model attr / `/t/` href
     // filter below so the row stays terse rather than ballooning to
     // every individual tag.
-    ['allDiscussions', 'loading', 'moreTags', 'separator'].forEach((k) =>
-      itemList.remove(k)
-    );
+    ['allDiscussions', 'loading', 'moreTags', 'separator'].forEach((k) => itemList.remove(k));
 
     const items = itemList.toArray().filter((vnode) => {
       if (!vnode || typeof vnode.tag === 'string') return false;
@@ -62,8 +60,12 @@ export default class GNHeroNav extends Component {
 
     if (!items.length) return null;
 
-    return m('nav.GN-heroNav', {
-      'aria-label': extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.nav.sections_label')),
-    }, items);
+    return m(
+      'nav.GN-heroNav',
+      {
+        'aria-label': extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.nav.sections_label')),
+      },
+      items
+    );
   }
 }

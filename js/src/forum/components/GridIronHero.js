@@ -25,14 +25,14 @@ import User from 'flarum/common/models/User';
 export default class GridIronHero extends Component {
   oninit(vnode) {
     super.oninit(vnode);
-    this.users       = app.forum.attribute('userCount')       || 0;
+    this.users = app.forum.attribute('userCount') || 0;
     this.discussions = app.forum.attribute('discussionCount') || 0;
-    this.posts       = app.forum.attribute('postCount')       || 0;
+    this.posts = app.forum.attribute('postCount') || 0;
 
     // Online state
-    this.online      = 0;
+    this.online = 0;
     this.onlineUsers = [];
-    this.onlineOpen  = false;
+    this.onlineOpen = false;
 
     // Memoize User-model construction per render-cycle so toggling the
     // popover doesn't rebuild the avatars from scratch every redraw.
@@ -69,9 +69,9 @@ export default class GridIronHero extends Component {
         .then((r) => r.json())
         .then((data) => {
           const a = data?.data?.attributes || {};
-          this.users       = a.userCount       || a.usersCount       || this.users;
+          this.users = a.userCount || a.usersCount || this.users;
           this.discussions = a.discussionCount || a.discussionsCount || this.discussions;
-          this.posts       = a.postCount       || a.postsCount       || this.posts;
+          this.posts = a.postCount || a.postsCount || this.posts;
           m.redraw();
         })
         .catch(() => {});
@@ -98,7 +98,7 @@ export default class GridIronHero extends Component {
     fetch(`${base}/gn-online`, { credentials: 'same-origin' })
       .then((r) => (r.ok ? r.json() : { count: 0, users: [] }))
       .then((data) => {
-        this.online      = data?.count || 0;
+        this.online = data?.count || 0;
         this.onlineUsers = Array.isArray(data?.users) ? data.users : [];
         m.redraw();
       })
@@ -122,15 +122,17 @@ export default class GridIronHero extends Component {
     if (this._userCache.has(u.id)) return this._userCache.get(u.id);
 
     const fromStore = app.store.getById('users', String(u.id));
-    const user = fromStore || new User({
-      id: String(u.id),
-      type: 'users',
-      attributes: {
-        username:    u.slug,
-        displayName: u.displayName || u.slug,
-        avatarUrl:   u.avatarUrl || null,
-      },
-    });
+    const user =
+      fromStore ||
+      new User({
+        id: String(u.id),
+        type: 'users',
+        attributes: {
+          username: u.slug,
+          displayName: u.displayName || u.slug,
+          avatarUrl: u.avatarUrl || null,
+        },
+      });
     this._userCache.set(u.id, user);
     return user;
   }
@@ -157,21 +159,17 @@ export default class GridIronHero extends Component {
 
     return m('.GN-hero-extras', [
       m('.GN-scoreboard', [
-        this.scoreSlot('fa-solid fa-users',       this.fmt(this.users),       t('stats.members')),
-        this.scoreSlot('fa-solid fa-football',    this.fmt(this.discussions), t('stats.topics')),
-        this.scoreSlot('fa-solid fa-clipboard',   this.fmt(this.posts),       t('stats.posts')),
+        this.scoreSlot('fa-solid fa-users', this.fmt(this.users), t('stats.members')),
+        this.scoreSlot('fa-solid fa-football', this.fmt(this.discussions), t('stats.topics')),
+        this.scoreSlot('fa-solid fa-clipboard', this.fmt(this.posts), t('stats.posts')),
         // Blinking-colon separator between the static forum stats
         // (members/topics/posts) and the social stats (newest member +
         // online now) — mimics the period/quarter colon on a stadium
         // scoreboard. Animation lives in less/forum.less under
         // `@keyframes gn-scoreboard-blink`.
-        hasSocial
-          ? m('span.GN-scoreboard-sep', { 'aria-hidden': 'true' }, ':')
-          : null,
+        hasSocial ? m('span.GN-scoreboard-sep', { 'aria-hidden': 'true' }, ':') : null,
         newest ? this.newestScoreSlot(newest, t('stats.newest')) : null,
-        this.online > 0 || app.session.user
-          ? this.onlineScoreSlot(t('stats.online'))
-          : null,
+        this.online > 0 || app.session.user ? this.onlineScoreSlot(t('stats.online')) : null,
       ]),
     ]);
   }
@@ -184,18 +182,24 @@ export default class GridIronHero extends Component {
   newestScoreSlot(user, label) {
     const href = app.route('user', { username: user.username });
 
-    return m('a.GN-scoreSlot.GN-newestWrap', {
-      href,
-      onclick: (e) => { e.preventDefault(); m.route.set(href); },
-      'aria-label': `${label}: ${user.displayName}`,
-    }, [
-      user.avatarUrl
-        ? m('img.GN-scoreSlot-avatar', { src: user.avatarUrl, alt: '' })
-        : m('span.GN-scoreSlot-avatar.GN-scoreSlot-avatar--initial',
-            (user.displayName || '?')[0].toUpperCase()),
-      m('span.GN-scoreSlot-value.GN-scoreSlot-value--name', user.displayName),
-      m('span.GN-scoreSlot-label', label),
-    ]);
+    return m(
+      'a.GN-scoreSlot.GN-newestWrap',
+      {
+        href,
+        onclick: (e) => {
+          e.preventDefault();
+          m.route.set(href);
+        },
+        'aria-label': `${label}: ${user.displayName}`,
+      },
+      [
+        user.avatarUrl
+          ? m('img.GN-scoreSlot-avatar', { src: user.avatarUrl, alt: '' })
+          : m('span.GN-scoreSlot-avatar.GN-scoreSlot-avatar--initial', (user.displayName || '?')[0].toUpperCase()),
+        m('span.GN-scoreSlot-value.GN-scoreSlot-value--name', user.displayName),
+        m('span.GN-scoreSlot-label', label),
+      ]
+    );
   }
 
   /**
@@ -218,34 +222,42 @@ export default class GridIronHero extends Component {
    * FA icon so it visually reads as a live indicator.
    */
   onlineScoreSlot(label) {
-    return m('.GN-scoreSlot.GN-onlineWrap', {
-      class: this.onlineOpen ? 'is-open' : '',
-    }, [
-      m('button.GN-scoreSlot-trigger', {
-        type: 'button',
-        'aria-expanded': this.onlineOpen ? 'true' : 'false',
-        'aria-haspopup': 'true',
-        onclick: (e) => {
-          e.stopPropagation();
-          if (!this.onlineOpen && app.session.user) {
-            this.fetchOnline();
-          }
-          this.onlineOpen = !this.onlineOpen;
-        },
-      }, [
-        m('span.GN-scoreSlot-pulse', { 'aria-hidden': 'true' }),
-        m('span.GN-scoreSlot-value', this.online),
-        m('span.GN-scoreSlot-label', [
-          label,
-          ' ',
-          m('i.fas.fa-chevron-down.GN-scoreSlot-chev', {
-            style: { transform: this.onlineOpen ? 'rotate(180deg)' : 'none' },
-          }),
-        ]),
-      ]),
+    return m(
+      '.GN-scoreSlot.GN-onlineWrap',
+      {
+        class: this.onlineOpen ? 'is-open' : '',
+      },
+      [
+        m(
+          'button.GN-scoreSlot-trigger',
+          {
+            type: 'button',
+            'aria-expanded': this.onlineOpen ? 'true' : 'false',
+            'aria-haspopup': 'true',
+            onclick: (e) => {
+              e.stopPropagation();
+              if (!this.onlineOpen && app.session.user) {
+                this.fetchOnline();
+              }
+              this.onlineOpen = !this.onlineOpen;
+            },
+          },
+          [
+            m('span.GN-scoreSlot-pulse', { 'aria-hidden': 'true' }),
+            m('span.GN-scoreSlot-value', this.online),
+            m('span.GN-scoreSlot-label', [
+              label,
+              ' ',
+              m('i.fas.fa-chevron-down.GN-scoreSlot-chev', {
+                style: { transform: this.onlineOpen ? 'rotate(180deg)' : 'none' },
+              }),
+            ]),
+          ]
+        ),
 
-      this.onlineOpen ? this.onlinePopover() : null,
-    ]);
+        this.onlineOpen ? this.onlinePopover() : null,
+      ]
+    );
   }
 
   onlinePopover() {
@@ -256,41 +268,44 @@ export default class GridIronHero extends Component {
     }
 
     if (this.onlineUsers.length === 0) {
-      return m('.GN-onlinePopover',
-        m('.GN-onlinePopover-empty',
-          app.translator.trans('ernestdefoe-gridiron-nation.forum.widgets.online_empty')
-        )
-      );
+      return m('.GN-onlinePopover', m('.GN-onlinePopover-empty', app.translator.trans('ernestdefoe-gridiron-nation.forum.widgets.online_empty')));
     }
 
     return m('.GN-onlinePopover', { role: 'menu' }, [
-      m('ul.GN-onlineList', this.onlineUsers.map((u) => {
-        const userModel = this.userFor(u);
-        const href      = app.route('user', { username: u.slug });
+      m(
+        'ul.GN-onlineList',
+        this.onlineUsers.map((u) => {
+          const userModel = this.userFor(u);
+          const href = app.route('user', { username: u.slug });
 
-        return m('li', { key: u.id }, [
-          m('a.GN-onlineRow', {
-            href,
-            role: 'menuitem',
-            onclick: (e) => {
-              e.preventDefault();
-              this.onlineOpen = false;
-              m.route.set(href);
-            },
-          }, [
-            m(Avatar, { user: userModel, className: 'GN-onlineAvatar' }),
-            m('span.GN-onlineName', u.displayName),
-            m('span.GN-onlineDot', { 'aria-hidden': 'true' }),
-          ]),
-        ]);
-      })),
+          return m('li', { key: u.id }, [
+            m(
+              'a.GN-onlineRow',
+              {
+                href,
+                role: 'menuitem',
+                onclick: (e) => {
+                  e.preventDefault();
+                  this.onlineOpen = false;
+                  m.route.set(href);
+                },
+              },
+              [
+                m(Avatar, { user: userModel, className: 'GN-onlineAvatar' }),
+                m('span.GN-onlineName', u.displayName),
+                m('span.GN-onlineDot', { 'aria-hidden': 'true' }),
+              ]
+            ),
+          ]);
+        })
+      ),
     ]);
   }
 
   fmt(n) {
     n = Number(n) || 0;
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-    if (n >= 1_000)     return (n / 1_000).toFixed(1)     + 'k';
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'k';
     return String(n);
   }
 }

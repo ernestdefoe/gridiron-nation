@@ -69,60 +69,57 @@ export default class LiveScoresWidget extends Component {
     const cycleSeconds = Math.min(360, Math.max(90, games.length * 15));
 
     return m('.GN-widget.GN-liveScoresWidget', [
-      m('.GN-widget-header', [
-        m('i.fas.fa-tv'),
-        ' ',
-        t('live_scores'),
-      ]),
+      m('.GN-widget-header', [m('i.fas.fa-tv'), ' ', t('live_scores')]),
       m('.GN-widget-body', [
         this.loading
           ? m('.GN-widget-loading', m('i.fas.fa-spinner.fa-spin'))
           : this.error
-          ? m('.GN-widget-empty', t('live_scores_unavailable'))
-          : !games.length
-          ? m('.GN-widget-empty', t('live_scores_empty'))
-          : m('.GN-tickerViewport', [
-              m('.GN-tickerTrack', {
-                style: { 'animation-duration': `${cycleSeconds}s` },
-              }, [
-                ...games.map((g, i) => this.viewGame(g, t, `a-${i}`)),
-                // Second copy of the list — invisible from the user's
-                // POV because it occupies the same animated slot as
-                // the first copy shifted one cycle later. aria-hidden
-                // because the screen reader gets the names once from
-                // copy A.
-                ...games.map((g, i) =>
-                  this.viewGame(g, t, `b-${i}`, /* aria */ true)
-                ),
-              ]),
-            ]),
+            ? m('.GN-widget-empty', t('live_scores_unavailable'))
+            : !games.length
+              ? m('.GN-widget-empty', t('live_scores_empty'))
+              : m('.GN-tickerViewport', [
+                  m(
+                    '.GN-tickerTrack',
+                    {
+                      style: { 'animation-duration': `${cycleSeconds}s` },
+                    },
+                    [
+                      ...games.map((g, i) => this.viewGame(g, t, `a-${i}`)),
+                      // Second copy of the list — invisible from the user's
+                      // POV because it occupies the same animated slot as
+                      // the first copy shifted one cycle later. aria-hidden
+                      // because the screen reader gets the names once from
+                      // copy A.
+                      ...games.map((g, i) => this.viewGame(g, t, `b-${i}`, /* aria */ true)),
+                    ]
+                  ),
+                ]),
       ]),
     ]);
   }
 
   viewGame(g, t, key, ariaHidden = false) {
-    return m('.GN-scorecard', {
-      key,
-      'aria-hidden': ariaHidden ? 'true' : null,
-    }, [
-      m('.GN-scorecard-teams', [
-        m('.GN-scorecard-team', { class: g.awayWins ? 'is-winning' : '' }, [
-          g.away.logo ? m('img.GN-scorecard-logo', { src: crestUrl(g.away.logo, 26), alt: '', decoding: 'async' }) : null,
-          m('span.GN-scorecard-name', g.away.abbr),
-          m('span.GN-scorecard-score', g.away.score),
+    return m(
+      '.GN-scorecard',
+      {
+        key,
+        'aria-hidden': ariaHidden ? 'true' : null,
+      },
+      [
+        m('.GN-scorecard-teams', [
+          m('.GN-scorecard-team', { class: g.awayWins ? 'is-winning' : '' }, [
+            g.away.logo ? m('img.GN-scorecard-logo', { src: crestUrl(g.away.logo, 26), alt: '', decoding: 'async' }) : null,
+            m('span.GN-scorecard-name', g.away.abbr),
+            m('span.GN-scorecard-score', g.away.score),
+          ]),
+          m('.GN-scorecard-team', { class: g.homeWins ? 'is-winning' : '' }, [
+            g.home.logo ? m('img.GN-scorecard-logo', { src: crestUrl(g.home.logo, 26), alt: '', decoding: 'async' }) : null,
+            m('span.GN-scorecard-name', g.home.abbr),
+            m('span.GN-scorecard-score', g.home.score),
+          ]),
         ]),
-        m('.GN-scorecard-team', { class: g.homeWins ? 'is-winning' : '' }, [
-          g.home.logo ? m('img.GN-scorecard-logo', { src: crestUrl(g.home.logo, 26), alt: '', decoding: 'async' }) : null,
-          m('span.GN-scorecard-name', g.home.abbr),
-          m('span.GN-scorecard-score', g.home.score),
-        ]),
-      ]),
-      m('.GN-scorecard-status', [
-        g.isLive
-          ? m('span.GN-liveBadge', t('live_badge'))
-          : null,
-        m('span.GN-scorecard-detail', g.status),
-      ]),
-    ]);
+        m('.GN-scorecard-status', [g.isLive ? m('span.GN-liveBadge', t('live_badge')) : null, m('span.GN-scorecard-detail', g.status)]),
+      ]
+    );
   }
 }

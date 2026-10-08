@@ -3,19 +3,19 @@ import { extend, override } from 'flarum/common/extend';
 import classList from 'flarum/common/utils/classList';
 import Model from 'flarum/common/Model';
 import Discussion from 'flarum/common/models/Discussion';
-import IndexPage          from 'flarum/forum/components/IndexPage';
-import IndexSidebar       from 'flarum/forum/components/IndexSidebar';
-import WelcomeHero        from 'flarum/forum/components/WelcomeHero';
-import DiscussionHero     from 'flarum/forum/components/DiscussionHero';
+import IndexPage from 'flarum/forum/components/IndexPage';
+import IndexSidebar from 'flarum/forum/components/IndexSidebar';
+import WelcomeHero from 'flarum/forum/components/WelcomeHero';
+import DiscussionHero from 'flarum/forum/components/DiscussionHero';
 import DiscussionListItem from 'flarum/forum/components/DiscussionListItem';
 
-import LiveScoresWidget  from './forum/components/LiveScoresWidget';
-import TrendingWidget    from './forum/components/TrendingWidget';
+import LiveScoresWidget from './forum/components/LiveScoresWidget';
+import TrendingWidget from './forum/components/TrendingWidget';
 import TopRecruitsWidget from './forum/components/TopRecruitsWidget';
-import GridIronHero      from './forum/components/GridIronHero';
-import GNHeroNav         from './forum/components/GNHeroNav';
+import GridIronHero from './forum/components/GridIronHero';
+import GNHeroNav from './forum/components/GNHeroNav';
 import GNComposerTrigger from './forum/components/GNComposerTrigger';
-import GNDiscussionCard  from './forum/components/GNDiscussionCard';
+import GNDiscussionCard from './forum/components/GNDiscussionCard';
 
 /**
  * Measure the rightmost hero-decoration glyph's real ink overflow and expose
@@ -43,9 +43,17 @@ function gnMeasureDecoInset(container) {
 
   const clone = glyph.cloneNode(true);
   Object.assign(clone.style, {
-    position: 'absolute', left: '-9999px', top: '0', display: 'inline-block',
-    width: 'auto', minWidth: '0', maxWidth: 'none', margin: '0', padding: '0',
-    lineHeight: '1', fontSize: getComputedStyle(glyph).fontSize,
+    position: 'absolute',
+    left: '-9999px',
+    top: '0',
+    display: 'inline-block',
+    width: 'auto',
+    minWidth: '0',
+    maxWidth: 'none',
+    margin: '0',
+    padding: '0',
+    lineHeight: '1',
+    fontSize: getComputedStyle(glyph).fontSize,
   });
   document.body.appendChild(clone);
   const naturalW = clone.getBoundingClientRect().width;
@@ -77,9 +85,7 @@ function gnPickDecoTags(discussion) {
   const candidates = secondary.length ? secondary : withIcon;
 
   const wideEnoughForTwo = typeof window !== 'undefined' && window.innerWidth > 767;
-  const requestedCount = Math.min(2, Math.max(1,
-    parseInt(app.forum.attribute('gridiron-nation.hero_deco_icon_count'), 10) || 2
-  ));
+  const requestedCount = Math.min(2, Math.max(1, parseInt(app.forum.attribute('gridiron-nation.hero_deco_icon_count'), 10) || 2));
   const picked = candidates.slice(0, wideEnoughForTwo ? requestedCount : 1);
   if (!picked.length) return null;
 
@@ -98,7 +104,8 @@ function gnPickDecoTags(discussion) {
  * load, the viewport resizes, or the hero re-renders for another discussion.
  */
 function gnDecoVnode(picked, opacity) {
-  return m('.GN-discussionHero-icons',
+  return m(
+    '.GN-discussionHero-icons',
     {
       'aria-hidden': 'true',
       'data-icon-count': picked.length,
@@ -118,17 +125,21 @@ function gnDecoVnode(picked, opacity) {
       },
       // Re-measure when the hero re-renders for a different discussion
       // (Mithril reuses this DOM node, so oncreate won't fire again).
-      onupdate(vnode) { gnMeasureDecoInset(vnode.dom); },
+      onupdate(vnode) {
+        gnMeasureDecoInset(vnode.dom);
+      },
       onremove(vnode) {
         if (vnode.state.gnResize) window.removeEventListener('resize', vnode.state.gnResize);
         clearTimeout(vnode.state.gnTimer);
       },
     },
     picked.map((tag, i) =>
-      m('span.GN-discussionHero-icon', {
-        key: tag.id ? tag.id() : i,
-        style: tag.color && tag.color() ? { '--gn-deco-color': tag.color() } : null,
-      },
+      m(
+        'span.GN-discussionHero-icon',
+        {
+          key: tag.id ? tag.id() : i,
+          style: tag.color && tag.color() ? { '--gn-deco-color': tag.color() } : null,
+        },
         m('i', { className: tag.icon() })
       )
     )
@@ -153,7 +164,6 @@ function gnDecoVnode(picked, opacity) {
  *   - GridIronHero stats       — ONLINE tile opens a dropdown of online users
  */
 app.initializers.add('ernestdefoe-gridiron-nation', () => {
-
   // ── 0. Expose `discussion.likesCount()` on the Discussion model ──────────
   // The Schema field is registered in extend.php (DiscussionResource),
   // but the API attribute doesn't automatically materialize as a JS
@@ -208,7 +218,7 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   });
 
   extend(WelcomeHero.prototype, 'contentItems', function (items) {
-    items.add('gn-composer',    m(GNComposerTrigger), 8);
+    items.add('gn-composer', m(GNComposerTrigger), 8);
     items.add('gn-hero-extras', m(GridIronHero), 5);
   });
 
@@ -218,10 +228,7 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   // gradient hero, on the page background — easier to read than nav
   // sitting on the crimson and not constrained by the hero copy.
   override(IndexPage.prototype, 'hero', function () {
-    return [
-      m(WelcomeHero),
-      m(GNHeroNav),
-    ];
+    return [m(WelcomeHero), m(GNHeroNav)];
   });
 
   // ── 4. DiscussionHero — decorative FontAwesome tag icons ──────────────────
@@ -305,27 +312,25 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
       const tags = (discussion && discussion.tags && discussion.tags()) || [];
       const first = tags[0];
       if (first && typeof first.color === 'function') tagColor = first.color() || null;
-    } catch (e) { /* tag accessor failed — render plain card */ }
+    } catch (e) {
+      /* tag accessor failed — render plain card */
+    }
 
     return m(
       'div',
       {
-        className: classList(
-          'DiscussionListItem',
-          this.attrs.className,
-          {
-            active: typeof this.active === 'function' ? this.active() : false,
-            'DiscussionListItem--hidden': discussion && discussion.isHidden && discussion.isHidden(),
-            Slidable: typeof this.isSlidableEnabled === 'function' ? this.isSlidableEnabled() : false,
-          }
-        ),
+        className: classList('DiscussionListItem', this.attrs.className, {
+          active: typeof this.active === 'function' ? this.active() : false,
+          'DiscussionListItem--hidden': discussion && discussion.isHidden && discussion.isHidden(),
+          Slidable: typeof this.isSlidableEnabled === 'function' ? this.isSlidableEnabled() : false,
+        }),
         style: tagColor ? { '--item-tag-color': tagColor } : null,
       },
       m(GNDiscussionCard, {
-        discussion:      discussion,
-        params:          this.attrs.params,
-        jumpTo:          this.attrs.jumpTo,
-        author:          this.attrs.author,
+        discussion: discussion,
+        params: this.attrs.params,
+        jumpTo: this.attrs.jumpTo,
+        author: this.attrs.author,
         highlightRegExp: this.highlightRegExp,
       })
     );
@@ -343,15 +348,15 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   // them self-gate so the toggle is a runtime concern, not a wiring
   // concern.
   override(IndexPage.prototype, 'sidebar', function (original) {
-    const showLive     = app.forum.attribute('gridiron-nation.widget_live_scores')  !== false;
-    const showTrending = app.forum.attribute('gridiron-nation.widget_trending')     !== false;
+    const showLive = app.forum.attribute('gridiron-nation.widget_live_scores') !== false;
+    const showTrending = app.forum.attribute('gridiron-nation.widget_trending') !== false;
     const showRecruits = app.forum.attribute('gridiron-nation.widget_top_recruits') !== false;
 
     return [
       original(),
       m('.GN-widgetSidebar', [
-        showLive     ? m(LiveScoresWidget)  : null,
-        showTrending ? m(TrendingWidget)    : null,
+        showLive ? m(LiveScoresWidget) : null,
+        showTrending ? m(TrendingWidget) : null,
         showRecruits ? m(TopRecruitsWidget) : null,
       ]),
     ];

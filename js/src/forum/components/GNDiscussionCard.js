@@ -93,7 +93,7 @@ export default class GNDiscussionCard extends Component {
       isUnread: d.isUnread && d.isUnread(),
       isSticky: d.isSticky && d.isSticky(),
       isLocked: d.isLocked && d.isLocked(),
-      replyCount: Math.max(0, (d.commentCount && d.commentCount() || 1) - 1),
+      replyCount: Math.max(0, ((d.commentCount && d.commentCount()) || 1) - 1),
 
       // Total likes across every post in the discussion. Maintained by the
       // SyncDiscussionLikesCount PHP listener and read via the Schema field
@@ -121,29 +121,33 @@ export default class GNDiscussionCard extends Component {
       this.viewHeader(d, s),
 
       // Title (links to the discussion)
-      m(Link, {
-        className: 'GN-showcaseCard-titleLink',
-        href: app.route.discussion(d),
-      }, m('h2.GN-showcaseCard-title',
-        highlight(d.title(), this.attrs.highlightRegExp)
-      )),
+      m(
+        Link,
+        {
+          className: 'GN-showcaseCard-titleLink',
+          href: app.route.discussion(d),
+        },
+        m('h2.GN-showcaseCard-title', highlight(d.title(), this.attrs.highlightRegExp))
+      ),
 
       // Body excerpt (first ~220 chars of the OP, plain text)
       this.viewExcerpt(d),
 
       // Best/last reply preview
-      s.replyUser && s.replyCount > 0
-        ? this.viewReplyPreview(s.replyUser, s.lastPost, s.replyHref)
-        : null,
+      s.replyUser && s.replyCount > 0 ? this.viewReplyPreview(s.replyUser, s.lastPost, s.replyHref) : null,
 
       // "See other N replies" overflow link
       s.replyCount > 1
-        ? m(Link, {
-            className: 'GN-showcaseCard-more',
-            href: s.replyHref,
-          }, app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.see_other_replies', {
-            count: s.replyCount - 1,
-          }))
+        ? m(
+            Link,
+            {
+              className: 'GN-showcaseCard-more',
+              href: s.replyHref,
+            },
+            app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.see_other_replies', {
+              count: s.replyCount - 1,
+            })
+          )
         : null,
 
       this.viewFooter(d, s),
@@ -154,8 +158,7 @@ export default class GNDiscussionCard extends Component {
   viewHeader(d, s) {
     return m('.GN-showcaseCard-header', [
       s.author
-        ? m(Link, { className: 'GN-showcaseCard-avatar', href: app.route.user(s.author) },
-            m(Avatar, { user: s.author }))
+        ? m(Link, { className: 'GN-showcaseCard-avatar', href: app.route.user(s.author) }, m(Avatar, { user: s.author }))
         : m('span.GN-showcaseCard-avatar', m(Avatar, { user: null })),
 
       m('.GN-showcaseCard-meta', [
@@ -163,7 +166,10 @@ export default class GNDiscussionCard extends Component {
         m('span.GN-showcaseCard-dot', '·'),
         m('span.GN-showcaseCard-time', humanTime(d.createdAt())),
         s.tags.length
-          ? m('span.GN-showcaseCard-tags', s.tags.map((t) => this.tagPill(t)))
+          ? m(
+              'span.GN-showcaseCard-tags',
+              s.tags.map((t) => this.tagPill(t))
+            )
           : null,
       ]),
 
@@ -171,25 +177,27 @@ export default class GNDiscussionCard extends Component {
       // REPLIES: it opens the thread and the reply composer together, the
       // way core's own Reply control does. As a bare Link it only ever
       // navigated, so "Reply" on the list never produced a reply box.
-      m(Link, {
-        className: 'Button GN-showcaseCard-replyBtn',
-        href: s.replyHref,
-        onclick: (e) => this.reply(e, d, s.replyHref),
-      }, [
-        m('i.fas.fa-reply', { 'aria-hidden': 'true' }),
-        ' ',
-        app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.reply'),
-      ]),
+      m(
+        Link,
+        {
+          className: 'Button GN-showcaseCard-replyBtn',
+          href: s.replyHref,
+          onclick: (e) => this.reply(e, d, s.replyHref),
+        },
+        [m('i.fas.fa-reply', { 'aria-hidden': 'true' }), ' ', app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.reply')]
+      ),
 
       s.controls.length
-        ? m(Dropdown, {
-            icon: 'fas fa-ellipsis-v',
-            className: 'GN-showcaseCard-controls',
-            buttonClassName: 'Button Button--icon Button--flat',
-            accessibleToggleLabel: app.translator.trans(
-              'core.forum.discussion_controls.toggle_dropdown_accessible_label'
-            ),
-          }, s.controls)
+        ? m(
+            Dropdown,
+            {
+              icon: 'fas fa-ellipsis-v',
+              className: 'GN-showcaseCard-controls',
+              buttonClassName: 'Button Button--icon Button--flat',
+              accessibleToggleLabel: app.translator.trans('core.forum.discussion_controls.toggle_dropdown_accessible_label'),
+            },
+            s.controls
+          )
         : null,
     ]);
   }
@@ -222,31 +230,36 @@ export default class GNDiscussionCard extends Component {
    */
   viewFooter(d, s) {
     return m('.GN-showcaseCard-footer', [
-      m('button.GN-showcaseCard-stat.GN-showcaseCard-stat--likes', {
-        type: 'button',
-        className: classList({
-          'GN-showcaseCard-stat--liked':    s.isOpLiked,
-          'GN-showcaseCard-stat--disabled': !s.canLikeOp,
-        }),
-        disabled: !s.canLikeOp || this.likeBusy,
-        title: s.canLikeOp || app.session.user
-          ? null
-          : extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.sign_in_to_like')),
-        onclick: (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.toggleOpLike();
+      m(
+        'button.GN-showcaseCard-stat.GN-showcaseCard-stat--likes',
+        {
+          type: 'button',
+          className: classList({
+            'GN-showcaseCard-stat--liked': s.isOpLiked,
+            'GN-showcaseCard-stat--disabled': !s.canLikeOp,
+          }),
+          disabled: !s.canLikeOp || this.likeBusy,
+          title:
+            s.canLikeOp || app.session.user
+              ? null
+              : extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.sign_in_to_like')),
+          onclick: (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.toggleOpLike();
+          },
         },
-      }, [
-        m('i', {
-          className: classList(s.isOpLiked ? 'fas fa-thumbs-up' : 'far fa-thumbs-up'),
-          'aria-hidden': 'true',
-        }),
-        ' ',
-        abbreviateNumber(s.likesCount),
-        ' ',
-        app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.likes', { count: s.likesCount }),
-      ]),
+        [
+          m('i', {
+            className: classList(s.isOpLiked ? 'fas fa-thumbs-up' : 'far fa-thumbs-up'),
+            'aria-hidden': 'true',
+          }),
+          ' ',
+          abbreviateNumber(s.likesCount),
+          ' ',
+          app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.likes', { count: s.likesCount }),
+        ]
+      ),
       m('span.GN-showcaseCard-stat', [
         m('i.far.fa-comment', { 'aria-hidden': 'true' }),
         ' ',
@@ -320,8 +333,8 @@ export default class GNDiscussionCard extends Component {
       m.redraw();
       app.alerts.show(
         { type: 'error' },
-        (err && err.response && err.response.errors && err.response.errors[0] && err.response.errors[0].detail)
-        || extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.like_failed'))
+        (err && err.response && err.response.errors && err.response.errors[0] && err.response.errors[0].detail) ||
+          extractText(app.translator.trans('ernestdefoe-gridiron-nation.forum.discussion.like_failed'))
       );
     } finally {
       this.likeBusy = false;
@@ -339,18 +352,16 @@ export default class GNDiscussionCard extends Component {
     const color = tag.color && tag.color();
     const href = app.route('tag', { tags: tag.slug ? tag.slug() : '' });
 
-    return m(Link, {
-      key: tag.id(),
-      href,
-      className: 'GN-showcaseCard-tagPill',
-      style: color
-        ? { '--gn-tag-color': color, '--gn-tag-color-tint': hexToRgba(color, 0.14) }
-        : null,
-    }, [
-      tag.icon && tag.icon() ? m('i', { className: tag.icon() }) : null,
-      ' ',
-      tag.name ? tag.name() : '',
-    ]);
+    return m(
+      Link,
+      {
+        key: tag.id(),
+        href,
+        className: 'GN-showcaseCard-tagPill',
+        style: color ? { '--gn-tag-color': color, '--gn-tag-color-tint': hexToRgba(color, 0.14) } : null,
+      },
+      [tag.icon && tag.icon() ? m('i', { className: tag.icon() }) : null, ' ', tag.name ? tag.name() : '']
+    );
   }
 
   /**
@@ -375,21 +386,21 @@ export default class GNDiscussionCard extends Component {
    * snippet. Clicking it jumps to that post inside the discussion.
    */
   viewReplyPreview(replyUser, lastPost, href) {
-    const snippet = lastPost && lastPost.contentPlain
-      ? lastPost.contentPlain()
-      : null;
-    const trimmed = snippet && snippet.length > 110
-      ? snippet.slice(0, 110).trimEnd() + '…'
-      : snippet;
+    const snippet = lastPost && lastPost.contentPlain ? lastPost.contentPlain() : null;
+    const trimmed = snippet && snippet.length > 110 ? snippet.slice(0, 110).trimEnd() + '…' : snippet;
 
-    return m(Link, {
-      className: 'GN-showcaseCard-reply',
-      href,
-    }, [
-      m(Avatar, { user: replyUser, className: 'GN-showcaseCard-replyAvatar' }),
-      m('span.GN-showcaseCard-replyAuthor', replyUser.displayName()),
-      trimmed ? m('span.GN-showcaseCard-replySnippet', trimmed) : null,
-    ]);
+    return m(
+      Link,
+      {
+        className: 'GN-showcaseCard-reply',
+        href,
+      },
+      [
+        m(Avatar, { user: replyUser, className: 'GN-showcaseCard-replyAvatar' }),
+        m('span.GN-showcaseCard-replyAuthor', replyUser.displayName()),
+        trimmed ? m('span.GN-showcaseCard-replySnippet', trimmed) : null,
+      ]
+    );
   }
 }
 

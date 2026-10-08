@@ -40,11 +40,11 @@ const recruitsFeed = feed(() => {
       return r.json().then((data) => ({
         value: {
           recruits: Array.isArray(data.data) ? data.data : [],
-          year:     data.year || null,
+          year: data.year || null,
           // The extension surfaces "API key missing" as 200 + error
           // field so the operator's admin UI can render config guidance.
           // Mirror that shape here.
-          error:    data.error === 'api_key_missing' ? 'api_key_missing' : null,
+          error: data.error === 'api_key_missing' ? 'api_key_missing' : null,
         },
       }));
     })
@@ -106,27 +106,21 @@ export default class TopRecruitsWidget extends Component {
     // "Top Recruits". The year suffix only shows once we have real
     // data so the title doesn't flicker between empty and configured.
     const customTitle = app.forum.attribute('ernestdefoe-recruiting.widget_title');
-    const baseLabel   = (typeof customTitle === 'string' && customTitle.trim()) ? customTitle : t('recruits');
-    const headerLabel = this.year && this.recruits.length
-      ? `${baseLabel} · ${this.year}`
-      : baseLabel;
+    const baseLabel = typeof customTitle === 'string' && customTitle.trim() ? customTitle : t('recruits');
+    const headerLabel = this.year && this.recruits.length ? `${baseLabel} · ${this.year}` : baseLabel;
 
     return m('.GN-widget.GN-recruitsWidget', [
-      m('.GN-widget-header', [
-        m('i.fas.fa-star'),
-        ' ',
-        headerLabel,
-      ]),
+      m('.GN-widget-header', [m('i.fas.fa-star'), ' ', headerLabel]),
       m('.GN-widget-body', [
         this.loading
           ? m('.GN-widget-loading', m('i.fas.fa-spinner.fa-spin'))
           : this.error === 'api_key_missing'
-          ? m('.GN-widget-empty', t('recruits_unconfigured'))
-          : this.error === 'fetch_failed'
-          ? m('.GN-widget-empty', t('recruits_unavailable'))
-          : !this.recruits.length
-          ? m('.GN-widget-empty', t('recruits_empty'))
-          : this.recruits.slice(0, 8).map((r) => this.viewRecruit(r)),
+            ? m('.GN-widget-empty', t('recruits_unconfigured'))
+            : this.error === 'fetch_failed'
+              ? m('.GN-widget-empty', t('recruits_unavailable'))
+              : !this.recruits.length
+                ? m('.GN-widget-empty', t('recruits_empty'))
+                : this.recruits.slice(0, 8).map((r) => this.viewRecruit(r)),
       ]),
     ]);
   }
@@ -134,11 +128,12 @@ export default class TopRecruitsWidget extends Component {
   viewRecruit(r) {
     const trans = (key, params) => app.translator.trans(`ernestdefoe-gridiron-nation.forum.recruits.status.${key}`, params);
 
-    const statusClass = {
-      committed:   'GN-recruit-commit--committed',
-      undecided:   'GN-recruit-commit--undecided',
-      decommitted: 'GN-recruit-commit--decommitted',
-    }[r.status] || 'GN-recruit-commit--undecided';
+    const statusClass =
+      {
+        committed: 'GN-recruit-commit--committed',
+        undecided: 'GN-recruit-commit--undecided',
+        decommitted: 'GN-recruit-commit--decommitted',
+      }[r.status] || 'GN-recruit-commit--undecided';
 
     const statusLabel = (() => {
       if (r.status === 'committed') {
@@ -154,24 +149,18 @@ export default class TopRecruitsWidget extends Component {
     const leading = r.photoUrl
       ? m('img.GN-recruit-photo', { src: r.photoUrl, alt: r.name, loading: 'lazy' })
       : r.position
-      ? m('.GN-recruit-pos', r.position)
-      : null;
+        ? m('.GN-recruit-pos', r.position)
+        : null;
 
     // Hometown line with high-school fallback so the meta row always
     // has something — CFBD sometimes ships rows without city/state.
-    const metaPieces = [
-      r.height,
-      r.hometown,
-      r.highSchool,
-    ].filter(Boolean);
+    const metaPieces = [r.height, r.hometown, r.highSchool].filter(Boolean);
 
     return m('.GN-recruit', { key: r.id || r.name }, [
       leading,
       m('.GN-recruit-info', [
         m('.GN-recruit-name', r.name),
-        metaPieces.length
-          ? m('.GN-recruit-meta', metaPieces.join(' · '))
-          : null,
+        metaPieces.length ? m('.GN-recruit-meta', metaPieces.join(' · ')) : null,
         m('.GN-recruit-stars', this.stars(r.stars || 0)),
       ]),
       m('span.GN-recruit-commit', { class: statusClass }, statusLabel),
