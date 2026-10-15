@@ -4,14 +4,14 @@ ernestdefoe-gridiron-nation:
       title: GridIron Nation Theme
 
       widget_live_scores: "Show Live Scores widget"
-      widget_live_scores_help: "Sidebar widget that polls ESPN for in-progress college football scores."
+      widget_live_scores_help: "Sidebar ticker that scrolls through in-progress NCAA football scores. Powered by an internal ESPN proxy with a 60s server-side cache."
       widget_trending: "Show Trending widget"
-      widget_trending_help: "Sidebar widget that lists the five most recently active discussions."
+      widget_trending_help: "Sidebar widget listing the five most recently active discussions on the forum."
       widget_top_recruits: "Show Top Recruits widget"
-      widget_top_recruits_help: "Sidebar widget that pulls recruiting data from the ernestdefoe/recruiting extension. Requires that extension to be installed and a CFBD API key configured."
+      widget_top_recruits_help: "Sidebar widget that reads from the ernestdefoe/recruiting extension. Requires that extension to be installed and a CollegeFootballData.com API key configured."
 
       hero_deco_enabled: "Show FontAwesome decoration in discussion hero"
-      hero_deco_enabled_help: "Anchors a large semi-transparent FontAwesome glyph to the right side of every discussion hero, pulled from any secondary (child) tag's icon. Set the icon per-tag in the Flarum Tags admin panel."
+      hero_deco_enabled_help: "Anchors a large semi-transparent FontAwesome glyph to the right side of every discussion hero, pulled from any secondary (child) tag with an icon. Set the icon per-tag in the Flarum Tags admin panel."
       hero_deco_icon_count: "Number of decoration icons"
       hero_deco_icon_count_help: "Up to 2 icons on desktop (≥ 768px viewport). Tablet and phone always show a single icon to avoid layout compression."
       hero_deco_opacity: "Decoration icon opacity (0–100)"
