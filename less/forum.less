@@ -1930,6 +1930,18 @@ select {
   font-size: 0.75rem;
 }
 
+// ── Profile hero ──────────────────────────────────────────────────────────────
+// Core lays .UserCard-profile out as a two-cell grid (avatar | content). Rank
+// badges injected as a direct child steal the second cell and push the content
+// into the 104px avatar column — a tall hero with a squashed text column. Pin
+// both to column 2 and let the avatar span them. Desktop only; core stacks on phones.
+@media (min-width: 768px) {
+  .UserCard-profile > .UserCard-badges,
+  .UserCard-profile > .UserCard-content { grid-column: 2; }
+  .UserCard-profile > .UserCard-badges { margin: 0 0 -14px; }
+  .UserCard-profile:has(> .UserCard-badges:not(:empty)) > :first-child { grid-row: span 2; }
+}
+
 // ── Pagination ────────────────────────────────────────────────────────────────
 .Pagination .Button {
   border-radius: @gn-radius-sm;
