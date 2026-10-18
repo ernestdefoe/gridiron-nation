@@ -270,6 +270,28 @@ body,
     }
   }
 
+  // 🚨 iOS 26 Safari tints its status-bar area by hit-testing the MIDDLE of
+  // the top edge and walking up to the first fixed box at least ~90% of the
+  // viewport wide (WebKit LocalFrameView::fixedContainerEdges). On list, tag
+  // and Pick 'Em pages that midpoint is this 320px title control, which
+  // escapes `.IndexPage-nav` on its own, outside #app-navigation: too narrow,
+  // no fixed ancestor, so Safari found no header and blurred the scrolling
+  // list through above it. Discussion pages (nothing escaped) were fine.
+  // Make its wrapper a full-width fixed strip: transparent and click-through,
+  // so Safari samples the white header under it and nothing else changes.
+  .IndexPage-nav .item-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    pointer-events: none;
+
+    > .App-titleControl {
+      pointer-events: auto;
+    }
+  }
+
   // --- Primary control (right) — Search / Notifications / User menu.
   // Tint the buttons crimson too so the whole strip reads as one
   // themed bar rather than three differently-styled icon zones.
