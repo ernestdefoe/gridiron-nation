@@ -205,6 +205,18 @@ body,
     padding-top: var(--header-height-phone) !important;
   }
 
+  // 🚨 Same trap, inside the drawer. On a phone `.App-header` IS the drawer's
+  // column (logo, nav links, controls), so a fixed height — ours (58px) or a
+  // forum's own for a big logo (`.App-header { height: 120px !important }`) —
+  // ended its white panel and shadow partway down, cutting across the first
+  // link while the rest spilled out below it. Let it be as tall as it is,
+  // and drop its edge: the drawer is the panel here, so a header shadow or
+  // border would only draw a stray line across the drawer under its controls.
+  body .App-header {
+    height: auto !important;
+    border-bottom: 0 !important;
+    box-shadow: none !important;
+  }
 
   // --- Burger (left) — opens the slide-in drawer with search, notifications,
   // theme toggle, login/signup. NOT the nav menu — that's the title control.
