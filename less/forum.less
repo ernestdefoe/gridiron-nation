@@ -205,6 +205,7 @@ body,
     padding-top: var(--header-height-phone) !important;
   }
 
+
   // --- Burger (left) — opens the slide-in drawer with search, notifications,
   // theme toggle, login/signup. NOT the nav menu — that's the title control.
   #app-navigation .Navigation-drawer,
@@ -2428,27 +2429,29 @@ a.GN-trending-item {
     flex-basis: 320px;
   }
 
-  // Exclude the primary "Start a Discussion" button (.Button--primary):
-  // these flex/icon/wrap tweaks are for the nav LINKS only. Without the
-  // exclusion the primary button's label wrapped to two lines.
-  .Page:not(.IndexPage):not(.Page--vertical) .IndexPage-nav .Button.hasIcon:not(.Button--primary) {
-    display: flex !important;
-    align-items: center;
-    gap: 12px;
-  }
+  // 🚨 The nav rows are LinkButtons (`<a>`, no `.Button` class), and core lays
+  // them out under `.sideNav .Dropdown-menu > li > a` only. A row an extension
+  // adds as a real `<button class="Button">` (Bespoke's "Mark All as Read")
+  // missed that rule and kept `.Button`'s `justify-content: center` and the
+  // menu's 15px left padding, so it sat indented under the row above it. Lay
+  // a button row out exactly like the link rows: flush left, 15px gap, the
+  // same colour, no hover fill. (A 2.6em icon column used to target
+  // `.Button` here, believing the links were buttons; it only ever reached
+  // these stray buttons and pushed them further in.)
+  .Page:not(.IndexPage):not(.Page--vertical) .IndexPage-nav .Dropdown-menu > li > button:not(.Button--primary) {
+    justify-content: flex-start;
+    padding-left: 0;
+    gap: 15px;
+    color: var(--sidenav-color, var(--muted-color));
 
-  .Page:not(.IndexPage):not(.Page--vertical) .IndexPage-nav .Button:not(.Button--primary) .Button-icon {
-    width: 2.6em !important;
-    min-width: 2.6em;
-    margin: 0 !important;
-    text-align: center;
-    flex: 0 0 auto;
-  }
+    .Button-icon {
+      font-size: 15px;
+    }
 
-  .Page:not(.IndexPage):not(.Page--vertical) .IndexPage-nav .Button:not(.Button--primary) .Button-label {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
+    &:hover {
+      background: none;
+      color: var(--sidenav-color-hover, var(--link-color));
+    }
   }
 }
 
