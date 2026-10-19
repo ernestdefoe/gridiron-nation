@@ -1697,10 +1697,12 @@ body:has(.BespokeHeaderNav) .GN-heroNav {
   // previews, are absolutely positioned children that open below the
   // card — so the mask sliced them off at the card's bottom edge and the
   // menu items could not be seen or clicked (the last post on a page lost
-  // its whole menu). While one of those popups is open the card drops its
-  // mask; the punch-holes come back the moment it closes.
+  // its whole menu). The author's hover user card is the same: it was cut
+  // off at the card's bottom edge. While one of those popups is open the
+  // card drops its mask; the punch-holes come back the moment it closes.
   &:has(.Dropdown.open),
-  &:has(.Dropdown-menu.in) {
+  &:has(.Dropdown-menu.in),
+  &:has(.UserCard--popover) {
     mask-image: none;
     -webkit-mask-image: none;
   }
