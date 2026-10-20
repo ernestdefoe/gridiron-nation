@@ -1700,9 +1700,12 @@ body:has(.BespokeHeaderNav) .GN-heroNav {
   // its whole menu). The author's hover user card is the same: it was cut
   // off at the card's bottom edge. While one of those popups is open the
   // card drops its mask; the punch-holes come back the moment it closes.
+  // Tooltips too: they open ABOVE what they label, so the header's
+  // "Edited" tooltip had its top half cut off at the card's top edge.
   &:has(.Dropdown.open),
   &:has(.Dropdown-menu.in),
-  &:has(.UserCard--popover) {
+  &:has(.UserCard--popover),
+  &:has(.tooltip) {
     mask-image: none;
     -webkit-mask-image: none;
   }
