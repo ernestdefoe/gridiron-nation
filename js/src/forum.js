@@ -253,7 +253,7 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   //   - Up to 2 icons rendered, controlled by `hero_deco_icon_count`
   //     (1 or 2). The 2-icon layout requires ≥ 768px viewport — on
   //     tablet/phone we fall back to 1 icon.
-  //   - Opacity is `hero_deco_opacity` (0–100, default 12), applied
+  //   - Opacity is `hero_deco_opacity` (0–100, default 35), applied
   //     via the `--gn-deco-opacity` CSS custom property. Setting 0
   //     hides the decoration.
   //   - Gated by `hero_deco_enabled`.

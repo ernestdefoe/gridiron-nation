@@ -61,7 +61,7 @@ export default [
       min: 0,
       max: 100,
       step: 1,
-      placeholder: '12',
+      placeholder: '35',
     }))
 
     // ── DiscussionHero layout ───────────────────────────────────────────────
