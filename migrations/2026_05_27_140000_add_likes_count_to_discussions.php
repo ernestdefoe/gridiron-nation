@@ -19,6 +19,15 @@ use Illuminate\Database\Schema\Builder;
  * — a JOIN against `post_likes` summed per discussion. Guards on the
  * `post_likes` table existing (it does iff flarum/likes is installed).
  *
+ * Why a column on `discussions` and not a companion table: this is the
+ * same denormalised-counter pattern core uses (comment_count,
+ * participant_count) and flarum/sticky / flarum/lock use (is_sticky,
+ * is_locked). A companion table would put a JOIN or an extra query on
+ * every discussion-list request, which is what the counter avoids. The
+ * backfill is a single UPDATE run once at install time.
+ * Raw Schema Builder (not Migration::addColumns) because of the backfill
+ * and the hasColumn guard.
+ *
  * Idempotent: `hasColumn` guard so re-running on an already-migrated DB
  * is a no-op. `down` drops the column if it exists.
  */

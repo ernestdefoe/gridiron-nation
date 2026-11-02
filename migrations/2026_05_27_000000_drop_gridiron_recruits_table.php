@@ -19,6 +19,9 @@ use Illuminate\Database\Schema\Builder;
  * if they need the old admin-managed entries. The original 2026_05_16
  * create migration was kept in tree so `migrate:reset` knows the full
  * history; this migration is the inverse delta on top of it.
+ *
+ * Raw Schema Builder on purpose: Flarum\Database\Migration has no
+ * drop-table helper whose `down` recreates the table.
  */
 return [
     'up' => function (Builder $schema) {

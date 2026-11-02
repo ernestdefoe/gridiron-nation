@@ -164,6 +164,14 @@ function gnDecoVnode(picked, opacity) {
  *   - GridIronHero stats       — ONLINE tile opens a dropdown of online users
  */
 app.initializers.add('ernestdefoe-gridiron-nation', () => {
+  wireDiscussionModel();
+  wireWelcomeHero();
+  wireDiscussionHero();
+  wireDiscussionList();
+  wireSidebar();
+});
+
+function wireDiscussionModel() {
   // ── 0. Expose `discussion.likesCount()` on the Discussion model ──────────
   // The Schema field is registered in extend.php (DiscussionResource),
   // but the API attribute doesn't automatically materialize as a JS
@@ -173,7 +181,9 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   // `discussion.likesCount()` instead of `discussion.attribute('likesCount')`,
   // matching the existing `commentCount()`/`title()`/etc. style.
   Discussion.prototype.likesCount = Model.attribute('likesCount');
+}
 
+function wireWelcomeHero() {
   // ── 0.5. Mobile nav: rely on Flarum's native @phone pattern ──────────────
   // On phone widths, Flarum auto-positions three pieces inside the
   // 56px `#app-navigation` strip:
@@ -230,7 +240,9 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
   override(IndexPage.prototype, 'hero', function () {
     return [m(WelcomeHero), m(GNHeroNav)];
   });
+}
 
+function wireDiscussionHero() {
   // ── 4. DiscussionHero — decorative FontAwesome tag icons ──────────────────
   // Anchors up to two big semi-transparent tag icons to the right side
   // of every tagged discussion's hero, mirroring ramon/avocado's
@@ -271,7 +283,9 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
     // decoration, not content.
     items.add('gn-hero-deco-icons', gnDecoVnode(deco.picked, deco.opacity), -100);
   });
+}
 
+function wireDiscussionList() {
   // ── 5. Discussion list rows → GNDiscussionCard showcase layout ───────────
   // Override DiscussionListItem.view() to render our showcase card inside
   // the standard `<div class="DiscussionListItem">` wrapper. The wrapper is
@@ -335,7 +349,9 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
       })
     );
   });
+}
 
+function wireSidebar() {
   // ── 6. Sidebar: keep IndexSidebar (hidden), append widget stack ───────────
   // CSS flips the .Page-container flex direction so the sidebar lands on
   // the right of the discussion list. IndexSidebar stays mounted so its
@@ -361,4 +377,4 @@ app.initializers.add('ernestdefoe-gridiron-nation', () => {
       ]),
     ];
   });
-});
+}
