@@ -4,6 +4,7 @@ import classList from 'flarum/common/utils/classList';
 import Model from 'flarum/common/Model';
 import Discussion from 'flarum/common/models/Discussion';
 import IndexPage from 'flarum/forum/components/IndexPage';
+import PageStructure from 'flarum/forum/components/PageStructure';
 import IndexSidebar from 'flarum/forum/components/IndexSidebar';
 import WelcomeHero from 'flarum/forum/components/WelcomeHero';
 import DiscussionHero from 'flarum/forum/components/DiscussionHero';
@@ -351,6 +352,9 @@ function wireDiscussionList() {
   });
 }
 
+/** fof/forum-widgets-core's side section, as it names its own item. */
+const FOF_END_ITEM = 'endWidgetSection';
+
 function wireSidebar() {
   // ── 6. Sidebar: keep IndexSidebar (hidden), append widget stack ───────────
   // CSS flips the .Page-container flex direction so the sidebar lands on
@@ -376,5 +380,19 @@ function wireSidebar() {
         showRecruits ? m(TopRecruitsWidget) : null,
       ]),
     ];
+  });
+
+  // fof/forum-widgets-core's "end" area is a third column of .Page-container.
+  // The flipped row above strands it on the far LEFT of the list, and on
+  // narrow screens (explicit `order` on content/sidebar) above the list. Adopt
+  // it into the right-hand sidebar instead, under widget-core's "start" areas,
+  // so it follows the sidebar everywhere. Absent widget-core, no item: no-op.
+  extend(PageStructure.prototype, 'containerItems', function (items) {
+    if (!items.has(FOF_END_ITEM) || !items.has('sidebar') || !app.current.matches(IndexPage)) return;
+
+    const end = items.get(FOF_END_ITEM);
+    const sidebar = items.get('sidebar');
+    items.remove(FOF_END_ITEM);
+    items.setContent('sidebar', m('div', sidebar.attrs, [sidebar.children, end]));
   });
 }

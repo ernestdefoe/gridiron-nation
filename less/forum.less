@@ -3219,3 +3219,13 @@ html.colored--instant * {
   transition: none !important;
   animation-duration: 0s !important;
 }
+
+// ── fof/forum-widgets-core "end" area, adopted into the sidebar ──────────────
+// forum.js moves the area out of .Page-container (where it was a stranded
+// left-hand column) into .Page-sidebar, under the "start" areas. Drop the
+// column geometry widget-core gives it and space it like its start areas.
+.IndexPage .Page-sidebar > .FofWidgets-sideNavAlt {
+  width: auto;
+  margin: 20px 0 0;
+  padding: 0;
+}
