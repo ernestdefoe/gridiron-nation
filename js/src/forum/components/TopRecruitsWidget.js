@@ -6,7 +6,7 @@ import feed from '../feed';
  * TopRecruitsWidget — Phase 5
  *
  * Reads the recruiting list from the ernestdefoe/recruiting extension
- * via /api/cfbd-recruits. That endpoint is itself backed by the
+ * via /api/recruiting-boards/1 (/api/cfbd-recruits before Recruiting 3.2). That endpoint is itself backed by the
  * CollegeFootballData.com API + an On3 photo enricher, with a
  * stale-while-revalidate cache so the widget reload doesn't pay the
  * upstream cost.
@@ -32,21 +32,31 @@ import feed from '../feed';
 // they end the feed (`final`) instead of being asked again every visit.
 const recruitsFeed = feed(() => {
   const base = app.forum.attribute('apiUrl') || '/api';
-  return fetch(`${base}/cfbd-recruits`, { credentials: 'same-origin' })
-    .then((r) => {
+  const get = (path) => fetch(`${base}${path}`, { credentials: 'same-origin' });
+
+  // Recruiting 3.2+ serves the board as an API resource; older versions
+  // answer on /cfbd-recruits, so a 404 from the resource tries that next.
+  return get('/recruiting-boards/1')
+    .then((r) => (r.status === 404 ? get('/cfbd-recruits').then((old) => [old, false]) : [r, true]))
+    .then(([r, resource]) => {
       if (r.status === 401) return { value: { recruits: [], year: null, error: 'unauthenticated' }, final: true };
       if (r.status === 404) return { value: { recruits: [], year: null, error: 'not_installed' }, final: true };
 
-      return r.json().then((data) => ({
-        value: {
-          recruits: Array.isArray(data.data) ? data.data : [],
-          year: data.year || null,
-          // The extension surfaces "API key missing" as 200 + error
-          // field so the operator's admin UI can render config guidance.
-          // Mirror that shape here.
-          error: data.error === 'api_key_missing' ? 'api_key_missing' : null,
-        },
-      }));
+      return r.json().then((json) => {
+        const data = resource ? json.data?.attributes || {} : json;
+        const recruits = resource ? data.recruits : data.data;
+
+        return {
+          value: {
+            recruits: Array.isArray(recruits) ? recruits : [],
+            year: data.year || null,
+            // The extension surfaces "API key missing" as 200 + error
+            // field so the operator's admin UI can render config guidance.
+            // Mirror that shape here.
+            error: data.error === 'api_key_missing' ? 'api_key_missing' : null,
+          },
+        };
+      });
     })
     .catch(() => ({ value: { recruits: [], year: null, error: 'fetch_failed' } }));
 }, 10 * 60_000);
@@ -55,7 +65,7 @@ export default class TopRecruitsWidget extends Component {
   oncreate(vnode) {
     super.oncreate(vnode);
 
-    // Guests can't reach /api/cfbd-recruits — recruiting requires
+    // Guests can't reach the recruiting board here — recruiting requires
     // authentication. Skip the fetch so we don't ping the endpoint
     // for every anonymous page-view.
     if (!app.session.user) return;

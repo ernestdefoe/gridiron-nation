@@ -42,7 +42,7 @@ $extenders = [
     // the ernestdefoe/recruiting extension (CollegeFootballData.com
     // source, scheduled refresh, On3 photo enrichment) — see
     // js/src/forum/components/TopRecruitsWidget.js which now hits
-    // /api/cfbd-recruits. The migrations folder includes a drop for
+    // /api/recruiting-boards/1. The migrations folder includes a drop for
     // the legacy `gridiron_recruits` table.
     (new Extend\Routes('api'))
         // Phase 2 — Live Scores (ESPN proxy, CORS-safe, public)
