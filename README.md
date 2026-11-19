@@ -201,7 +201,7 @@ Under **Extensions → GridIron Nation** in the Flarum admin panel:
 
 The retired `/api/gn-recruits` endpoints from v1.x have been removed —
 recruit data now comes from `ernestdefoe/recruiting`'s
-`/api/recruiting-boards/1` resource (`/api/cfbd-recruits` before Recruiting 3.2) when that extension is installed.
+`/api/recruiting-boards/1` resource (`/api/cfbd-recruits` on older versions) when that extension is installed.
 
 ---
 

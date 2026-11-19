@@ -6,7 +6,7 @@ import feed from '../feed';
  * TopRecruitsWidget — Phase 5
  *
  * Reads the recruiting list from the ernestdefoe/recruiting extension
- * via /api/recruiting-boards/1 (/api/cfbd-recruits before Recruiting 3.2). That endpoint is itself backed by the
+ * via /api/recruiting-boards/1 (/api/cfbd-recruits on older versions). That endpoint is itself backed by the
  * CollegeFootballData.com API + an On3 photo enricher, with a
  * stale-while-revalidate cache so the widget reload doesn't pay the
  * upstream cost.
@@ -34,7 +34,7 @@ const recruitsFeed = feed(() => {
   const base = app.forum.attribute('apiUrl') || '/api';
   const get = (path) => fetch(`${base}${path}`, { credentials: 'same-origin' });
 
-  // Recruiting 3.2+ serves the board as an API resource; older versions
+  // Recruiting now serves the board as an API resource; older versions
   // answer on /cfbd-recruits, so a 404 from the resource tries that next.
   return get('/recruiting-boards/1')
     .then((r) => (r.status === 404 ? get('/cfbd-recruits').then((old) => [old, false]) : [r, true]))
